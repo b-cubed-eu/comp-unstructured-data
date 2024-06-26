@@ -19,8 +19,9 @@ library(zen4R)
 # Goal
 
 Load and save structured data of the “Common Breeding Bird Survey Flanders” (ABV).
+Load and save unstructured data.
 
-# Download data
+# Structured data
 ## Sampling framework
 
 We download the sampling framework from zenodo.
@@ -58,16 +59,54 @@ head(sampling_framework_abv)
 ## Occurrence data
 
 Occurrence data is downloaded from GBIF.org.
-Store these files under *./data/raw*.
+Unzip and store folders under *./data/raw*.
 
-**ABV - Common breeding birds in Flanders, Belgium**
+**ABV - Common breeding birds in Flanders, Belgium**: 0000102-240626123714530.zip
 
-*CSV:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.3yvvyu
+GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.w8va93
 
-*DARWINCORE:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.w8va93
+**ABV - Common breeding birds in Flanders, Belgium (post 2016)**: 0000105-240626123714530.zip
 
-**ABV - Common breeding birds in Flanders, Belgium (post 2016)**
+GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.4htaqh
 
-*CSV:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.9x99sn
 
-*DARWINCORE:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.4htaqh
+# Unstructured data
+
+We retrieved species occurrence cubes using Microsoft Azure Databricks as described [here](https://techdocs.gbif.org/en/data-use/b-cubed/generate-cube-databricks).
+
+We first selected all bird data in Belgium `birds_data.belgium` from 2007-2022 using this query:
+
+```
+CREATE DATABASE IF NOT EXISTS birds_data;
+CREATE TABLE IF NOT EXISTS birds_data.belgium AS SELECT
+  *
+FROM
+  gbif.occurrence
+WHERE
+  occurrenceStatus = 'PRESENT'
+  AND NOT array_contains(issue.array_element, 'ZERO_COORDINATE')
+  AND NOT array_contains(issue.array_element, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT array_contains(issue.array_element, 'COORDINATE_INVALID')
+  AND NOT array_contains(issue.array_element, 'COUNTRY_COORDINATE_MISMATCH')
+  AND countrycode = 'BE'
+  AND year BETWEEN 2007 AND 2022
+  AND speciesKey IS NOT NULL 
+  AND decimallatitude IS NOT NULL
+  AND decimallongitude IS NOT NULL
+  AND class = 'Aves';
+```
+
+We excluded ABV data into a new table `birds_data.unstructured` using this SQL code:
+
+```
+CREATE TABLE IF NOT EXISTS birds_data.unstructured AS SELECT
+  *
+FROM
+  birds_data.belgium
+WHERE
+  collectionCode != 'ABV';
+```
+
+## Occurrence cubes
+
+
