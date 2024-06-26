@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, warning=FALSE, message=FALSE}
-library(rgbif)
+library(tidyverse)
 library(zen4R)
 ```
 
@@ -21,8 +21,9 @@ library(zen4R)
 Load and save structured data of the “Common Breeding Bird Survey Flanders” (ABV).
 
 # Download data
+## Sampling framework
 
-
+We download the sampling framework from zenodo.
 
 ```{r}
 # Data path and create directory if necessary
@@ -32,18 +33,41 @@ dir.create(data_path, showWarnings = FALSE, recursive = TRUE)
 # Download data from zenodo if necessary
 file_sampling_framework <- file.path(
   data_path,
-  "sampling_framework_abv.csv")
+  "steekproefkader.csv")
 
 if (file.exists(file_sampling_framework)) {
-  sampling_framework_abv <- read_csv(file_sampling_framework)
+  sampling_framework_abv <- read_csv(file_sampling_framework,
+                                     show_col_types = FALSE)
 } else {
   download_zenodo(
     doi = "10.5281/zenodo.10103472",
     path = data_path,
-    files = list("steekproefkader.csv.csv"))
+    files = list("steekproefkader.csv"))
   
-  sampling_framework_abv <- read_csv(file_sampling_framework)
+  sampling_framework_abv <- read_csv(file_sampling_framework,
+                                     show_col_types = FALSE)
 }
 ```
 
+We get a dataset with land use category per UTM grid cell (1x1 km).
 
+```{r}
+head(sampling_framework_abv)
+```
+
+## Occurrence data
+
+Occurrence data is downloaded from GBIF.org.
+Store these files under *./data/raw*.
+
+**ABV - Common breeding birds in Flanders, Belgium**
+
+*CSV:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.3yvvyu
+
+*DARWINCORE:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.w8va93
+
+**ABV - Common breeding birds in Flanders, Belgium (post 2016)**
+
+*CSV:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.9x99sn
+
+*DARWINCORE:* GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.4htaqh
