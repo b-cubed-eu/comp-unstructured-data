@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Langeraert"
+  given-names: "Ward"
+  orcid: "https://orcid.org/0000-0002-5900-8109"
+- family-names: "Cartuyvels"
+  given-names: "Emma"
+  orcid: "https://orcid.org/0000-0001-7856-6360"
+- family-names: "Van Daele"
+  given-names: "Toon"
+  orcid: "https://orcid.org/0000-0002-1362-853X"
+title: "comp-unstructured-data"
+url: "https://github.com/b-cubed-eu/comp-unstructured-data"
