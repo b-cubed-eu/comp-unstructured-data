@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(zen4R)
+library(here)
 ```
 
 # Goal
@@ -28,7 +29,7 @@ We download the sampling framework from zenodo.
 
 ```{r}
 # Data path and create directory if necessary
-data_path <- file.path("data", "raw")
+data_path <- here::here("data", "raw")
 dir.create(data_path, showWarnings = FALSE, recursive = TRUE)
 
 # Download data from zenodo if necessary
@@ -69,6 +70,36 @@ GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.w8
 
 GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.4htaqh
 
+We read in these datasets.
+
+```{r}
+abv_data_raw <- read_delim(file.path(data_path,
+                                     "0000102-240626123714530",
+                                     "occurrence.txt"),
+                   delim = "\t",
+                   show_col_types = FALSE)
+abv_data2_raw <- read_delim(file.path(data_path,
+                                      "0000105-240626123714530",
+                                      "occurrence.txt"),
+                   delim = "\t",
+                   show_col_types = FALSE)
+```
+
+We combine the datasets.
+
+```{r}
+abv_data_total_raw <- bind_rows(abv_data_raw, abv_data2_raw)
+  
+# Remove empty columns
+abv_data_total <- abv_data_total_raw[, colSums(is.na(abv_data_total_raw)) < 
+                                       nrow(abv_data_total_raw)]
+```
+
+We get a big dataframe with all occurrences.
+
+```{r}
+glimpse(abv_data_total)
+```
 
 # Unstructured data
 
@@ -107,6 +138,113 @@ WHERE
   collectionCode != 'ABV';
 ```
 
-## Occurrence cubes
+## Occurrence cube: MGRS per month
 
+We generate the occurrence cube on a 1 km scale per month.
+To account for sampling bias, the specification recommends including an occurrence count for a higher taxon, typically the family.
 
+```
+SELECT
+  -- Dimensions
+  CONCAT_WS('-', year, month) AS yearMonth,
+  mgrsCode(
+    1000,
+    decimalLatitude,
+    decimalLongitude,
+    COALESCE(coordinateUncertaintyInMeters, 1000)
+  ) AS mgrsCode,
+  speciesKey,
+  species,
+  family,
+  -- Measurements
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  -- Higher taxon measurement
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+FROM
+  birds_data.unstructured
+WHERE month IS NOT NULL
+GROUP BY
+  yearMonth,
+  mgrsCode,
+  speciesKey,
+  family,
+  species
+ORDER BY
+  yearMonth ASC,
+  mgrsCode ASC,
+  speciesKey ASC;
+```
+
+The contributions of GBIF-mediated datasets can be determined with a second SQL query, using the WHERE clause of the first. In effect, this is a two-dimensional "cube".
+
+```
+SELECT
+  -- Dimensions:
+  datasetKey,
+  collectionCode,
+  license,
+  -- Measurement
+  COUNT(*) AS n
+FROM
+  birds_data.unstructured
+WHERE month IS NOT NULL
+GROUP BY
+  datasetKey,
+  collectionCode,
+  license;
+```
+
+## Occurrence cube: MGRS per year
+
+We generate the occurrence cube on a 1 km scale per year similar as above.
+
+```
+SELECT
+  -- Dimensions
+  year,
+  mgrsCode(
+    1000,
+    decimalLatitude,
+    decimalLongitude,
+    COALESCE(coordinateUncertaintyInMeters, 1000)
+  ) AS mgrsCode,
+  speciesKey,
+  species,
+  family,
+  -- Measurements
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  -- Higher taxon measurement
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+FROM
+  birds_data.unstructured
+GROUP BY
+  year,
+  mgrsCode,
+  speciesKey,
+  family,
+  species
+ORDER BY
+  year ASC,
+  mgrsCode ASC,
+  speciesKey ASC;
+```
+
+The contributions of GBIF-mediated datasets:
+
+```
+SELECT
+  -- Dimensions:
+  datasetKey,
+  collectionCode,
+  license,
+  -- Measurement
+  COUNT(*) AS n
+FROM
+  birds_data.unstructured
+GROUP BY
+  datasetKey,
+  collectionCode,
+  license;
+```
