@@ -47,3 +47,8 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# large files
+*.csv
+*.html
+*.pdf
