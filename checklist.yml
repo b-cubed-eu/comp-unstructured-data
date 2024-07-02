@@ -16,3 +16,4 @@ spelling:
   ignore:
   - .github
   - LICENSE.md
+  - data/raw/utm_grid/utm1_vl.qmd
