@@ -1,6 +1,6 @@
 <!-- badges: start -->
 ![GitHub](https://img.shields.io/github/license/b-cubed-eu/comp-unstructured-data)
-[![check project](https://github.com/b-cubed-eu/comp-unstructured-data/actions/workflows/check_project.yaml/badge.svg)](https://github.com/b-cubed-eu/comp-unstructured-data/actions/workflows/check_project.yaml)
+[![check project](https://github.com/b-cubed-eu/comp-unstructured-data/actions/workflows/check_project.yaml/badge.svg)](https://github.com/b-cubed-eu/comp-unstructured-data/actions)
 [![repo status](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 ![GitHub repo size](https://img.shields.io/github/repo-size/b-cubed-eu/comp-unstructured-data)
 <!-- badges: end -->
