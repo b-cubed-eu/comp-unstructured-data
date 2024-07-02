@@ -54,3 +54,4 @@ rsconnect/
 *.pdf
 *.txt
 *.xml
+*.gpkg
