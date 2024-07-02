@@ -30,7 +30,8 @@ Scripts to explore the conditions that determine the reliability of models, tren
 ### Repo structure
 
 ```
-├── source                         ├ R markdown and R files
+├── source                         ├ R markdown files
+│   └── R                          ├ R scripts
 ├── data
 │   ├── raw                        ├ create this folder and store raw data, see prepare_abv_data.Rmd
 │   ├── intermediate               ├ store intermediate data
