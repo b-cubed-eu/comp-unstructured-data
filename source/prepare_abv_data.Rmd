@@ -285,7 +285,8 @@ sampling_framework_abv <- sampling_framework_abv %>%
   mutate(mgrsCode = paste0("31U", UTM))
 
 abv_data_total <- abv_data_total %>%
-  mutate(mgrsCode = paste0("31U", verbatimLocality))
+  mutate(verbatimLocality2 = gsub("ABV_", "", verbatimLocality)) %>%
+  mutate(mgrsCode = paste0("31U", verbatimLocality2))
 ```
 
 We load in the UTM grid for Flanders (1 km) and add 31U to the tag names.
@@ -298,11 +299,28 @@ utm_grid <- utm_grid %>%
 glimpse(utm_grid)
 ```
 
-It looks like this.
+We add the geometry to the data layers.
+For some reason, one grid cell from ABV is located outside Flanders (in Brussels).
+
+```{r}
+sampling_framework_abv %>%
+  anti_join(utm_grid, by = join_by(mgrsCode))
+```
+
+We only keep the Flemish grid cells. 31UES9939 is removed.
+
+```{r}
+abv_data_total_sf <- utm_grid %>%
+  left_join(abv_data_total, utm_grid, by = join_by(mgrsCode)) %>%
+  st_sf(sf_column_name = "geometry")
+
+sampling_framework_abv_sf <- utm_grid %>%
+  left_join(sampling_framework_abv, utm_grid, by = join_by(mgrsCode)) %>%
+  st_sf(sf_column_name = "geometry")
+```
 
 ```{r}
 ggplot() +
-  geom_sf(data = utm_grid) +
+  geom_sf(data = sampling_framework_abv_sf, aes(fill = Stratum)) +
   ggtitle("UTM 1 km grid cells Flanders")
 ```
-
