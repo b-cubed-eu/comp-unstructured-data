@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, warning=FALSE, message=FALSE}
 # Load packages
-library(tidyverse) # tidyverse <3
+library(tidyverse) # Data wrangling and visualisation
 library(zen4R)     # Download from zenodo
 library(here)      # Relative paths
 library(sf)        # Work with spatial data
@@ -47,7 +47,7 @@ if (file.exists(file_sampling_framework)) {
     doi = "10.5281/zenodo.10103472",
     path = data_path,
     files = list("steekproefkader.csv"))
-  
+
   sampling_framework_abv <- read_csv(file_sampling_framework,
                                      show_col_types = FALSE)
 }
@@ -94,9 +94,9 @@ We combine the datasets.
 ```{r}
 # Combine to single dataframe
 abv_data_total_raw <- bind_rows(abv_data_raw, abv_data2_raw)
-  
+
 # Remove empty columns
-abv_data_total <- abv_data_total_raw[, colSums(is.na(abv_data_total_raw)) < 
+abv_data_total <- abv_data_total_raw[, colSums(is.na(abv_data_total_raw)) <
                                        nrow(abv_data_total_raw)]
 ```
 
