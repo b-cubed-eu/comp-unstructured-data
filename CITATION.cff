@@ -1,14 +1,37 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+message: If you use this software, please cite it using these metadata.
+title: "Compare unstructured data"
 authors:
-- family-names: "Langeraert"
-  given-names: "Ward"
-  orcid: "https://orcid.org/0000-0002-5900-8109"
-- family-names: "Cartuyvels"
-  given-names: "Emma"
-  orcid: "https://orcid.org/0000-0001-7856-6360"
-- family-names: "Van Daele"
-  given-names: "Toon"
-  orcid: "https://orcid.org/0000-0002-1362-853X"
-title: "comp-unstructured-data"
-url: "https://github.com/b-cubed-eu/comp-unstructured-data"
+- given-names: Ward
+  family-names: Langeraert
+  affiliation: Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw,
+    Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium
+  orcid: 0000-0002-5900-8109
+- given-names: Emma
+  family-names: Cartuyvels
+  affiliation: Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw,
+    Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium
+  orcid: 0000-0001-7856-6360
+- given-names: Toon
+  family-names: Van Daele
+  affiliation: Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw,
+    Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium
+  orcid: 0000-0002-1362-853X
+keywords:
+- structured data
+- data quality
+- unstructured data
+- data cubes
+- biodiversity informatics
+contact:
+- given-names: Ward
+  family-names: Langeraert
+  affiliation: Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw,
+    Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium
+  orcid: 0000-0002-5900-8109
+doi: ~
+license: CC-BY-4.0
+repository-code: https://github.com/b-cubed-eu/comp-unstructured-data/
+type: software
+abstract: "Scripts to explore the conditions that determine the reliability of models,
+  trends and status by comparing aggregated cubes with structured monitoring schemes."

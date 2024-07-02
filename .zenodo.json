@@ -1,0 +1,49 @@
+{
+  "access_right": "open",
+  "title": "Compare unstructured data",
+  "description": "<p>Scripts to explore the conditions that determine the reliability of models, trends and status by comparing aggregated cubes with structured monitoring schemes.<\/p>",
+  "keywords": [
+    "structured data",
+    "data quality",
+    "unstructured data",
+    "data cubes",
+    "biodiversity informatics"
+  ],
+  "upload_type": "software",
+  "license": "CC-BY-4.0",
+  "language": "eng",
+  "contributors": [
+    {
+      "name": "Langeraert, Ward",
+      "affiliation": "Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw, Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium",
+      "orcid": "0000-0002-5900-8109",
+      "type": "contactperson"
+    },
+    {
+      "name": "Research Institute for Nature and Forest (INBO)",
+      "type": "rightsholder"
+    }
+  ],
+  "creators": [
+    {
+      "name": "Langeraert, Ward",
+      "affiliation": "Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw, Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium",
+      "orcid": "0000-0002-5900-8109"
+    },
+    {
+      "name": "Cartuyvels, Emma",
+      "affiliation": "Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw, Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium",
+      "orcid": "0000-0001-7856-6360"
+    },
+    {
+      "name": "Van Daele, Toon",
+      "affiliation": "Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw, Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium",
+      "orcid": "0000-0002-1362-853X"
+    }
+  ],
+  "communities": [
+    {
+      "identifier": "b3"
+    }
+  ]
+}
