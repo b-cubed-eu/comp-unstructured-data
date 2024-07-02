@@ -20,7 +20,7 @@ European Union's Horizon Europe Research and Innovation Programme (ID No 1010595
 
 **keywords**: structured data; data quality; unstructured data; data cubes; biodiversity informatics
 
-<!-- community: b3 -->
+<!-- community: b3; inbo -->
 
 ### Description
 <!-- description: start -->
