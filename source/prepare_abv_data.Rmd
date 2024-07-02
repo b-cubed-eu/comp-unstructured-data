@@ -12,10 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, warning=FALSE, message=FALSE}
-library(tidyverse)
-library(zen4R)
-library(here)
-library(sf)
+# Load packages
+library(tidyverse) # tidyverse <3
+library(zen4R)     # Download from zenodo
+library(here)      # Relative paths
+library(sf)        # Work with spatial data
 ```
 
 # Goal
@@ -55,6 +56,7 @@ if (file.exists(file_sampling_framework)) {
 We get a dataset with land use category per UTM grid cell (1x1 km).
 
 ```{r}
+# Explore dataframe
 head(sampling_framework_abv)
 ```
 
@@ -74,6 +76,7 @@ GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.4h
 We read in these datasets.
 
 ```{r}
+# Read ABV data as tab delimited
 abv_data_raw <- read_delim(file.path(data_path,
                                      "0000102-240626123714530",
                                      "occurrence.txt"),
@@ -89,6 +92,7 @@ abv_data2_raw <- read_delim(file.path(data_path,
 We combine the datasets.
 
 ```{r}
+# Combine to single dataframe
 abv_data_total_raw <- bind_rows(abv_data_raw, abv_data2_raw)
   
 # Remove empty columns
@@ -99,6 +103,7 @@ abv_data_total <- abv_data_total_raw[, colSums(is.na(abv_data_total_raw)) <
 We get a big dataframe with all occurrences.
 
 ```{r}
+# Explore dataframe
 glimpse(abv_data_total)
 ```
 
@@ -199,10 +204,12 @@ GROUP BY
 We read in the datacube.
 
 ```{r}
+# Read in datacube from CSV
 birdcubeflanders_yearmonth <- read_csv(
   file.path(data_path, "birdcubeflanders_yearmonth_mgrs.csv"),
   show_col_types = FALSE)
 
+# Explore dataframe
 glimpse(birdcubeflanders_yearmonth)
 ```
 
@@ -263,24 +270,28 @@ GROUP BY
 We read in the datacube.
 
 ```{r}
+# Read in datacube from CSV
 birdcubeflanders_year <- read_csv(
   file.path(data_path, "birdcubeflanders_year_mgrs.csv"),
   show_col_types = FALSE)
 
+# Explore dataframe
 glimpse(birdcubeflanders_year)
 ```
 
-## Select Flanders grid cells
+# Select Flanders grid cells
 
 The datacubes cover multiple zones although Flanders is present only in zone 31U. 
 
 ```{r}
+# Number of rows per zone
 table(substring(birdcubeflanders_year$mgrsCode, 1, 3))
 ```
 
 We add 31U to the tag names of the sampling framework and the ABV data.
 
 ```{r}
+# Create new column with correct MGRS code
 sampling_framework_abv <- sampling_framework_abv %>%
   mutate(mgrsCode = paste0("31U", UTM))
 
@@ -292,35 +303,118 @@ abv_data_total <- abv_data_total %>%
 We load in the UTM grid for Flanders (1 km) and add 31U to the tag names.
 
 ```{r}
+# Read UTM 1 km grid and add new column with correct MGRS code
 utm_grid <- read_sf(file.path(data_path, "utm_grid", "utm1_vl_zBRU.shp"))
 utm_grid <- utm_grid %>%
   mutate(mgrsCode = paste0("31U", TAG))
 
+# Explore dataframe
 glimpse(utm_grid)
 ```
 
-We add the geometry to the data layers.
-For some reason, one grid cell from ABV is located outside Flanders (in Brussels).
+We add the geometry to the data layers by taking an inner join.
 
 ```{r}
-sampling_framework_abv %>%
-  anti_join(utm_grid, by = join_by(mgrsCode))
-```
-
-We only keep the Flemish grid cells. 31UES9939 is removed.
-
-```{r}
-abv_data_total_sf <- utm_grid %>%
-  left_join(abv_data_total, utm_grid, by = join_by(mgrsCode)) %>%
-  st_sf(sf_column_name = "geometry")
-
+# Add UTM geometry by taking an inner join
 sampling_framework_abv_sf <- utm_grid %>%
-  left_join(sampling_framework_abv, utm_grid, by = join_by(mgrsCode)) %>%
+  inner_join(sampling_framework_abv, by = join_by(mgrsCode)) %>%
+  st_sf(sf_column_name = "geometry")
+
+# Visualise spatial distribution sampling framework
+utm_grid %>%
+  left_join(sampling_framework_abv, by = join_by(mgrsCode)) %>%
+  st_sf(sf_column_name = "geometry") %>%
+  ggplot() +
+    geom_sf(aes(fill = Stratum),
+            col = alpha("white", 0)) +
+    ggtitle("UTM 1 km grid cells Flanders")
+```
+
+```{r}
+# Add UTM geometry by taking an inner join
+abv_data_total_sf <- utm_grid %>%
+  inner_join(abv_data_total, by = join_by(mgrsCode)) %>%
+  st_sf(sf_column_name = "geometry")
+
+# Visualise spatial distribution of the ABV data
+utm_grid %>%
+  left_join(abv_data_total %>%
+              filter(occurrenceStatus == "PRESENT") %>%
+              distinct(occurrenceStatus, mgrsCode),
+            by = join_by(mgrsCode)) %>%
+  ggplot() +
+    geom_sf(aes(fill = occurrenceStatus), col = alpha("white", 0)) +
+    ggtitle("UTM 1 km grid cells Flanders")
+```
+
+We select cube data from Flanders and add the geometry to the data layers by taking an inner join.
+Per month:
+
+```{r}
+# Add UTM geometry by taking an inner join
+birdcubeflanders_yearmonth_sf <- utm_grid %>%
+  inner_join(birdcubeflanders_yearmonth, by = join_by(mgrsCode)) %>%
   st_sf(sf_column_name = "geometry")
 ```
 
 ```{r}
-ggplot() +
-  geom_sf(data = sampling_framework_abv_sf, aes(fill = Stratum)) +
-  ggtitle("UTM 1 km grid cells Flanders")
+# Visualise spatial distribution data cube as number of species
+utm_grid %>%
+  left_join(birdcubeflanders_yearmonth %>%
+              group_by(mgrsCode) %>%
+              summarise(n_species = n_distinct(species), .groups = "drop"),
+            by = join_by(mgrsCode)) %>%
+  ggplot() +
+    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
+    scale_fill_viridis_c(option = "inferno") +
+    ggtitle("Bird cube data from Flanders per month")
 ```
+
+Per year:
+
+```{r}
+# Add UTM geometry by taking an inner join
+birdcubeflanders_year_sf <- utm_grid %>%
+  inner_join(birdcubeflanders_year, by = join_by(mgrsCode)) %>%
+  st_sf(sf_column_name = "geometry")
+```
+
+```{r}
+# Visualise spatial distribution data cube as number of species
+utm_grid %>%
+  left_join(birdcubeflanders_year %>%
+              group_by(mgrsCode) %>%
+              summarise(n_species = n_distinct(species), .groups = "drop"),
+            by = join_by(mgrsCode)) %>%
+  ggplot() +
+    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
+    scale_fill_viridis_c(option = "inferno") +
+    ggtitle("Bird cube data from Flanders per year")
+```
+
+We see a striped pattern because of large uncertainty.
+We filter `minCoordinateUncertaintyInMeters` smaller or equal to 1000 meters:
+
+```{r}
+# Add filter
+utm_grid %>%
+  left_join(birdcubeflanders_yearmonth %>%
+              filter(minCoordinateUncertaintyInMeters <= 1000) %>%
+              group_by(mgrsCode) %>%
+              summarise(n_species = n_distinct(species), .groups = "drop"),
+            by = join_by(mgrsCode)) %>%
+  ggplot() +
+    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
+    scale_fill_viridis_c(option = "inferno") +
+    ggtitle("Bird cube data from Flanders per month")
+```
+
+# Write out data
+
+```{r}
+out_path <- here::here("data", "interim")
+dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
+
+
+```
+
