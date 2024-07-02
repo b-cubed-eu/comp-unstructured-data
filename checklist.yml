@@ -1,0 +1,18 @@
+description: Configuration file for checklist::check_pkg()
+package: no
+allowed:
+  warnings: []
+  notes: []
+required:
+- CITATION
+- checklist
+- filename conventions
+- folder conventions
+- license
+- lintr
+- spelling
+spelling:
+  default: en-GB
+  ignore:
+  - .github
+  - LICENSE.md
