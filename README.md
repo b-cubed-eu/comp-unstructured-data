@@ -32,9 +32,9 @@ Scripts to explore the conditions that determine the reliability of models, tren
 ```
 ├── source                         ├ R markdown and R files
 ├── data
-│   ├── raw                        ├ create this folder and store raw data if at your disposal
-│   ├── intermediate               ├ will be created in step 1 or 2 (see order of execution)
-│   └── processed                  ├ will be created in step 2, 3, 4 or 5 (see order of execution)
+│   ├── raw                        ├ create this folder and store raw data, see prepare_abv_data.Rmd
+│   ├── intermediate               ├ store intermediate data
+│   └── processed                  ├ store processed data
 ├── checklist.yml                  ├ options checklist package (https://github.com/inbo/checklist)
 ├── organisation.yml               ├ organisation info (https://inbo.github.io/checklist/articles/organisation.html)
 ├── inst
@@ -47,7 +47,7 @@ Scripts to explore the conditions that determine the reliability of models, tren
 ├── comp-unstructured-data.Rproj   ├ R project
 ├── README.md                      ├ project description
 ├── LICENSE.md                     ├ licence
-├── LICENSE                        ├ licence
+├── LICENSE                        │
 ├── CITATION.cff                   ├ citation info
 ├── .zenodo.json                   ├ zenodo metadata
 └── .gitignore                     ├ files to ignore
