@@ -5,7 +5,6 @@
 
 # Compare unstructured data
 
-<!-- spell-check: ignore:start -->
 [Langeraert, Ward![ORCID logo](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png)](https://orcid.org/0000-0002-5900-8109)[^aut][^cre][^INBO]
 [Cartuyvels, Emma![ORCID logo](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png)](https://orcid.org/0000-0001-7856-6360)[^aut][^INBO]
 [Van Daele, Toon![ORCID logo](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png)](https://orcid.org/0000-0002-1362-853X)[^aut][^INBO]
@@ -17,11 +16,10 @@ European Union's Horizon Europe Research and Innovation Programme (ID No 1010595
 [^aut]: author
 [^cre]: contact person
 [^INBO]: Research Institute for Nature and Forest (INBO), Herman Teirlinckgebouw, Havenlaan 88 PO Box 73, B-1000 Brussels, Belgium
-<!-- spell-check: ignore:end -->
 
 **keywords**: structured data; data quality; unstructured data; data cubes; biodiversity informatics
 
-<!-- community: inbo -->
+<!-- community: b3 -->
 
 ### Description
 <!-- description: start -->
