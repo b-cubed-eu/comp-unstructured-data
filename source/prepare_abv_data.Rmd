@@ -351,7 +351,7 @@ We select cube data from Flanders and add the geometry to the data layers by tak
 Per month:
 
 ```{r}
-# Add UTM geometry by taking an inner join
+# Add UTM geometry and select data by taking an inner join
 birdcubeflanders_yearmonth_sf <- utm_grid %>%
   inner_join(birdcubeflanders_yearmonth, by = join_by(mgrsCode)) %>%
   st_sf(sf_column_name = "geometry")
@@ -373,7 +373,7 @@ utm_grid %>%
 Per year:
 
 ```{r}
-# Add UTM geometry by taking an inner join
+# Add UTM geometry and select data by taking an inner join
 birdcubeflanders_year_sf <- utm_grid %>%
   inner_join(birdcubeflanders_year, by = join_by(mgrsCode)) %>%
   st_sf(sf_column_name = "geometry")
@@ -411,10 +411,21 @@ utm_grid %>%
 
 # Write out data
 
+We write out the data for exploration and analysis.
+
 ```{r}
 out_path <- here::here("data", "interim")
 dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
 
+# Structured data
+write_sf(abv_data_total_sf,
+         file.path(out_path, "abv_data_total.gpkg"))
+write_sf(sampling_framework_abv_sf,
+         file.path(out_path, "sampling_framework_abv.gpkg"))
 
+# Unstructured data
+write_sf(birdcubeflanders_yearmonth_sf,
+         file.path(out_path, "birdcubeflanders_yearmonth.gpkg"))
+write_sf(birdcubeflanders_year_sf,
+         file.path(out_path, "birdcubeflanders_year.gpkg"))
 ```
-
