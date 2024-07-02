@@ -1,5 +1,7 @@
 <!-- badges: start -->
 ![GitHub](https://img.shields.io/github/license/b-cubed-eu/comp-unstructured-data)
+[![check project](https://github.com/b-cubed-eu/comp-unstructured-data/actions/workflows/check_project.yaml/badge.svg)](https://github.com/b-cubed-eu/comp-unstructured-data/actions/workflows/check_project.yaml)
+[![repo status](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 ![GitHub repo size](https://img.shields.io/github/repo-size/b-cubed-eu/comp-unstructured-data)
 <!-- badges: end -->
 
@@ -28,16 +30,14 @@ Scripts to explore the conditions that determine the reliability of models, tren
 
 ### Repo structure
 
-```bash
-├── source                         ├ markdown and R files (see order of execution)
-│
+```
+├── source                         ├ R markdown and R files
 ├── data
 │   ├── raw                        ├ create this folder and store raw data if at your disposal
 │   ├── intermediate               ├ will be created in step 1 or 2 (see order of execution)
 │   └── processed                  ├ will be created in step 2, 3, 4 or 5 (see order of execution)
-├── output                         ├ folder to store outputs (will be created in step 4, 5 or 6)
-├── media                          ├ folder to store media (will be created in step 6)
 ├── checklist.yml                  ├ options checklist package (https://github.com/inbo/checklist)
+├── organisation.yml               ├ organisation info (https://inbo.github.io/checklist/articles/organisation.html)
 ├── inst
 │   └── en_gb.dic                  ├ dictionary with words that should not be checked by the checklist package
 ├── .github                        │ 
@@ -45,9 +45,10 @@ Scripts to explore the conditions that determine the reliability of models, tren
 │   │   └── checklist_project.yml  ├ GitHub repo settings
 │   ├── CODE_OF_CONDUCT.md         │ 
 │   └── CONTRIBUTING.md            │
-├── macro-moths-msci.Rproj         ├ R project
+├── comp-unstructured-data.Rproj   ├ R project
 ├── README.md                      ├ project description
 ├── LICENSE.md                     ├ licence
+├── LICENSE                        ├ licence
 ├── CITATION.cff                   ├ citation info
 ├── .zenodo.json                   ├ zenodo metadata
 └── .gitignore                     ├ files to ignore
