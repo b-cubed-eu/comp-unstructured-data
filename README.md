@@ -31,7 +31,7 @@ Scripts to explore the conditions that determine the reliability of models, tren
 
 ```
 ├── source                         ├ R markdown files
-│   └── scripts                    ├ R scripts
+│   └── R                          ├ R scripts
 ├── data
 │   ├── raw                        ├ create this folder and store raw data, see prepare_abv_data.Rmd
 │   ├── intermediate               ├ store intermediate data
