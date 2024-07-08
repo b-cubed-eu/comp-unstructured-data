@@ -13,7 +13,6 @@ required:
 - CITATION
 - checklist
 - filename conventions
-- folder conventions
 - lintr
 - spelling
 spelling:
