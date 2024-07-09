@@ -23,9 +23,12 @@ European Union's Horizon Europe Research and Innovation Programme (ID No 1010595
 <!-- community: b3; inbo -->
 
 ### Description
+
 <!-- description: start -->
 Scripts to explore the conditions that determine the reliability of models, trends and status by comparing aggregated cubes with structured monitoring schemes.
 <!-- description: end -->
+
+This code is developed in context of **T4.5** of the [B-Cubed project](https://b-cubed.eu/).
 
 ### Repo structure
 
