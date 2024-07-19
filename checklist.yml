@@ -12,7 +12,6 @@ allowed:
 required:
 - CITATION
 - checklist
-- filename conventions
 - lintr
 - spelling
 spelling:
