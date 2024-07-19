@@ -21,6 +21,7 @@ European Union's Horizon Europe Research and Innovation Programme (ID No 1010595
 **keywords**: structured data; data quality; unstructured data; data cubes; biodiversity informatics
 
 <!-- community: b3 -->
+<!-- community: inbo -->
 
 ### Description
 
@@ -34,7 +35,7 @@ This code is developed in context of **T4.5** of the [B-Cubed project](https://b
 
 ```
 ├── source                         ├ R markdown files
-│   └── scripts                    ├ R scripts
+│   └── R                          ├ R scripts
 ├── data
 │   ├── raw                        ├ create this folder and store raw data, see prepare_abv_data.Rmd
 │   ├── intermediate               ├ store intermediate data

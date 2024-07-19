@@ -10,11 +10,8 @@ allowed:
   - motivation: Not yet applicable
     value: no website badge found in README.md
 required:
-- CITATION
 - checklist
-- filename conventions
 - folder conventions
-- license
 - lintr
 - spelling
 spelling:

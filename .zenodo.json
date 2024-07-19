@@ -10,7 +10,7 @@
     "biodiversity informatics"
   ],
   "upload_type": "software",
-  "license": "CC-BY-4.0",
+  "license": "MIT",
   "language": "eng",
   "contributors": [
     {
@@ -44,6 +44,9 @@
   "communities": [
     {
       "identifier": "b3"
+    },
+    {
+      "identifier": "inbo"
     }
   ]
 }
