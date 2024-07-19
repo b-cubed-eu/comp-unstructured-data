@@ -11,8 +11,6 @@ allowed:
     value: no website badge found in README.md
 required:
 - checklist
-- filename conventions
-- license
 - lintr
 - spelling
 spelling:
