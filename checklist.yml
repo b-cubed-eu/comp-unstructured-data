@@ -12,6 +12,7 @@ allowed:
 required:
 - CITATION
 - checklist
+- license
 - lintr
 - spelling
 spelling:
