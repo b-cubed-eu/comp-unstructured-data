@@ -1,0 +1,85 @@
+---
+title: "Exploratory analysis"
+author: "Emma Cartuyvels, Ward Langeraert"
+date: "2024-07-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(sf)
+library(mapview)
+library(tidyverse)
+```
+
+```{r}
+birdcubeflanders_year <- read_sf(here::here("data", "interim",
+                                            "birdcubeflanders_year.gpkg"))
+
+abv_data_total <- read_sf(here::here("data", "interim",
+                                            "abv_data_total.gpkg"))
+```
+
+The ABV data set contains info on 180 species, we will only focus on these species in the comparisons. A further filtering may be done if there is a specific species list in the protocol.
+
+```{r}
+studied_spec <- unique(abv_data_total$species) |> 
+  na.omit()
+```
+
+Let's check if these species are observed in the same utm squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
+
+```{r}
+range_comp <- function(sel_species, period = 2007:2022){
+  
+  set_abv <- abv_data_total |> 
+    filter(species %in% sel_species,
+           year %in% period)
+  
+  set_cube <- birdcubeflanders_year |> 
+    filter(species %in% sel_species,
+           year %in% period)
+  
+  perc_overlap <- as.list(st_covered_by(set_abv, set_cube))
+  
+  n_overlap <- sum(sapply(perc_overlap, function(x) length(x) > 0))
+  n_total <- length(perc_overlap)
+  
+  (n_overlap/n_total)*100
+}
+
+```
+
+```{r}
+comp_range_data <- as.data.frame(studied_spec)
+comp_range_data$percentage_overlap <- NA
+
+for (i in studied_spec){
+  comp_range_data[comp_range_data$studied_spec == i, 2] <- range_comp(i)
+}
+
+```
+
+```{r}
+DT::datatable(comp_range_data)
+```
+
+This table shows the percentage of squares were the species was observed in both the cubes and the ABV monitoring compared to all squares where the species was observed during the ABV monitoring. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
