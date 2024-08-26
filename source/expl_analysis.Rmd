@@ -11,9 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 library(sf)
 library(mapview)
 library(tidyverse)
+library(INBOtheme)
+
+conflicted::conflicts_prefer(dplyr::filter)
 ```
 
-```{r}
+```{r data}
 birdcubeflanders_year <- read_sf(here::here("data", "interim",
                                             "birdcubeflanders_year.gpkg"))
 
@@ -21,32 +24,133 @@ abv_data_total <- read_sf(here::here("data", "interim",
                                             "abv_data_total.gpkg"))
 ```
 
-The ABV data set contains info on 180 species, we will only focus on these species in the comparisons. A further filtering may be done if there is a specific species list in the protocol.
+We summarise the ABV data per year and per km² so that it is comparable with the cube data. 
+
+```{r transform abv}
+abv_data_total_tf <- abv_data_total |>
+  group_by(species, year, verbatimLocality) |>
+  summarise(n = sum(individualCount)) |>
+  ungroup()
+```
+
+
+# Introduction
+
+## The ABV dataset
+
+The ABV dataset, which stands for Algemene Broedvogelmonitoring Vlaanderen (Common Breeding Bird Survey Flanders), is a structured monitoring dataset that tracks a group of approximately 100 common breeding bird species in Flanders, Belgium. Monitoring began in 2007 and the protocol involves selecting a random sample of 1200 UTM 1x1 km grid cells, stratified by land use. These cells are divided into groups of 300, and 300 grid cells are visited each year on a three-year rotation. Each grid cell contains six monitoring locations where bird counts are conducted. The data collection is standardized, with each grid cell being visited three times a year at fixed intervals (at least two weeks apart).
 
 ```{r}
-studied_spec <- unique(abv_data_total$species) |> 
+summary(abv_data_total[, c("individualCount",
+                          "eventDate",
+                          "year",
+                          "month")])
+```
+
+```{r}
+abv_data_total_tf |>
+  group_by(species) |>
+  summarise(n_obs = n()) |>
+  ggplot(aes(x = n_obs)) +
+  geom_histogram() +
+  labs(x = "Number of observations (grouped per km²)",
+       y = "Number of species")
+```
+
+There are 181 species present in the dataset. There are 37 species that were observed less than 10 times and 30 species that were observed more than 1000 times. This dataset also contains absence data, which is not included in the cube.
+
+```{r}
+abv_data_total_tf |>
+  group_by(species) |>
+  summarise(n_obs = n()) |>
+  mutate(category = cut(n_obs,
+                        breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
+                        right = FALSE)) |>
+  group_by(category) |>
+  summarise(n()) |>
+  st_drop_geometry()
+```
+## The cube data
+
+There are 666 species present in the data. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times.
+
+```{r}
+birdcubeflanders_year |>
+  group_by(species) |>
+  summarise(n_obs = n()) |>
+  ggplot(aes(x = n_obs)) +
+  geom_histogram() +
+  labs(x = "Number of observations",
+       y = "Number of species")
+```
+
+```{r}
+birdcubeflanders_year |>
+  group_by(species) |>
+  summarise(n_obs = n()) |>
+  mutate(category = cut(n_obs,
+                        breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
+                        right = FALSE)) |>
+  group_by(category) |>
+  summarise(n()) |>
+  st_drop_geometry()
+```
+
+# Comparing the data
+
+## Filter cube for specific ABV squares
+
+Do we actually need to do this, because the strength of the cubes comes from having more, albeit unstructured, data.
+
+```{r}
+filt_birdcube <- birdcubeflanders_year |>
+  slice(0)
+
+for (i in 2007:2022) {
+  temp_abv <- abv_data_total_tf |>
+    filter(year == i)
+  temp_birdcube <- birdcubeflanders_year |>
+    filter(year == i)
+
+  intersects <- st_intersects(temp_birdcube, temp_abv,
+                              sparse = TRUE)
+
+  rows_to_keep <- lengths(intersects) > 0
+
+  filt_birdcube <- filt_birdcube |>
+    add_row(temp_birdcube[rows_to_keep, ])
+}
+```
+
+
+```{r}
+studied_spec <- unique(abv_data_total$species) |>
   na.omit()
 ```
 
 Let's check if these species are observed in the same utm squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
 
 ```{r}
-range_comp <- function(sel_species, period = 2007:2022){
-  
-  set_abv <- abv_data_total |> 
+range_comp <- function(sel_species, period = 2007:2022) {
+
+  set_abv <- abv_data_total_tf |>
     filter(species %in% sel_species,
-           year %in% period)
-  
-  set_cube <- birdcubeflanders_year |> 
+           year %in% period) |>
+    group_by(verbatimLocality) |>
+    summarise(n = sum(n))
+
+  set_cube <- birdcubeflanders_year |>
     filter(species %in% sel_species,
-           year %in% period)
-  
+           year %in% period) |>
+    group_by(TAG) |>
+    summarise(n = sum(n))
+
   perc_overlap <- as.list(st_covered_by(set_abv, set_cube))
-  
+
   n_overlap <- sum(sapply(perc_overlap, function(x) length(x) > 0))
   n_total <- length(perc_overlap)
-  
-  (n_overlap/n_total)*100
+
+  (n_overlap / n_total) * 100
 }
 
 ```
@@ -67,19 +171,140 @@ DT::datatable(comp_range_data)
 
 This table shows the percentage of squares were the species was observed in both the cubes and the ABV monitoring compared to all squares where the species was observed during the ABV monitoring. 
 
+```{r}
+# Load necessary libraries
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(vcd)        # For Cohen’s Kappa to measure Inter-Rater Reliability
+library(vegan)      # For Bray-Curtis dissimilarity and other ecological metrics
+library(ecodist)    # For Mantel tests
+library(ade4)       # For beta diversity
+library(spatstat)   # For spatial pattern analysis
+library(pscl)       # For occupancy modeling
+library(geosphere)  # For spatial overlap
 
+# Assuming dataset1 and dataset2 are your sf objects
+# They should have columns like 'species', 'year', 'presence', and 'geometry'
 
+# 1. Trend Analysis
+# Example: Correlation of time series of species occurrences
+time_series_1 <- abv_data_total %>%
+  group_by(species, year) %>%
+  summarize(occurrence = sum(occurrenceStatus == "PRESENT")) |>
+  st_drop_geometry()
 
+time_series_2 <- birdcubeflanders_year %>%
+  group_by(species, year) %>%
+  summarize(occurrence = n()) |>
+  st_drop_geometry()
 
+# Pearson Correlation for each species
+time_series_cor <- time_series_1 %>%
+  inner_join(time_series_2,
+             by = c("species", "year"),
+             suffix = c("_1", "_2")) %>%
+  group_by(species) %>%
+  summarize(correlation = cor(occurrence_1, occurrence_2, method = "pearson"))
 
+# 2. Occupancy Rate Comparison
+occupancy_1 <- abv_data_total %>%
+  group_by(species) %>%
+  summarize(occupancy_rate_1 = mean(occurrenceStatus == "PRESENT")) |>
+  st_drop_geometry()
 
+occupancy_2 <- birdcubeflanders_year %>%
+  group_by(species) %>%
+  summarize(occupancy_rate_2 = mean(n())) |>
+  st_drop_geometry()
 
+occupancy_comparison <- occupancy_1 %>%
+  inner_join(occupancy_2, by = "species") %>%
+  summarize(kappa = Kappa(occupancy_rate_1, occupancy_rate_2)$value)
 
+# 3. Species Richness and Composition
+# Species richness per dataset
+richness_1 <- dataset1 %>%
+  group_by(geometry) %>%
+  summarize(richness = n_distinct(species))
 
+richness_2 <- dataset2 %>%
+  group_by(geometry) %>%
+  summarize(richness = n_distinct(species))
 
+# Bray-Curtis dissimilarity
+species_composition_1 <- dataset1 %>%
+  count(geometry, species) %>%
+  spread(species, n, fill = 0)
 
+species_composition_2 <- dataset2 %>%
+  count(geometry, species) %>%
+  spread(species, n, fill = 0)
 
+bray_curtis <- vegdist(rbind(species_composition_1[-1],
+                             species_composition_2[-1]), method = "bray")
 
+# 4. Spatial Patterns
+# Spatial autocorrelation with Moran's I
+moran_1 <- moran.test(dataset1$presence, nb2listw(poly2nb(dataset1)))
+moran_2 <- moran.test(dataset2$presence, nb2listw(poly2nb(dataset2)))
 
+# Spatial overlap
+overlap <- geosphere::areaPolygon(intersect(st_union(dataset1),
+                                            st_union(dataset2)))
 
+# 5. Model-Based Comparisons (Occupancy Models)
+# Fit occupancy models to both datasets
+occupancy_model_1 <- zeroinfl(presence ~ species + offset(log(year)) | 1, data = dataset1)
+occupancy_model_2 <- zeroinfl(presence ~ species + offset(log(year)) | 1, data = dataset2)
 
+# Compare model coefficients
+summary(occupancy_model_1)$coefficients
+summary(occupancy_model_2)$coefficients
+
+# 6. Detection/Non-Detection Agreement
+detection_matrix_1 <- dataset1 %>%
+  group_by(species, geometry) %>%
+  summarize(detected = any(presence > 0))
+
+detection_matrix_2 <- dataset2 %>%
+  group_by(species, geometry) %>%
+  summarize(detected = any(presence > 0))
+
+concordance <- detection_matrix_1 %>%
+  inner_join(detection_matrix_2,
+             by = c("species", "geometry"),
+             suffix = c("_1", "_2")) %>%
+  summarize(agreement = mean(detected_1 == detected_2))
+
+# 7. Temporal Synchrony (if applicable)
+# Compare timing of species occurrences (phenology)
+# This depends on more granular temporal data
+
+# 8. Data Quality Indicators
+# Compare sampling effort
+sampling_effort_1 <- dataset1 %>%
+  group_by(geometry, year) %>%
+  summarize(surveys = n())
+
+sampling_effort_2 <- dataset2 %>%
+  group_by(geometry, year) %>%
+  summarize(surveys = n())
+
+# Compare detection probabilities if available (requires further modeling)
+
+# Final Output
+list(
+  time_series_correlation = time_series_cor,
+  occupancy_comparison = occupancy_comparison,
+  bray_curtis_dissimilarity = bray_curtis,
+  moran_1 = moran_1,
+  moran_2 = moran_2,
+  spatial_overlap = overlap,
+  occupancy_model_1_coeff = summary(occupancy_model_1)$coefficients,
+  occupancy_model_2_coeff = summary(occupancy_model_2)$coefficients,
+  detection_agreement = concordance,
+  sampling_effort_comparison = list(sampling_effort_1, sampling_effort_2)
+)
+```
