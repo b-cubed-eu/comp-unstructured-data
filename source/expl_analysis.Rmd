@@ -10,25 +10,72 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(sf)
 library(mapview)
-library(tidyverse)
+library(vcd)        # For Cohen’s Kappa to measure Inter-Rater Reliability
+library(vegan)      # For Bray-Curtis dissimilarity and other ecological metrics
+library(ecodist)    # For Mantel tests
+library(ade4)       # For beta diversity
+library(spatstat)   # For spatial pattern analysis
+library(pscl)       # For occupancy modeling
+library(geosphere)  # For spatial overlap
+library(dplyr)
+library(ggplot2)
+library(tidyr)
 library(INBOtheme)
 
 conflicted::conflicts_prefer(dplyr::filter)
 ```
 
 ```{r data}
-birdcubeflanders_year <- read_sf(here::here("data", "interim",
+birdcubeflanders_year_sf <- read_sf(here::here("data", "interim",
                                             "birdcubeflanders_year.gpkg"))
 
-abv_data_total <- read_sf(here::here("data", "interim",
+abv_data_total_sf <- read_sf(here::here("data", "interim",
                                             "abv_data_total.gpkg"))
 ```
+
+We noticed some problems with species names: *Poecile montanus* and *Parus montanus*, *Dendrocopus major* and *Dendrocopos major* both refer to the same species. Since both species names are accepted names in GBIF we need to manually correct this (an issue was made for this with GBIF). *Saxicola torquatus* is most likely a wrong name and needs to be replaced with *Saxicola rubicola* (an issue was also opened for this with the data publisher of the ABV data).
 
 We summarise the ABV data per year and per km² so that it is comparable with the cube data. 
 
 ```{r transform abv}
+abv_data_total <- abv_data_total_sf |>
+  st_drop_geometry() |>
+  mutate(cyclus = case_when(
+    year >= 2007 & year <= 2009 ~ 1,
+    year >= 2010 & year <= 2012 ~ 2,
+    year >= 2013 & year <= 2015 ~ 3,
+    year >= 2016 & year <= 2018 ~ 4,
+    year >= 2019 & year <= 2021 ~ 5,
+    year >= 2022 & year <= 2024 ~ 6
+  )) |> 
+  mutate(species = case_when(
+    species == "Parus montanus" ~ "Poecile montanus",
+    species == "Dendrocopus major" ~ "Dendrocopos major",
+    species == "Saxicola torquatus" ~ "Saxicola rubicola",
+    TRUE ~ species
+  )) |>
+  group_by(species) |>
+  mutate(n_obs = n()) |>
+  ungroup() |>
+  mutate(category = cut(n_obs,
+                        breaks = c(0, 1, 10, 100, 1000, 10000),
+                        labels = c("Very rare", "Rare", "Common",
+                                   "Very common", "Extremely common"),
+                        right = FALSE))
+
+birdcubeflanders_year <- birdcubeflanders_year_sf |>
+  st_drop_geometry() |>
+  mutate(cyclus = case_when(
+    year >= 2007 & year <= 2009 ~ 1,
+    year >= 2010 & year <= 2012 ~ 2,
+    year >= 2013 & year <= 2015 ~ 3,
+    year >= 2016 & year <= 2018 ~ 4,
+    year >= 2019 & year <= 2021 ~ 5,
+    year >= 2022 & year <= 2024 ~ 6
+  ))
+
 abv_data_total_tf <- abv_data_total |>
-  group_by(species, year, TAG) |>
+  group_by(species, year, TAG, category) |>
   summarise(n = sum(individualCount)) |>
   ungroup()
 ```
@@ -53,22 +100,16 @@ abv_data_total_tf |>
   summarise(n_obs = n()) |>
   ggplot(aes(x = n_obs)) +
   geom_histogram() +
-  labs(x = "Number of observations (grouped per km²)",
+  labs(x = "Number of observations (grouped per km² and year)",
        y = "Number of species")
 ```
 
 There are 181 species present in the dataset. There are 37 species that were observed less than 10 times and 30 species that were observed more than 1000 times. This dataset also contains absence data, which is not included in the cube.
 
 ```{r}
-abv_data_total_tf |>
-  group_by(species) |>
-  summarise(n_obs = n()) |>
-  mutate(category = cut(n_obs,
-                        breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
-                        right = FALSE)) |>
+abv_data_total_tf |>   
   group_by(category) |>
-  summarise(n()) |>
-  st_drop_geometry()
+  summarise(n())
 ```
 
 ## The cube data
@@ -77,31 +118,28 @@ There are 666 species present in the data. 355 of these were observed less than 
 
 ```{r}
 birdcubeflanders_year |>
+  st_drop_geometry() |>
   group_by(species) |>
   summarise(n_obs = n()) |>
   ggplot(aes(x = n_obs)) +
   geom_histogram() +
-  labs(x = "Number of observations",
+  labs(x = "Number of observations (grouped per km² and year)",
        y = "Number of species")
 ```
 
 ```{r}
 birdcubeflanders_year |>
+  st_drop_geometry() |>
   group_by(species) |>
   summarise(n_obs = n()) |>
   mutate(category = cut(n_obs,
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
   group_by(category) |>
-  summarise(n()) |>
-  st_drop_geometry()
+  summarise(n()) 
 ```
 
-# Comparing the data
-
-## Filter cube for specific ABV squares
-
-Do we actually need to do this, because the strength of the cubes comes from having more, albeit unstructured, data.
+### Filter cube for specific ABV squares and years
 
 ```{r}
 utm_year <- abv_data_total |>
@@ -110,30 +148,24 @@ utm_year <- abv_data_total |>
 ```
 
 ```{r}
-
+filt_birdcube <- utm_year |>
+  left_join(birdcubeflanders_year, by = c("TAG", "year"))
 ```
-
 
 ```{r}
-filt_birdcube <- birdcubeflanders_year |>
-  slice(0)
-
-for (i in 2007:2022) {
-  temp_abv <- abv_data_total_tf |>
-    filter(year == i)
-  temp_birdcube <- birdcubeflanders_year |>
-    filter(year == i)
-
-  intersects <- st_intersects(temp_birdcube, temp_abv,
-                              sparse = TRUE)
-
-  rows_to_keep <- lengths(intersects) > 0
-
-  filt_birdcube <- filt_birdcube |>
-    add_row(temp_birdcube[rows_to_keep, ])
-}
+filt_birdcube |>
+  st_drop_geometry() |>
+  group_by(species) |>
+  summarise(n_obs = n()) |>
+  mutate(category = cut(n_obs,
+                        breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
+                        right = FALSE)) |>
+  group_by(category) |>
+  summarise(n()) 
 ```
 
+
+# Comparing the data
 
 ```{r}
 studied_spec <- unique(abv_data_total$species) |>
@@ -144,7 +176,9 @@ Let's check if these species are observed in the same utm squares for the full p
 
 ```{r}
 range_comp <- function(sel_species, period = 2007:2022) {
-
+  
+  # We filter both datasets for the species and period of interest
+  # and group them by TAG (identifier of utm square)
   set_abv <- abv_data_total |>
     st_drop_geometry() |>
     filter(species %in% sel_species,
@@ -185,63 +219,43 @@ for (i in studied_spec){
 ```
 
 ```{r}
-DT::datatable(comp_range_data)
+DT::datatable(comp_range_data) |> 
+  DT::formatRound(columns = "percentage_overlap", digits = 2)
 ```
 
-This table shows the percentage of squares were the species was observed in both the cubes and the ABV monitoring compared to all squares where the species was observed during the ABV monitoring. 
-
-Fix some problems with species names:
-Poecile montanus vs Parus montanus
-Dendrocopus major vs Dendrocopos major
-Saxicola rubicola vs Saxicola torquatus
-```{r}
-rgbif::name_usage(2477968) %>% View()
-rgbif::name_usage(2477968)$data %>% View()
-rgbif::name_usage(7840991)$data %>% View()
-rgbif::name_lookup("Dendrocopus major")$data |> View()
-rgbif::name_lookup("Dendrocopos major")$data |> View()
-rgbif::name_lookup("Dendrocopos major", datasetKey = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c")$data |> View()
-rgbif::name_lookup("Dendrocopus major", datasetKey = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c")$data |> View()
-```
-
-
-```{r}
-# Load necessary libraries
-library(sf)
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-library(vcd)        # For Cohen’s Kappa to measure Inter-Rater Reliability
-library(vegan)      # For Bray-Curtis dissimilarity and other ecological metrics
-library(ecodist)    # For Mantel tests
-library(ade4)       # For beta diversity
-library(spatstat)   # For spatial pattern analysis
-library(pscl)       # For occupancy modeling
-library(geosphere)  # For spatial overlap
-
-# Assuming dataset1 and dataset2 are your sf objects
-# They should have columns like 'species', 'year', 'presence', and 'geometry'
+This table shows the percentage of squares were the species was observed in both the cubes and the ABV monitoring compared to all squares where the species was observed during the ABV monitoring. Overall we see an overlap of `r sum(comp_range_data$overlap_abv_birdcube)/sum(comp_range_data$abv_squares)`.
 
 # 1. Trend Analysis
-# Example: Correlation of time series of species occurrences
-time_series_1 <- abv_data_total %>%
-  group_by(species, year) %>%
-  summarize(occurrence = sum(occurrenceStatus == "PRESENT")) |>
-  st_drop_geometry()
+## Correlation of time series of species occurrences
 
-time_series_2 <- birdcubeflanders_year %>%
+```{r Correlation of time series of species occurrences}
+time_series_1 <- abv_data_total |>
+  st_drop_geometry() %>%
   group_by(species, year) %>%
-  summarize(occurrence = n()) |>
-  st_drop_geometry()
+  summarize(occurrence = sum(occurrenceStatus == "PRESENT"))
+
+time_series_2 <- birdcubeflanders_year |>
+  st_drop_geometry()  |>
+  group_by(species, year)  |>
+  summarize(occurrence = n())
 
 # Pearson Correlation for each species
+# inner_join makes sure that only species-year combinations present in both datasets are included
 time_series_cor <- time_series_1 %>%
   inner_join(time_series_2,
              by = c("species", "year"),
              suffix = c("_1", "_2")) %>%
   group_by(species) %>%
   summarize(correlation = cor(occurrence_1, occurrence_2, method = "pearson"))
+```
 
+```{r}
+DT::datatable(time_series_cor) |> 
+  DT::formatRound(columns = "correlation", digits = 2)
+```
+
+
+```{r}
 # 2. Occupancy Rate Comparison
 occupancy_1 <- abv_data_total %>%
   group_by(species) %>%
@@ -259,21 +273,26 @@ occupancy_comparison <- occupancy_1 %>%
 
 # 3. Species Richness and Composition
 # Species richness per dataset
-richness_1 <- dataset1 %>%
-  group_by(geometry) %>%
+richness_1 <- abv_data_total |>
+  st_drop_geometry() |>
+  group_by(TAG) |>
   summarize(richness = n_distinct(species))
 
-richness_2 <- dataset2 %>%
-  group_by(geometry) %>%
+richness_2 <- birdcubeflanders_year  |>
+  st_drop_geometry() |>
+  group_by(TAG) |>
   summarize(richness = n_distinct(species))
 
 # Bray-Curtis dissimilarity
-species_composition_1 <- dataset1 %>%
-  count(geometry, species) %>%
+species_composition_1 <- abv_data_total %>%
+  st_drop_geometry() |> 
+  count(TAG, species) %>%
   spread(species, n, fill = 0)
 
-species_composition_2 <- dataset2 %>%
-  count(geometry, species) %>%
+species_composition_2 <- birdcubeflanders_year %>%
+  st_drop_geometry() |> 
+  filter(species %in% studied_spec) |> 
+  count(TAG, species) %>%
   spread(species, n, fill = 0)
 
 bray_curtis <- vegdist(rbind(species_composition_1[-1],
@@ -327,18 +346,4 @@ sampling_effort_2 <- dataset2 %>%
   summarize(surveys = n())
 
 # Compare detection probabilities if available (requires further modeling)
-
-# Final Output
-list(
-  time_series_correlation = time_series_cor,
-  occupancy_comparison = occupancy_comparison,
-  bray_curtis_dissimilarity = bray_curtis,
-  moran_1 = moran_1,
-  moran_2 = moran_2,
-  spatial_overlap = overlap,
-  occupancy_model_1_coeff = summary(occupancy_model_1)$coefficients,
-  occupancy_model_2_coeff = summary(occupancy_model_2)$coefficients,
-  detection_agreement = concordance,
-  sampling_effort_comparison = list(sampling_effort_1, sampling_effort_2)
-)
 ```
