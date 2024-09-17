@@ -47,7 +47,7 @@ abv_data_total <- abv_data_total_sf |>
     year >= 2016 & year <= 2018 ~ 4,
     year >= 2019 & year <= 2021 ~ 5,
     year >= 2022 & year <= 2024 ~ 6
-  )) |> 
+  )) |>
   mutate(species = case_when(
     species == "Parus montanus" ~ "Poecile montanus",
     species == "Dendrocopus major" ~ "Dendrocopos major",
@@ -107,9 +107,9 @@ abv_data_total_tf |>
 There are 181 species present in the dataset. There are 34 species that were observed less than 10 times, 45 species that were observed more than 1000 times and 12 species that were observed more than 10 000 times. This dataset also contains absence data, which is not included in the cube.
 
 ```{r}
-abv_data_total |>   
+abv_data_total |> 
   distinct(category, species) |>
-  group_by(category) |> 
+  group_by(category) |>
   summarise(n())
 ```
 
@@ -137,7 +137,7 @@ birdcubeflanders_year |>
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
   group_by(category) |>
-  summarise(n()) 
+  summarise(n())
 ```
 
 ### Filter cube for specific ABV squares and years
@@ -162,7 +162,7 @@ filt_birdcube |>
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
   group_by(category) |>
-  summarise(n()) 
+  summarise(n())
 ```
 
 
@@ -177,7 +177,7 @@ Let's check if these species are observed in the same utm squares for the full p
 
 ```{r}
 range_comp <- function(sel_species, period = 2007:2022) {
-  
+
   # We filter both datasets for the species and period of interest
   # and group them by TAG (identifier of utm square)
   set_abv <- abv_data_total |>
@@ -196,14 +196,16 @@ range_comp <- function(sel_species, period = 2007:2022) {
     summarise(n = sum(n))
 
   total_abv <- length(set_abv$TAG)
-  perc_abv <- (total_abv/936) * 100
-  
-  overlap_all_abv_cube <- length(which(set_cube$TAG %in% unique(abv_data_total$TAG)))
-  perc_overlap_all <- (overlap_all_abv_cube/936) * 100
-  
+  perc_abv <- (total_abv / 936) * 100
+
+  overlap_all_abv_cube <- length(
+    which(set_cube$TAG %in% unique(abv_data_total$TAG))
+    )
+  perc_overlap_all <- (overlap_all_abv_cube / 936) * 100
+
   total_overlap <- length(which(set_cube$TAG %in% set_abv$TAG))
-  perc <- (total_overlap/total_abv) * 100
-  
+  perc <- (total_overlap / total_abv) * 100
+
   list(total_abv, perc_abv, overlap_all_abv_cube, perc_overlap_all,
        total_overlap, perc)
 }
@@ -231,10 +233,10 @@ for (i in studied_spec){
 ```
 
 ```{r}
-comp_range_data |> 
+comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(studied_spec == species)) |> 
-  DT::datatable() |> 
+            by = join_by(studied_spec == species)) |>
+  DT::datatable() |>
   DT::formatRound(columns = "percentage_overlap", digits = 2)
 ```
 
@@ -255,7 +257,8 @@ time_series_2 <- birdcubeflanders_year |>
   summarize(occurrence = n())
 
 # Pearson Correlation for each species
-# inner_join makes sure that only species-year combinations present in both datasets are included
+# inner_join makes sure that only species-year combinations present
+# in both datasets are included
 time_series_cor <- time_series_1 %>%
   inner_join(time_series_2,
              by = c("species", "year"),
@@ -265,7 +268,7 @@ time_series_cor <- time_series_1 %>%
 ```
 
 ```{r}
-DT::datatable(time_series_cor) |> 
+DT::datatable(time_series_cor) |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
 
@@ -281,7 +284,8 @@ time_series_2 <- birdcubeflanders_year |>
   summarize(occurrence = n())
 
 # Pearson Correlation for each species
-# inner_join makes sure that only species-year combinations present in both datasets are included
+# inner_join makes sure that only species-year combinations present
+# in both datasets are included
 time_series_cor <- time_series_1 %>%
   inner_join(time_series_2,
              by = c("species", "cyclus"),
@@ -291,7 +295,7 @@ time_series_cor <- time_series_1 %>%
 ```
 
 ```{r}
-DT::datatable(time_series_cor) |> 
+DT::datatable(time_series_cor) |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
 
@@ -307,7 +311,8 @@ time_series_2 <- birdcubeflanders_year |>
   summarize(abundance = sum((n)))
 
 # Pearson Correlation for each species
-# inner_join makes sure that only species-year combinations present in both datasets are included
+# inner_join makes sure that only species-year combinations present
+# in both datasets are included
 time_series_cor <- time_series_1 %>%
   inner_join(time_series_2,
              by = c("species", "cyclus"),
@@ -317,7 +322,7 @@ time_series_cor <- time_series_1 %>%
 ```
 
 ```{r}
-DT::datatable(time_series_cor) |> 
+DT::datatable(time_series_cor) |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
 
@@ -357,15 +362,15 @@ richness_2 <- birdcubeflanders_year  |>
   summarize(richness = n_distinct(species))
 
 # Bray-Curtis dissimilarity
-species_composition_1 <- abv_data_total %>%
-  st_drop_geometry() |> 
-  count(TAG, species) %>%
+species_composition_1 <- abv_data_total  |>
+  st_drop_geometry() |>
+  count(TAG, species) |>
   spread(species, n, fill = 0)
 
-species_composition_2 <- birdcubeflanders_year %>%
-  st_drop_geometry() |> 
-  filter(species %in% studied_spec) |> 
-  count(TAG, species) %>%
+species_composition_2 <- birdcubeflanders_year |>
+  st_drop_geometry() |>
+  filter(species %in% studied_spec) |>
+  count(TAG, species) |>
   spread(species, n, fill = 0)
 
 bray_curtis <- vegdist(rbind(species_composition_1[-1],
@@ -382,8 +387,10 @@ overlap <- geosphere::areaPolygon(intersect(st_union(dataset1),
 
 # 5. Model-Based Comparisons (Occupancy Models)
 # Fit occupancy models to both datasets
-occupancy_model_1 <- zeroinfl(presence ~ species + offset(log(year)) | 1, data = dataset1)
-occupancy_model_2 <- zeroinfl(presence ~ species + offset(log(year)) | 1, data = dataset2)
+occupancy_model_1 <- zeroinfl(presence ~ species + offset(log(year)) | 1,
+                              data = dataset1)
+occupancy_model_2 <- zeroinfl(presence ~ species + offset(log(year)) | 1,
+                              data = dataset2)
 
 # Compare model coefficients
 summary(occupancy_model_1)$coefficients
