@@ -107,7 +107,7 @@ abv_data_total_tf |>
 There are 181 species present in the dataset. There are 34 species that were observed less than 10 times, 45 species that were observed more than 1000 times and 12 species that were observed more than 10 000 times. This dataset also contains absence data, which is not included in the cube.
 
 ```{r}
-abv_data_total |> 
+abv_data_total |>
   distinct(category, species) |>
   group_by(category) |>
   summarise(n())
@@ -176,24 +176,26 @@ studied_spec <- unique(abv_data_total$species) |>
 Let's check if these species are observed in the same utm squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
 
 ```{r}
-range_comp <- function(sel_species, period = 2007:2022) {
+range_comp <- function(sel_species, period = 2007:2022,
+                       dataset1 = abv_data_total,
+                       dataset2 = birdcubeflanders_year) {
 
   # We filter both datasets for the species and period of interest
   # and group them by TAG (identifier of utm square)
-  set_abv <- abv_data_total |>
+  set_abv <- dataset1 |>
     st_drop_geometry() |>
-    filter(species %in% sel_species,
-           year %in% period,
-           individualCount > 0) |>
-    group_by(TAG) |>
-    summarise(n = sum(individualCount))
+    filter(.data$species %in% sel_species,
+           .data$year %in% period,
+           .data$individualCount > 0) |>
+    group_by(.data$TAG) |>
+    summarise(n = sum(.data$individualCount))
 
-  set_cube <- birdcubeflanders_year |>
+  set_cube <- dataset2 |>
     st_drop_geometry() |>
-    filter(species %in% sel_species,
-           year %in% period) |>
-    group_by(TAG) |>
-    summarise(n = sum(n))
+    filter(.data$species %in% sel_species,
+           .data$year %in% period) |>
+    group_by(.data$TAG) |>
+    summarise(n = sum(.data$n))
 
   total_abv <- length(set_abv$TAG)
   perc_abv <- (total_abv / 936) * 100
