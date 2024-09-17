@@ -58,7 +58,7 @@ abv_data_total <- abv_data_total_sf |>
   mutate(n_obs = n()) |>
   ungroup() |>
   mutate(category = cut(n_obs,
-                        breaks = c(0, 1, 10, 100, 1000, 10000),
+                        breaks = c(0, 10, 100, 1000, 10000, +Inf),
                         labels = c("Very rare", "Rare", "Common",
                                    "Very common", "Extremely common"),
                         right = FALSE))
@@ -104,11 +104,12 @@ abv_data_total_tf |>
        y = "Number of species")
 ```
 
-There are 181 species present in the dataset. There are 37 species that were observed less than 10 times and 30 species that were observed more than 1000 times. This dataset also contains absence data, which is not included in the cube.
+There are 181 species present in the dataset. There are 34 species that were observed less than 10 times, 45 species that were observed more than 1000 times and 12 species that were observed more than 10 000 times. This dataset also contains absence data, which is not included in the cube.
 
 ```{r}
-abv_data_total_tf |>   
-  group_by(category) |>
+abv_data_total |>   
+  distinct(category, species) |>
+  group_by(category) |> 
   summarise(n())
 ```
 
@@ -195,31 +196,45 @@ range_comp <- function(sel_species, period = 2007:2022) {
     summarise(n = sum(n))
 
   total_abv <- length(set_abv$TAG)
-  total_overlap <- length(which(set_cube$TAG %in% set_abv$TAG))
+  perc_abv <- (total_abv/936) * 100
   
+  overlap_all_abv_cube <- length(which(set_cube$TAG %in% unique(abv_data_total$TAG)))
+  perc_overlap_all <- (overlap_all_abv_cube/936) * 100
+  
+  total_overlap <- length(which(set_cube$TAG %in% set_abv$TAG))
   perc <- (total_overlap/total_abv) * 100
   
-  list(perc, total_abv, total_overlap)
+  list(total_abv, perc_abv, overlap_all_abv_cube, perc_overlap_all,
+       total_overlap, perc)
 }
 
 ```
 
 ```{r}
 comp_range_data <- as.data.frame(studied_spec)
-comp_range_data$percentage_overlap <- NA
 comp_range_data$abv_squares <- NA
-comp_range_data$overlap_abv_birdcube <- NA
+comp_range_data$perc_abv_total_abv <- NA
+comp_range_data$overlap_birdcube_total_abv <- NA
+comp_range_data$perc_birdcube_total_abv <- NA
+comp_range_data$overlap_birdcube_spec_abv <- NA
+comp_range_data$percentage_birdcube_spec_abv <- NA
 
 for (i in studied_spec){
   comp_range_data[comp_range_data$studied_spec == i, 2] <- range_comp(i)[1]
   comp_range_data[comp_range_data$studied_spec == i, 3] <- range_comp(i)[2]
   comp_range_data[comp_range_data$studied_spec == i, 4] <- range_comp(i)[3]
+  comp_range_data[comp_range_data$studied_spec == i, 5] <- range_comp(i)[4]
+  comp_range_data[comp_range_data$studied_spec == i, 6] <- range_comp(i)[5]
+  comp_range_data[comp_range_data$studied_spec == i, 7] <- range_comp(i)[6]
 }
 
 ```
 
 ```{r}
-DT::datatable(comp_range_data) |> 
+comp_range_data |> 
+  inner_join(abv_data_total |> distinct(species, category),
+            by = join_by(studied_spec == species)) |> 
+  DT::datatable() |> 
   DT::formatRound(columns = "percentage_overlap", digits = 2)
 ```
 
@@ -228,7 +243,7 @@ This table shows the percentage of squares were the species was observed in both
 # 1. Trend Analysis
 ## Correlation of time series of species occurrences
 
-```{r Correlation of time series of species occurrences}
+```{r Correlation of time series per year of species occurrences}
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, year) %>%
@@ -254,24 +269,82 @@ DT::datatable(time_series_cor) |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
 
+```{r Correlation of time series per cyclus of species occurrences}
+time_series_1 <- abv_data_total |>
+  st_drop_geometry() %>%
+  group_by(species, cyclus) %>%
+  summarize(occurrence = sum(occurrenceStatus == "PRESENT"))
+
+time_series_2 <- birdcubeflanders_year |>
+  st_drop_geometry()  |>
+  group_by(species, cyclus)  |>
+  summarize(occurrence = n())
+
+# Pearson Correlation for each species
+# inner_join makes sure that only species-year combinations present in both datasets are included
+time_series_cor <- time_series_1 %>%
+  inner_join(time_series_2,
+             by = c("species", "cyclus"),
+             suffix = c("_1", "_2")) %>%
+  group_by(species) %>%
+  summarize(correlation = cor(occurrence_1, occurrence_2, method = "pearson"))
+```
 
 ```{r}
-# 2. Occupancy Rate Comparison
-occupancy_1 <- abv_data_total %>%
+DT::datatable(time_series_cor) |> 
+  DT::formatRound(columns = "correlation", digits = 2)
+```
+
+```{r Correlation of time series per cyclus of species numbers}
+time_series_1 <- abv_data_total |>
+  st_drop_geometry() %>%
+  group_by(species, cyclus) %>%
+  summarize(abundance = sum(individualCount))
+
+time_series_2 <- birdcubeflanders_year |>
+  st_drop_geometry()  |>
+  group_by(species, cyclus)  |>
+  summarize(abundance = sum((n)))
+
+# Pearson Correlation for each species
+# inner_join makes sure that only species-year combinations present in both datasets are included
+time_series_cor <- time_series_1 %>%
+  inner_join(time_series_2,
+             by = c("species", "cyclus"),
+             suffix = c("_1", "_2")) %>%
   group_by(species) %>%
-  summarize(occupancy_rate_1 = mean(occurrenceStatus == "PRESENT")) |>
-  st_drop_geometry()
+  summarize(correlation = cor(abundance_1, abundance_2, method = "pearson"))
+```
+
+```{r}
+DT::datatable(time_series_cor) |> 
+  DT::formatRound(columns = "correlation", digits = 2)
+```
+
+# 2. Occupancy Rate Comparison
+
+Compare the occupancy rate (percentage of km² where a species is present) between the two datasets for each species.
+
+all abv squares 936
+all birdcube squares 13596
+
+```{r}
+occupancy_1 <- abv_data_total %>%
+  group_by(species, TAG) %>%
+  summarize(occupancy_rate_1 = mean(occurrenceStatus == "PRESENT"))
 
 occupancy_2 <- birdcubeflanders_year %>%
   group_by(species) %>%
-  summarize(occupancy_rate_2 = mean(n())) |>
-  st_drop_geometry()
+  summarize(occupancy_rate_2 = mean(n()))
 
 occupancy_comparison <- occupancy_1 %>%
   inner_join(occupancy_2, by = "species") %>%
   summarize(kappa = Kappa(occupancy_rate_1, occupancy_rate_2)$value)
+```
 
 # 3. Species Richness and Composition
+
+```{r}
 # Species richness per dataset
 richness_1 <- abv_data_total |>
   st_drop_geometry() |>
