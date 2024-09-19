@@ -115,7 +115,21 @@ abv_data_total |>
 
 ## The cube data
 
-There are 666 species present in the data. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times. More information can be found [here]( https://docs.b-cubed.eu/occurrence-cube/specification/#dimensions).
+The cube contains 2 011 808 observations. There are 666 species present in the data. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times. More information can be found [here]( https://docs.b-cubed.eu/occurrence-cube/specification/#dimensions).
+
+The cube is made up of several datasets:
+
+  - Waarnemingen.be - Bird occurrences in Flanders and the Brussels Capital Region, Belgium
+  - Watervogels - Wintering waterbirds in Flanders, Belgium
+  - HG_OOSTENDE - Herring gulls (Larus argentatus, Laridae) breeding at the southern North Sea coast (Belgium)
+  - EOD – eBird Observation Dataset
+  - Waarnemingen.be - Non-native animal occurrences in Flanders and the Brussels Capital Region, Belgium
+  - LBBG_ZEEBRUGGE - Lesser black-backed gulls (Larus fuscus, Laridae) breeding at the southern North Sea coast (Belgium and the Netherlands)
+  - Broedvogels - Atlas of the breeding birds in Flanders 2000-2002
+  - European Seabirds At Sea (ESAS)
+  - And 80+ smaller datasets
+  
+With the first dataset (waarnemingen.be) containing most of the observations (67%). For further analyses it is important to know that waarnemingen.be data was last published in 2019 and currently runs only to 31 december 2018.
 
 ```{r}
 birdcubeflanders_year |>
@@ -329,6 +343,28 @@ time_series_cor <- time_series_1 %>%
 DT::datatable(time_series_cor) |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
+## Trend similarity
+
+```{r}
+abv_data_total |>
+  group_by(cyclus, species) |>
+  summarise(total = sum(individualCount)) |>
+  pivot_wider(names_from = cyclus,
+              names_prefix = "abv_",
+              values_from = total,
+              values_fill = 0)
+
+birdcubeflanders_year |>
+  filter(species %in% studied_spec) |>
+  group_by(cyclus, species) |>
+  summarise(total = sum(n)) |>
+  pivot_wider(names_from = cyclus,
+              names_prefix = "cube_",
+              values_from = total,
+              values_fill = 0)
+```
+
+
 
 # 2. Occupancy Rate Comparison
 
@@ -336,6 +372,8 @@ Compare the occupancy rate (percentage of km² where a species is present) betwe
 
 all abv squares 936
 all birdcube squares 13596
+
+Kappa is not a good measure for comparing two discrete continuous variables, better to use this later when comparing categories, i.e. increase, decrease, ...
 
 ```{r}
 occupancy_1 <- abv_data_total %>%
@@ -356,30 +394,34 @@ occupancy_comparison <- occupancy_1 %>%
 ```{r}
 # Species richness per dataset
 richness_1 <- abv_data_total |>
-  st_drop_geometry() |>
   group_by(TAG) |>
   summarize(richness = n_distinct(species))
 
 richness_2 <- birdcubeflanders_year  |>
-  st_drop_geometry() |>
   group_by(TAG) |>
   summarize(richness = n_distinct(species))
 
 # Bray-Curtis dissimilarity
 species_composition_1 <- abv_data_total  |>
-  st_drop_geometry() |>
-  count(TAG, species) |>
-  spread(species, n, fill = 0)
+  drop_na(species) |> 
+  count(species) |>
+  pivot_wider(names_from = species,
+              values_from = n,
+              values_fill = 0)
 
 species_composition_2 <- birdcubeflanders_year |>
-  st_drop_geometry() |>
   filter(species %in% studied_spec) |>
-  count(TAG, species) |>
-  spread(species, n, fill = 0)
+  count(species) |>
+  pivot_wider(names_from = species,
+              values_from = n,
+              values_fill = 0)
 
 bray_curtis <- vegdist(rbind(species_composition_1[-1],
                              species_composition_2[-1]), method = "bray")
+```
 
+
+```{r}
 # 4. Spatial Patterns
 # Spatial autocorrelation with Moran's I
 moran_1 <- moran.test(dataset1$presence, nb2listw(poly2nb(dataset1)))
