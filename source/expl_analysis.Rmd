@@ -1,6 +1,6 @@
 ---
 title: "Exploratory analysis"
-author: "Emma Cartuyvels, Ward Langeraert"
+author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
 date: "2024-07-24"
 output: html_document
 ---
@@ -93,6 +93,11 @@ summary(abv_data_total[, c("individualCount",
                           "year",
                           "month")])
 ```
+```{r}
+abv_data_total |>
+  ggplot(aes(x = year(eventDate))) +
+  geom_histogram()
+```
 
 ```{r}
 abv_data_total_tf |>
@@ -104,7 +109,7 @@ abv_data_total_tf |>
        y = "Number of species")
 ```
 
-There are 181 species present in the dataset. There are 34 species that were observed less than 10 times, 45 species that were observed more than 1000 times and 12 species that were observed more than 10 000 times. This dataset also contains absence data, which is not included in the cube.
+There are 182 species present in the dataset. There are 32 species that were observed less than 10 times, 45 species that were observed more than 1000 times and 16 species that were observed more than 10 000 times. This dataset also contains absence data, which is not included in the cube.
 
 ```{r}
 abv_data_total |>
@@ -130,6 +135,12 @@ The cube is made up of several datasets:
   - And 80+ smaller datasets
   
 With the first dataset (waarnemingen.be) containing most of the observations (67%). For further analyses it is important to know that waarnemingen.be data was last published in 2019 and currently runs only to 31 december 2018.
+
+```{r}
+birdcubeflanders_year |>
+  ggplot(aes(x = year)) +
+  geom_histogram()
+```
 
 ```{r}
 birdcubeflanders_year |>
@@ -169,7 +180,6 @@ filt_birdcube <- utm_year |>
 
 ```{r}
 filt_birdcube |>
-  st_drop_geometry() |>
   group_by(species) |>
   summarise(n_obs = n()) |>
   mutate(category = cut(n_obs,
@@ -212,17 +222,22 @@ range_comp <- function(sel_species, period = 2007:2022,
     summarise(n = sum(.data$n))
 
   total_abv <- length(set_abv$TAG)
-  perc_abv <- (total_abv / 936) * 100
+  perc_abv <- (total_abv / 950) * 100
+  
+  total_cube <- length(set_cube$TAG)
+  perc_cube <- (total_cube / 13596) * 100
 
   overlap_all_abv_cube <- length(
-    which(set_cube$TAG %in% unique(abv_data_total$TAG))
+    which(set_cube$TAG %in% unique(abv_data_total$TAG)) # Logischer om totaal birdcubes te maken en dan percentage?
     )
   perc_overlap_all <- (overlap_all_abv_cube / 936) * 100
 
   total_overlap <- length(which(set_cube$TAG %in% set_abv$TAG))
   perc <- (total_overlap / total_abv) * 100
 
-  list(total_abv, perc_abv, overlap_all_abv_cube, perc_overlap_all,
+  list(total_abv, perc_abv,
+       total_cube, perc_cube,
+       overlap_all_abv_cube, perc_overlap_all,
        total_overlap, perc)
 }
 
@@ -232,18 +247,24 @@ range_comp <- function(sel_species, period = 2007:2022,
 comp_range_data <- as.data.frame(studied_spec)
 comp_range_data$abv_squares <- NA
 comp_range_data$perc_abv_total_abv <- NA
+comp_range_data$cube_squares <- NA
+comp_range_data$perc_cube_total_cube <- NA
 comp_range_data$overlap_birdcube_total_abv <- NA
 comp_range_data$perc_birdcube_total_abv <- NA
 comp_range_data$overlap_birdcube_spec_abv <- NA
 comp_range_data$percentage_birdcube_spec_abv <- NA
 
 for (i in studied_spec){
-  comp_range_data[comp_range_data$studied_spec == i, 2] <- range_comp(i)[1]
-  comp_range_data[comp_range_data$studied_spec == i, 3] <- range_comp(i)[2]
-  comp_range_data[comp_range_data$studied_spec == i, 4] <- range_comp(i)[3]
-  comp_range_data[comp_range_data$studied_spec == i, 5] <- range_comp(i)[4]
-  comp_range_data[comp_range_data$studied_spec == i, 6] <- range_comp(i)[5]
-  comp_range_data[comp_range_data$studied_spec == i, 7] <- range_comp(i)[6]
+  test <- range_comp(i, period = 2007:2018)
+  
+  comp_range_data[comp_range_data$studied_spec == i, 2] <- test[1]
+  comp_range_data[comp_range_data$studied_spec == i, 3] <- test[2]
+  comp_range_data[comp_range_data$studied_spec == i, 4] <- test[3]
+  comp_range_data[comp_range_data$studied_spec == i, 5] <- test[4]
+  comp_range_data[comp_range_data$studied_spec == i, 6] <- test[5]
+  comp_range_data[comp_range_data$studied_spec == i, 7] <- test[6]
+  comp_range_data[comp_range_data$studied_spec == i, 8] <- test[7]
+  comp_range_data[comp_range_data$studied_spec == i, 9] <- test[8]
 }
 
 ```
@@ -254,11 +275,81 @@ comp_range_data |>
             by = join_by(studied_spec == species)) |>
   DT::datatable() |>
   DT::formatRound(columns = c("perc_abv_total_abv",
+                              "perc_cube_total_cube",
                               "perc_birdcube_total_abv",
                               "percentage_birdcube_spec_abv"), digits = 2)
 ```
 
 This table shows the percentage of squares were the species was observed in both the cubes and the ABV monitoring compared to all squares where the species was observed during the ABV monitoring. Overall we see an overlap of `r sum(comp_range_data$percentage_birdcube_spec_abv)/sum(comp_range_data$abv_squares)`.
+
+```{r}
+comp_range_data |>
+  inner_join(abv_data_total |> distinct(species, category),
+            by = join_by(studied_spec == species)) |>
+  ggplot(aes(x = perc_abv_total_abv, y = perc_birdcube_total_abv, color = category)) +
+  geom_point()
+```
+If we look at the graph it appears that the number of squares in which a species is observed in the ABV is correlated to the number of squares in which a species is observed in the cube.
+
+```{r}
+comp_range_data |>
+  inner_join(abv_data_total |> distinct(species, category),
+            by = join_by(studied_spec == species)) |>
+  ggplot(aes(x = perc_abv_total_abv, y = percentage_birdcube_spec_abv, color = category)) +
+  geom_point()
+```
+
+```{r}
+comp_range_data |>
+  inner_join(abv_data_total |> distinct(species, category),
+            by = join_by(studied_spec == species)) |>
+  ggplot(aes(x = perc_abv_total_abv, y = perc_cube_total_cube, color = category)) +
+  geom_point()
+```
+
+```{r}
+comp_range_data2 <- data.frame(studied_spec = rep(studied_spec, 4),
+                               abv_squares = NA,
+                               perc_abv_total_abv = NA,
+                               cube_squares = NA,
+                               perc_cube_total_cube = NA,
+                               cyclus = NA)
+
+start_year <- 2007
+end_year <- 2018
+
+cycle_starts <- seq(from = start_year, to = end_year, by = 3)
+c = 1
+j = 1
+
+for (cycle_start in cycle_starts) {
+  for (i in studied_spec) {
+    comp_range_data2$cyclus[j] <- c
+    comp_range_data2$studied_spec[j] = i
+    
+    test <- range_comp(i, period = cycle_start:(cycle_start + 2))
+    
+    comp_range_data2$abv_squares[j] <- test[[1]]
+    comp_range_data2$perc_abv_total_abv[j] <- test[[2]]
+    comp_range_data2$cube_squares[j] <- test[[3]]
+    comp_range_data2$perc_cube_total_cube[j] <- test[[4]]
+    
+    j = j + 1
+  }
+  c = c + 1
+}
+```
+
+```{r}
+comp_range_data2 |>
+  inner_join(abv_data_total |> distinct(species, category),
+            by = join_by(studied_spec == species)) |>
+  ggplot(aes(x = perc_abv_total_abv, y = perc_cube_total_cube, color = category)) +
+  geom_point() +
+  facet_grid("cyclus",
+             scales = "free_y")
+  
+```
 
 # 1. Trend Analysis
 ## Correlation of time series of species occurrences
@@ -294,12 +385,14 @@ DT::datatable(time_series_cor) |>
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, cyclus) %>%
-  summarize(occurrence = sum(occurrenceStatus == "PRESENT"))
+  summarize(occurrence = sum(occurrenceStatus == "PRESENT")) |> 
+  filter(cyclus < 5)
 
 time_series_2 <- birdcubeflanders_year |>
   st_drop_geometry()  |>
   group_by(species, cyclus)  |>
-  summarize(occurrence = n())
+  summarize(occurrence = n()) |> 
+  filter(cyclus < 5)
 
 # Pearson Correlation for each species
 # inner_join makes sure that only species-year combinations present
@@ -321,12 +414,14 @@ DT::datatable(time_series_cor) |>
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, cyclus) %>%
-  summarize(abundance = sum(individualCount))
+  summarize(abundance = sum(individualCount)) |> 
+  filter(cyclus < 5)
 
 time_series_2 <- birdcubeflanders_year |>
   st_drop_geometry()  |>
   group_by(species, cyclus)  |>
-  summarize(abundance = sum((n)))
+  summarize(abundance = sum((n))) |> 
+  filter(cyclus < 5)
 
 # Pearson Correlation for each species
 # inner_join makes sure that only species-year combinations present
@@ -340,9 +435,22 @@ time_series_cor <- time_series_1 %>%
 ```
 
 ```{r}
-DT::datatable(time_series_cor) |>
+time_series_cor |>
+  inner_join(abv_data_total |> distinct(species, category),
+            by = join_by(species == species)) |>
+  DT::datatable() |> 
   DT::formatRound(columns = "correlation", digits = 2)
 ```
+
+```{r}
+time_series_cor |>
+  inner_join(abv_data_total |> distinct(species, category),
+            by = join_by(species == species)) |>
+  group_by(category) |> 
+  summarize(mean(correlation, na.rm = TRUE))
+```
+
+
 ## Trend similarity
 
 ```{r}
