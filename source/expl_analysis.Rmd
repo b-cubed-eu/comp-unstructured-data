@@ -2,30 +2,30 @@
 title: "Exploratory analysis"
 author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
 date: "2024-07-24"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(sf)
+library(lubridate)
 library(mapview)
 library(vcd)        # For Cohen’s Kappa to measure Inter-Rater Reliability
 library(vegan)      # For Bray-Curtis dissimilarity and other ecological metrics
-library(ecodist)    # For Mantel tests
-library(ade4)       # For beta diversity
-library(spatstat)   # For spatial pattern analysis
-library(pscl)       # For occupancy modeling
-library(geosphere)  # For spatial overlap
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+library(stringr)
+library(ggpubr)
 library(INBOtheme)
 
 conflicted::conflicts_prefer(dplyr::filter)
 ```
 
-```{r data}
+```{r data, cache=TRUE}
 birdcubeflanders_year_sf <- read_sf(here::here("data", "interim",
                                             "birdcubeflanders_year.gpkg"))
 
@@ -243,7 +243,7 @@ range_comp <- function(sel_species, period = 2007:2022,
 
 ```
 
-```{r}
+```{r, cache=TRUE}
 comp_range_data <- as.data.frame(studied_spec)
 comp_range_data$abv_squares <- NA
 comp_range_data$perc_abv_total_abv <- NA
@@ -287,8 +287,13 @@ comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
   ggplot(aes(x = perc_abv_total_abv, y = perc_birdcube_total_abv, color = category)) +
-  geom_point()
+  geom_point() +
+  stat_cor(mapping = aes(color = NULL),
+           label.x.npc = "centre",
+           label.y.npc = "bottom",
+           method = "pearson")
 ```
+
 If we look at the graph it appears that the number of squares in which a species is observed in the ABV is correlated to the number of squares in which a species is observed in the cube.
 
 ```{r}
@@ -296,7 +301,11 @@ comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
   ggplot(aes(x = perc_abv_total_abv, y = percentage_birdcube_spec_abv, color = category)) +
-  geom_point()
+  geom_point() +
+  stat_cor(mapping = aes(color = NULL),
+           label.x.npc = "centre",
+           label.y.npc = "bottom",
+           method = "pearson")
 ```
 
 ```{r}
@@ -304,7 +313,11 @@ comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
   ggplot(aes(x = perc_abv_total_abv, y = perc_cube_total_cube, color = category)) +
-  geom_point()
+  geom_point() +
+  stat_cor(mapping = aes(color = NULL),
+           label.x.npc = "centre",
+           label.y.npc = "bottom",
+           method = "pearson")
 ```
 
 ```{r}
@@ -346,6 +359,10 @@ comp_range_data2 |>
             by = join_by(studied_spec == species)) |>
   ggplot(aes(x = perc_abv_total_abv, y = perc_cube_total_cube, color = category)) +
   geom_point() +
+  stat_cor(mapping = aes(color = NULL),
+           label.x.npc = "centre",
+           label.y.npc = "bottom",
+           method = "pearson") +
   facet_grid("cyclus",
              scales = "free_y")
   
@@ -454,25 +471,111 @@ time_series_cor |>
 ## Trend similarity
 
 ```{r}
-abv_data_total |>
+abv_dif <- abv_data_total |>
   group_by(cyclus, species) |>
   summarise(total = sum(individualCount)) |>
   pivot_wider(names_from = cyclus,
               names_prefix = "abv_",
               values_from = total,
-              values_fill = 0)
+              values_fill = 0) |>
+  mutate(dif1 = abv_2 - abv_1,
+         dif2 = abv_3 - abv_2,
+         dif3 = abv_4 - abv_3)
 
-birdcubeflanders_year |>
+cube_dif <- birdcubeflanders_year |>
   filter(species %in% studied_spec) |>
   group_by(cyclus, species) |>
   summarise(total = sum(n)) |>
   pivot_wider(names_from = cyclus,
               names_prefix = "cube_",
               values_from = total,
-              values_fill = 0)
+              values_fill = 0) |>
+  mutate(dif1_cube = cube_2 - cube_1,
+         dif2_cube = cube_3 - cube_2,
+         dif3_cube = cube_4 - cube_3) |>
+  select(species, dif1_cube, dif2_cube, dif3_cube)
+
+comp_dir <- abv_dif |>
+  select(species, dif1, dif2, dif3) |>
+  inner_join(cube_dif) |> 
+  mutate(dif1 = dif1 > 0,
+         dif2 = dif2 > 0,
+         dif3 = dif3 > 0,
+         dif1_cube = dif1_cube > 0,
+         dif2_cube = dif2_cube > 0,
+         dif3_cube = dif3_cube > 0) |>
+  pivot_longer(
+    cols = !species
+  ) |>
+  mutate(set = ifelse(str_detect(name, "cube"),
+                      "cube",
+                      "abv")) |>
+  mutate(dif = str_sub(name, 1, 4)) |> 
+  select(-name) |> 
+  pivot_wider(names_from = set,
+              values_from = value)
+
+
+Kappa(table(comp_dir[,c(3,4)]))
 ```
+Value of k | Strength of agreement
+------- | --------
+< 0 | Poor
+0.01 - 0.20 | Slight
+0.21 - 0.40 | Fair
+0.41 - 0.60 | Moderate
+0.61 - 0.80 | Substantial
+0.81 - 1.00 | Almost perfect
+
+```{r Kappa for common species}
+abv_dif <- abv_data_total |>
+  filter(category %in% c("Rare")) |>
+  group_by(cyclus, species) |>
+  summarise(total = sum(individualCount)) |>
+  pivot_wider(names_from = cyclus,
+              names_prefix = "abv_",
+              values_from = total,
+              values_fill = 0) |>
+  mutate(dif1 = abv_2 - abv_1,
+         dif2 = abv_3 - abv_2,
+         dif3 = abv_4 - abv_3)
+
+cube_dif <- birdcubeflanders_year |>
+  filter(species %in% abv_dif$species) |>
+  group_by(cyclus, species) |>
+  summarise(total = sum(n)) |>
+  pivot_wider(names_from = cyclus,
+              names_prefix = "cube_",
+              values_from = total,
+              values_fill = 0) |>
+  mutate(dif1_cube = cube_2 - cube_1,
+         dif2_cube = cube_3 - cube_2,
+         dif3_cube = cube_4 - cube_3) |>
+  select(species, dif1_cube, dif2_cube, dif3_cube)
+
+comp_dir <- abv_dif |>
+  select(species, dif1, dif2, dif3) |>
+  inner_join(cube_dif) |> 
+  mutate(dif1 = dif1 > 0,
+         dif2 = dif2 > 0,
+         dif3 = dif3 > 0,
+         dif1_cube = dif1_cube > 0,
+         dif2_cube = dif2_cube > 0,
+         dif3_cube = dif3_cube > 0) |>
+  pivot_longer(
+    cols = !species
+  ) |>
+  mutate(set = ifelse(str_detect(name, "cube"),
+                      "cube",
+                      "abv")) |>
+  mutate(dif = str_sub(name, 1, 4)) |> 
+  select(-name) |> 
+  pivot_wider(names_from = set,
+              values_from = value)
 
 
+Kappa(table(comp_dir[,c(3,4)]))
+```
 
 # 2. Occupancy Rate Comparison
 
@@ -492,9 +595,9 @@ occupancy_2 <- birdcubeflanders_year %>%
   group_by(species) %>%
   summarize(occupancy_rate_2 = mean(n()))
 
-occupancy_comparison <- occupancy_1 %>%
-  inner_join(occupancy_2, by = "species") %>%
-  summarize(kappa = Kappa(occupancy_rate_1, occupancy_rate_2)$value)
+#occupancy_comparison <- occupancy_1 %>%
+#  inner_join(occupancy_2, by = "species") %>%
+#  summarize(kappa = Kappa(occupancy_rate_1, occupancy_rate_2)$value)
 ```
 
 # 3. Species Richness and Composition
@@ -526,58 +629,5 @@ species_composition_2 <- birdcubeflanders_year |>
 
 bray_curtis <- vegdist(rbind(species_composition_1[-1],
                              species_composition_2[-1]), method = "bray")
-```
-
-
-```{r}
-# 4. Spatial Patterns
-# Spatial autocorrelation with Moran's I
-moran_1 <- moran.test(dataset1$presence, nb2listw(poly2nb(dataset1)))
-moran_2 <- moran.test(dataset2$presence, nb2listw(poly2nb(dataset2)))
-
-# Spatial overlap
-overlap <- geosphere::areaPolygon(intersect(st_union(dataset1),
-                                            st_union(dataset2)))
-
-# 5. Model-Based Comparisons (Occupancy Models)
-# Fit occupancy models to both datasets
-occupancy_model_1 <- zeroinfl(presence ~ species + offset(log(year)) | 1,
-                              data = dataset1)
-occupancy_model_2 <- zeroinfl(presence ~ species + offset(log(year)) | 1,
-                              data = dataset2)
-
-# Compare model coefficients
-summary(occupancy_model_1)$coefficients
-summary(occupancy_model_2)$coefficients
-
-# 6. Detection/Non-Detection Agreement
-detection_matrix_1 <- dataset1 %>%
-  group_by(species, geometry) %>%
-  summarize(detected = any(presence > 0))
-
-detection_matrix_2 <- dataset2 %>%
-  group_by(species, geometry) %>%
-  summarize(detected = any(presence > 0))
-
-concordance <- detection_matrix_1 %>%
-  inner_join(detection_matrix_2,
-             by = c("species", "geometry"),
-             suffix = c("_1", "_2")) %>%
-  summarize(agreement = mean(detected_1 == detected_2))
-
-# 7. Temporal Synchrony (if applicable)
-# Compare timing of species occurrences (phenology)
-# This depends on more granular temporal data
-
-# 8. Data Quality Indicators
-# Compare sampling effort
-sampling_effort_1 <- dataset1 %>%
-  group_by(geometry, year) %>%
-  summarize(surveys = n())
-
-sampling_effort_2 <- dataset2 %>%
-  group_by(geometry, year) %>%
-  summarize(surveys = n())
-
-# Compare detection probabilities if available (requires further modeling)
+bray_curtis
 ```
