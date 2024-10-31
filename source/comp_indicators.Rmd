@@ -1,0 +1,80 @@
+---
+title: "B-cubed indicators for cube vs structured data"
+author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
+date: "2024-10-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+birdcube <- process_cube(birdcubeflanders_year,
+                         cols_occurrences = "n")
+birdcube
+```
+
+```{r}
+obs_richness_map_birdcube <- obs_richness_map(birdcube,
+                                              cell_size = 1)
+plot(obs_richness_map_birdcube)
+```
+
+```{r}
+obs_richness_ts_birdcube <- obs_richness_ts(birdcube)
+plot(obs_richness_ts_birdcube)
+```
+
+
+```{r}
+total_occ_map_birdcube <- total_occ_map(birdcube)
+plot(total_occ_map_birdcube)
+```
+
+```{r}
+total_occ_ts_birdcube <- total_occ_ts(birdcube)
+plot(total_occ_ts_birdcube)
+```
+
+
+```{r}
+pielou_evenness_map_birdcube <- pielou_evenness_map(birdcube)
+plot(pielou_evenness_map_birdcube)
+```
+
+```{r}
+pielou_evenness_ts_birdcube <- pielou_evenness_ts(birdcube)
+plot(pielou_evenness_ts_birdcube)
+```
+
+```{r}
+pielou_evenness_map_birdcube <- pielou_evenness_map(birdcube)
+plot(pielou_evenness_map_birdcube)
+```
+
+```{r}
+pielou_evenness_ts_birdcube <- pielou_evenness_ts(birdcube)
+plot(pielou_evenness_ts_birdcube)
+```
+
+
+
+
+
+
+
+
+```{r}
+spec_range_map_birdcube <- spec_range_map(birdcube)
+plot(spec_range_map_birdcube, species = "Luscinia svecica")
+```
+
+```{r}
+spec_range_ts_birdcube <- spec_range_ts(birdcube)
+plot(spec_range_ts_birdcube, species = "Luscinia svecica")
+```
+
+
+
+
