@@ -6,6 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+library(sf)
+library(trias)
 library(tidyverse)
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -87,6 +89,8 @@ abv_ana_birds <- c(
 abv_ana_birds <- data.frame(abv_ana_birds) |>
   left_join(abv_data_total |> distinct(vernacularName, species),
             by = join_by(abv_ana_birds == vernacularName))
+
+sel_spec <- abv_ana_birds$species
 ```
 
 ```{r}
@@ -103,5 +107,16 @@ red_list_fl2 <- read_delim(file.path(data_path,
                                      "taxon.txt"),
                    delim = "\t",
                    show_col_types = FALSE)
+```
+
+```{r}
+sel_data <- birdcubeflanders_year |>
+  group_by(year, species) |>
+  mutate() |>
+  filter(species == "Cettia cetti")
+  
+
+gam(n ~ s(year) + s(tot_birds), k = 5)
+
 ```
 
