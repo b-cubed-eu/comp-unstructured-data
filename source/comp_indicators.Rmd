@@ -6,6 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+library(b3gbi)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
