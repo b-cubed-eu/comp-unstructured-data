@@ -74,7 +74,7 @@ abv_ana_birds <- c(
   "Boerenzwaluw", "Tjiftjaf", "Zwarte kraai", "Houtduif", "Kleine karekiet",
   "Fazant", "Gaai", "Groene specht", "Ekster", "Koolmees", "Gele kwikstaart",
   "Groenling", "Holenduif", "Winterkoning", "Scholekster", "Koekoek",
-  "Heggenmus", "Spreeuw", "Turkse tortel", "Veldleeuwerik", "Geelgors", 
+  "Heggenmus", "Spreeuw", "Turkse tortel", "Veldleeuwerik", "Geelgors",
   "Goudhaan", "Kuifmees", "Zilvermeeuw", "Matkop", "Huismus", "Wilde eend",
   "Waterhoen", "Zanglijster", "Merel", "Tuinfluiter", "Zwarte mees", "Patrijs",
   "Graspieper", "Fitis", "Stadsduif", "Wielewaal", "Grutto", "Kievit",
@@ -96,17 +96,19 @@ sel_spec <- abv_ana_birds$species
 ```{r}
 data_path <- here::here("data", "raw")
 
-red_list_fl1 <- read_delim(file.path(data_path,
-                                     "dwca-rl-flanders-validated-checklist-v1.7",
-                                     "distribution.txt"),
-                   delim = "\t",
-                   show_col_types = FALSE)
+red_list_fl1 <- read_delim(
+  file.path(data_path,
+            "dwca-rl-flanders-validated-checklist-v1.7",
+            "distribution.txt"),
+  delim = "\t",
+  show_col_types = FALSE)
 
-red_list_fl2 <- read_delim(file.path(data_path,
-                                     "dwca-rl-flanders-validated-checklist-v1.7",
-                                     "taxon.txt"),
-                   delim = "\t",
-                   show_col_types = FALSE)
+red_list_fl2 <- read_delim(
+  file.path(data_path,
+            "dwca-rl-flanders-validated-checklist-v1.7",
+            "taxon.txt"),
+  delim = "\t",
+  show_col_types = FALSE)
 ```
 
 ```{r}
@@ -114,9 +116,7 @@ sel_data <- birdcubeflanders_year |>
   group_by(year, species) |>
   mutate() |>
   filter(species == "Cettia cetti")
-  
 
 gam(n ~ s(year) + s(tot_birds), k = 5)
-
 ```
 
