@@ -281,9 +281,9 @@ comp_range_data |>
 
 This table shows the number of ABV squares were a species was observed, the percentage of total ABV squares, the number of cube squares were the species was observed, the percentage of all cube squares, the number of ABV squares were the species was observed based on the birdcube data, the percentage compared to all ABV squares, the number of squares occupied by the species in both the ABV and birdcube data and the percentage of this compared to the number of squares occupied by this species in the ABV data.
 
-Overall we see an overlap of `r mean(comp_range_data$percentage_birdcube_spec_abv, na.rm = TRUE)`.
+Overall we see an overlap of `r round(mean(comp_range_data$percentage_birdcube_spec_abv, na.rm = TRUE), digits = 3)`.
 
-```{r}
+```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
@@ -298,7 +298,7 @@ comp_range_data |>
 
 If we look at the graph it appears that for the subset of ABV squares the number of squares in which a species is observed in the ABV is correlated to the number of squares in which a species is observed in the cube.
 
-```{r}
+```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
@@ -311,7 +311,7 @@ comp_range_data |>
            method = "pearson")
 ```
 
-```{r}
+```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
@@ -384,12 +384,13 @@ comp_range_data2 |>
   facet_grid("cyclus",
              scales = "free_y")
 ```
+
 This graph shows the same figure as above but split for each full cycle of ABV observations.
 
 # 1. Trend Analysis
 ## Correlation of time series of species occurrences
 
-```{r Correlation of time series per year of species occurrences}
+```{r Correlation of time series per year of species occurrences, message=FALSE}
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, year) %>%
