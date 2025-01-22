@@ -117,8 +117,8 @@ There are 182 species present in the dataset. There are 32 species that were obs
 ```{r}
 abv_data_total |>
   distinct(category, species) |>
-  group_by(category) |>
-  summarise(n())
+  count(category) |>
+  knitr::kable()
 ```
 
 ## The cube data
