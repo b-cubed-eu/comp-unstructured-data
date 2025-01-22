@@ -102,7 +102,7 @@ abv_data_total |>
   scale_x_continuous(breaks = sort(unique(abv_data_total$year)))
 ```
 
-```{r}
+```{r, message=FALSE}
 abv_data_total_tf |>
   group_by(species) |>
   summarise(n_obs = n()) |>
@@ -146,7 +146,7 @@ birdcubeflanders_year |>
   scale_x_continuous(breaks = sort(unique(birdcubeflanders_year$year)))
 ```
 
-```{r}
+```{r, message=FALSE}
 birdcubeflanders_year |>
   count(species, name = "n_obs") |>
   ggplot(aes(x = n_obs)) +
