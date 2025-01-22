@@ -157,13 +157,12 @@ birdcubeflanders_year |>
 
 ```{r}
 birdcubeflanders_year |>
-  group_by(species) |>
-  summarise(n_obs = n()) |>
+  count(species, name = "n_obs") |>
   mutate(category = cut(n_obs,
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
-  group_by(category) |>
-  summarise(n())
+  count(category) |>
+  knitr::kable()
 ```
 
 ### Filter cube for specific ABV squares and years
@@ -181,13 +180,12 @@ filt_birdcube <- utm_year |>
 
 ```{r}
 filt_birdcube |>
-  group_by(species) |>
-  summarise(n_obs = n()) |>
+  count(species, name = "n_obs") |>
   mutate(category = cut(n_obs,
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
-  group_by(category) |>
-  summarise(n())
+  count(category) |>
+  knitr::kable()
 ```
 
 
@@ -198,7 +196,7 @@ studied_spec <- unique(abv_data_total$species) |>
   na.omit()
 ```
 
-Let's check if these species are observed in the same utm squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
+Let's check if these species are observed in the same UTM squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
 
 ```{r}
 range_comp <- function(sel_species, period = 2007:2022,
