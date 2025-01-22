@@ -142,13 +142,13 @@ With the first dataset (waarnemingen.be) containing most of the observations (67
 ```{r}
 birdcubeflanders_year |>
   ggplot(aes(x = year)) +
-  geom_histogram()
+  geom_bar() +
+  scale_x_continuous(breaks = sort(unique(birdcubeflanders_year$year)))
 ```
 
 ```{r}
 birdcubeflanders_year |>
-  group_by(species) |>
-  summarise(n_obs = n()) |>
+  count(species, name = "n_obs") |>
   ggplot(aes(x = n_obs)) +
   geom_histogram() +
   labs(x = "Number of observations (grouped per km² and year)",
