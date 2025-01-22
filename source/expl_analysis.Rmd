@@ -94,10 +94,12 @@ summary(abv_data_total[, c("individualCount",
                           "year",
                           "month")])
 ```
+
 ```{r}
 abv_data_total |>
-  ggplot(aes(x = year(eventDate))) +
-  geom_histogram()
+  ggplot(aes(x = year)) +
+  geom_bar() +
+  scale_x_continuous(breaks = sort(unique(abv_data_total$year)))
 ```
 
 ```{r}
