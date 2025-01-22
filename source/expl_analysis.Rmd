@@ -490,7 +490,7 @@ time_series_cor |>
 
 ## Trend similarity
 
-```{r}
+```{r, message=FALSE}
 abv_dif <- abv_data_total |>
   group_by(cyclus, species) |>
   summarise(total = sum(individualCount)) |>
@@ -517,7 +517,7 @@ cube_dif <- birdcubeflanders_year |>
 
 comp_dir <- abv_dif |>
   select(species, dif1, dif2, dif3) |>
-  inner_join(cube_dif) |>
+  inner_join(cube_dif, by = join_by(species)) |>
   mutate(dif1 = dif1 > 0,
          dif2 = dif2 > 0,
          dif3 = dif3 > 0,
@@ -538,6 +538,7 @@ comp_dir <- abv_dif |>
 
 Kappa(table(comp_dir[, c(3, 4)]))
 ```
+
 Value of k | Strength of agreement
 ------- | --------
 < 0 | Poor
@@ -547,7 +548,7 @@ Value of k | Strength of agreement
 0.61 - 0.80 | Substantial
 0.81 - 1.00 | Almost perfect
 
-```{r Kappa for common species}
+```{r Kappa for common species, message=FALSE}
 abv_dif <- abv_data_total |>
   filter(category %in% c("Rare")) |>
   group_by(cyclus, species) |>
@@ -575,7 +576,7 @@ cube_dif <- birdcubeflanders_year |>
 
 comp_dir <- abv_dif |>
   select(species, dif1, dif2, dif3) |>
-  inner_join(cube_dif) |>
+  inner_join(cube_dif, by = join_by(species)) |>
   mutate(dif1 = dif1 > 0,
          dif2 = dif2 > 0,
          dif3 = dif3 > 0,
@@ -606,7 +607,7 @@ all birdcube squares 13596
 
 Kappa is not a good measure for comparing two discrete continuous variables, better to use this later when comparing categories, i.e. increase, decrease, ...
 
-```{r}
+```{r, message=FALSE}
 occupancy_1 <- abv_data_total %>%
   group_by(species, TAG) %>%
   summarize(occupancy_rate_1 = mean(occurrenceStatus == "PRESENT"))
