@@ -8,32 +8,38 @@ output: html_document
 In this document we compare all B-cubed biodiversity indicators between actual cube data and data from structured monitoring.
 
 ```{r setup, include=FALSE}
+library(sf)
 library(rgbif)
+library(dplyr)
 library(b3gbi)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+data_path <- here::here("data", "raw")
+
+utm_grid <- read_sf(file.path(data_path, "utm_grid", "utm1_vl.shp"))
+utm_grid <- utm_grid %>%
+  mutate(mgrscode = paste0("31U", TAG))
+```
+
 To start we'll read in both the biodiversity and the ABV data directly from GBIF.
 
-```{r read data}
+```{r read data, eval=FALSE}
 birdcubeflanders_year <- occ_download_sql(
   user = Sys.getenv("USER"),
   pwd = Sys.getenv("PSWD"),
   email = Sys.getenv("MAIL"),
   "SELECT
   \"year\",
-  GBIF_MGRSCode(
-    1000,
-    decimalLatitude,
-    decimalLongitude,
-    COALESCE(coordinateUncertaintyInMeters, 1000)
-  ) AS mgrsCode,
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
+  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
   speciesKey,
   species,
-  family,
+  family, 
   COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,  
   IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
   FROM
   occurrence
@@ -41,13 +47,14 @@ birdcubeflanders_year <- occ_download_sql(
   occurrenceStatus = 'PRESENT'
   AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
-  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID') 
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
-  AND countrycode = 'BE'
-  AND \"year\" BETWEEN 2007 AND 2022
-  AND speciesKey IS NOT NULL 
-  AND decimallatitude IS NOT NULL
-  AND decimallongitude IS NOT NULL
+  AND countryCode = 'BE'
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
   AND class = 'Aves'
   AND collectionCode != 'ABV'
   GROUP BY
@@ -63,23 +70,84 @@ birdcubeflanders_year <- occ_download_sql(
 )
 ```
 
-```{r}
-occ_download_get(birdcubeflanders_year)
+```{r, eval=FALSE}
+occ_download_wait(birdcubeflanders_year)
+
+birdcubeflanders <- occ_download_get(birdcubeflanders_year, overwrite = TRUE) |>
+  occ_download_import()
+
+write.csv(birdcubeflanders, "../data/interim/birdcubeflanders.csv")
 ```
 
+```{r, eval=FALSE}
+abv_data_down <- occ_download_sql(
+  user = Sys.getenv("USER"),
+  pwd = Sys.getenv("PSWD"),
+  email = Sys.getenv("MAIL"),
+  "SELECT
+  \"year\",
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
+  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  speciesKey,
+  species,
+  family, 
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,  
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  FROM
+  occurrence
+  WHERE
+  occurrenceStatus = 'PRESENT'
+  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID') 
+  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
+  AND countryCode = 'BE'
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
+  AND class = 'Aves'
+  AND collectionCode = 'ABV'
+  GROUP BY
+  \"year\",
+  mgrsCode,
+  speciesKey,
+  family,
+  species
+  ORDER BY
+  \"year\" ASC,
+  mgrsCode ASC,
+  speciesKey ASC"
+)
+```
+
+```{r, eval=FALSE}
+occ_download_wait(abv_data_down)
+
+abv_data <- occ_download_get(abv_data_down, overwrite = TRUE) |>
+  occ_download_import()
+
+write.csv(abv_data, "../data/interim/abv_data.csv")
+```
 
 ```{r}
-birdcube <- process_cube(birdcubeflanders_year,
+birdcubeflanders <- read.csv("../data/interim/birdcubeflanders.csv")
+
+birdcubeflanders <- utm_grid %>%
+  inner_join(birdcubeflanders, by = join_by(mgrscode)) |>
+  st_drop_geometry()
+
+birdcube <- process_cube(birdcubeflanders,
                          cols_occurrences = "n")
 ```
 
 ```{r}
-abv <- process_cube(abv_data_total |>
-                      select(TAG, Shape_Area, Shape_Leng, mgrsCode,
-                             year, speciesKey, species, family,
-                             individualCount, minCoordinateUncertaintyInMeters =
-                               coordinateUncertaintyInMeters),
-                    cols_occurrences = "individualCount")
+abv_data <- read.csv("../data/interim/abv_data.csv")
+
+abv <- process_cube(abv_data,
+                    cols_occurrences = "n")
 ```
 
 # General Biodiversity indicators
@@ -192,6 +260,8 @@ plot(cum_richness_ts_abv)
 ```
 
 ## Density of Occurrences
+
+### Map
 
 ```{r density of occurences map, fig.show="hold", out.width="50%"}
 occ_density_map_birdcube <- occ_density_map(birdcube, cell_size = 10)
