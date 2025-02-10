@@ -40,7 +40,7 @@ We noticed some problems with species names: *Poecile montanus* and *Parus monta
 
 We summarise the ABV data per year and per km² so that it is comparable with the cube data. 
 
-```{r transform abv}
+```{r transform abv, message=FALSE}
 abv_data_total <- abv_data_total_sf |>
   st_drop_geometry() |>
   mutate(cyclus = case_when(
@@ -95,6 +95,7 @@ summary(abv_data_total[, c("individualCount",
                           "year",
                           "month")])
 ```
+
 ```{r}
 abv_data_total |>
   group_by(TAG) |>
@@ -107,13 +108,14 @@ Out of the `r length(unique(abv_data_total$TAG))` visited km² over 150 were vis
 
 ```{r}
 abv_data_total |>
-  ggplot(aes(x = year(eventDate))) +
-  geom_histogram()
+  ggplot(aes(x = year)) +
+  geom_bar() +
+  scale_x_continuous(breaks = sort(unique(abv_data_total$year)))
 ```
 
 We see that the total number of observations is relatively stable over the years. 
 
-```{r}
+```{r, message=FALSE}
 abv_data_total_tf |>
   group_by(species) |>
   summarise(n_obs = n()) |>
@@ -128,8 +130,8 @@ There are 182 species present in the dataset. There are 32 species that were obs
 ```{r}
 abv_data_total |>
   distinct(category, species) |>
-  group_by(category) |>
-  summarise(n())
+  count(category) |>
+  knitr::kable()
 ```
 
 ## The cube data
