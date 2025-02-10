@@ -29,6 +29,7 @@ utm_grid <- utm_grid %>%
 To start we'll read in both the biodiversity and the ABV data directly from GBIF.
 
 ```{r read data, eval=FALSE}
+# nolint start
 birdcubeflanders_year <- occ_download_sql(
   user = Sys.getenv("USER"),
   pwd = Sys.getenv("PSWD"),
@@ -70,6 +71,7 @@ birdcubeflanders_year <- occ_download_sql(
   mgrsCode ASC,
   speciesKey ASC"
 )
+# nolint end
 ```
 
 ```{r, eval=FALSE}
@@ -83,6 +85,7 @@ write.csv(birdcubeflanders, "../data/interim/birdcubeflanders.csv")
 ```
 
 ```{r, eval=FALSE}
+# nolint start
 abv_data_down <- occ_download_sql(
   user = Sys.getenv("USER"),
   pwd = Sys.getenv("PSWD"),
@@ -124,6 +127,7 @@ abv_data_down <- occ_download_sql(
   mgrsCode ASC,
   speciesKey ASC"
 )
+# nolint end
 ```
 
 ```{r, eval=FALSE}
@@ -234,7 +238,8 @@ plot(pielou_evenness_ts_abv)
 ### Map
 
 ```{r williams evenness map, fig.show="hold", out.width="50%"}
-williams_evenness_map_birdcube <- williams_evenness_map(birdcube, cell_size = 10)
+williams_evenness_map_birdcube <- williams_evenness_map(birdcube,
+                                                        cell_size = 10)
 plot(williams_evenness_map_birdcube)
 
 williams_evenness_map_abv <- williams_evenness_map(abv, cell_size = 10)
@@ -454,9 +459,9 @@ plot(occ_turnover_ts_abv)
 
 # Species-specific Biodiversity indicators
 
-To compare these indicators we selected three species: the extremly common ..., generalist ..., the rare species ... (werken met tabs om het overzichtelijk te houden)
+To compare these indicators we selected three species: the extremely common ..., generalist ..., the rare species ... (work with tabs possibly)
 
-## Species occurences
+## Species occurrences
 
 ## Species range
 
