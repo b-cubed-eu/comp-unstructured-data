@@ -85,6 +85,8 @@ abv_data_total_tf <- abv_data_total |>
 
 # Introduction
 
+To do: assess data quality across spatial, temporal, and taxonomical dimensions
+
 ## The ABV dataset
 
 The ABV dataset, which stands for Algemene Broedvogelmonitoring Vlaanderen (Common Breeding Bird Survey Flanders), is a structured monitoring dataset that tracks a group of approximately 100 common breeding bird species in Flanders, Belgium. Monitoring began in 2007 and the protocol involves selecting a random sample of 1200 UTM 1x1 km grid cells, stratified by land use. These cells are divided into groups of 300, and 300 grid cells are visited each year on a three-year rotation. Each grid cell contains six monitoring locations where bird counts are conducted. The data collection is standardized, with each grid cell being visited three times a year at fixed intervals (at least two weeks apart).
