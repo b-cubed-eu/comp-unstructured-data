@@ -5,6 +5,8 @@ date: "2024-10-31"
 output: html_document
 ---
 
+# Introduction
+
 In this document we compare all B-cubed biodiversity indicators between actual cube data and data from structured monitoring.
 
 ```{r setup, include=FALSE}
@@ -73,7 +75,8 @@ birdcubeflanders_year <- occ_download_sql(
 ```{r, eval=FALSE}
 occ_download_wait(birdcubeflanders_year)
 
-birdcubeflanders <- occ_download_get(birdcubeflanders_year, overwrite = TRUE) |>
+birdcubeflanders <- occ_download_get(birdcubeflanders_year,
+                                     path = "../data/raw") |>
   occ_download_import()
 
 write.csv(birdcubeflanders, "../data/interim/birdcubeflanders.csv")
@@ -126,7 +129,8 @@ abv_data_down <- occ_download_sql(
 ```{r, eval=FALSE}
 occ_download_wait(abv_data_down)
 
-abv_data <- occ_download_get(abv_data_down, overwrite = TRUE) |>
+abv_data <- occ_download_get(abv_data_down,
+                             path = "../data/raw") |>
   occ_download_import()
 
 write.csv(abv_data, "../data/interim/abv_data.csv")
@@ -339,7 +343,7 @@ plot(newness_map_abv)
 
 ### Time series
 
-```{r newness time series, fig.show="hold", out.width="50%"}
+m```{r newness time series, fig.show="hold", out.width="50%"}
 newness_ts_birdcube <- newness_ts(birdcube)
 plot(newness_ts_birdcube)
 
@@ -455,6 +459,8 @@ To compare these indicators we selected three species: the extremly common ..., 
 ## Species occurences
 
 ## Species range
+
+Ferro and Flick (2015) find that you need 15 collections of a specimen to predict it's distribution.
 
 ### Map
 
