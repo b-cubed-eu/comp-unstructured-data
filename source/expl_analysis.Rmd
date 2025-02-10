@@ -155,15 +155,16 @@ With the first dataset (waarnemingen.be) containing most of the observations (67
 ```{r}
 birdcubeflanders_year |>
   ggplot(aes(x = year)) +
-  geom_histogram()
+  geom_bar() +
+  scale_x_continuous(breaks = sort(unique(birdcubeflanders_year$year)))
 ```
 
 We clearly see a big drop-off in the number of observations after 2018.
 
-```{r}
+
+```{r, message=FALSE}
 birdcubeflanders_year |>
-  group_by(species) |>
-  summarise(n_obs = n()) |>
+  count(species, name = "n_obs") |>
   ggplot(aes(x = n_obs)) +
   geom_histogram() +
   labs(x = "Number of observations (grouped per km² and year)",
@@ -172,13 +173,12 @@ birdcubeflanders_year |>
 
 ```{r}
 birdcubeflanders_year |>
-  group_by(species) |>
-  summarise(n_obs = n()) |>
+  count(species, name = "n_obs") |>
   mutate(category = cut(n_obs,
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
-  group_by(category) |>
-  summarise(n())
+  count(category) |>
+  knitr::kable()
 ```
 
 ### Filter cube for specific ABV squares and years
@@ -196,13 +196,12 @@ filt_birdcube <- utm_year |>
 
 ```{r}
 filt_birdcube |>
-  group_by(species) |>
-  summarise(n_obs = n()) |>
+  count(species, name = "n_obs") |>
   mutate(category = cut(n_obs,
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
-  group_by(category) |>
-  summarise(n())
+  count(category) |>
+  knitr::kable()
 ```
 
 
@@ -213,7 +212,7 @@ studied_spec <- unique(abv_data_total$species) |>
   na.omit()
 ```
 
-Let's check if these species are observed in the same utm squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
+Let's check if these species are observed in the same UTM squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
 
 ```{r}
 range_comp <- function(sel_species, period = 2007:2022,
@@ -298,9 +297,9 @@ comp_range_data |>
 
 This table shows the number of ABV squares were a species was observed, the percentage of total ABV squares, the number of cube squares were the species was observed, the percentage of all cube squares, the number of ABV squares were the species was observed based on the birdcube data, the percentage compared to all ABV squares, the number of squares occupied by the species in both the ABV and birdcube data and the percentage of this compared to the number of squares occupied by this species in the ABV data.
 
-Overall we see an overlap of `r mean(comp_range_data$percentage_birdcube_spec_abv, na.rm = TRUE)`.
+Overall we see an overlap of `r round(mean(comp_range_data$percentage_birdcube_spec_abv, na.rm = TRUE), digits = 3)`.
 
-```{r}
+```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
@@ -315,7 +314,7 @@ comp_range_data |>
 
 If we look at the graph it appears that for the subset of ABV squares the number of squares in which a species is observed in the ABV is correlated to the number of squares in which a species is observed in the cube.
 
-```{r}
+```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
@@ -328,7 +327,7 @@ comp_range_data |>
            method = "pearson")
 ```
 
-```{r}
+```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
@@ -387,7 +386,7 @@ for (cycle_start in cycle_starts) {
 }
 ```
 
-```{r}
+```{r, message=FALSE}
 comp_range_data2 |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(studied_spec == species)) |>
@@ -401,12 +400,13 @@ comp_range_data2 |>
   facet_grid("cyclus",
              scales = "free_y")
 ```
+
 This graph shows the same figure as above but split for each full cycle of ABV observations.
 
 # 1. Trend Analysis
 ## Correlation of time series of species occurrences
 
-```{r Correlation of time series per year of species occurrences}
+```{r Correlation of time series per year of species occurrences, message=FALSE}
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, year) %>%
@@ -433,7 +433,7 @@ DT::datatable(time_series_cor) |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
 
-```{r Correlation of time series per cyclus of species occurrences}
+```{r Correlation of time series per cyclus of species occurrences, message=FALSE}
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, cyclus) %>%
@@ -462,7 +462,7 @@ DT::datatable(time_series_cor) |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
 
-```{r Correlation of time series per cyclus of species numbers}
+```{r Correlation of time series per cyclus of species numbers, message=FALSE}
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, cyclus) %>%
@@ -498,14 +498,15 @@ time_series_cor |>
 time_series_cor |>
   inner_join(abv_data_total |> distinct(species, category),
             by = join_by(species == species)) |>
-  group_by(category) |>
-  summarize(mean(correlation, na.rm = TRUE))
+  summarize("mean correlation" = mean(correlation, na.rm = TRUE),
+            .by = category) %>%
+  knitr::kable(digits = 3)
 ```
 
 
 ## Trend similarity
 
-```{r}
+```{r, message=FALSE}
 abv_dif <- abv_data_total |>
   group_by(cyclus, species) |>
   summarise(total = sum(individualCount)) |>
@@ -532,7 +533,7 @@ cube_dif <- birdcubeflanders_year |>
 
 comp_dir <- abv_dif |>
   select(species, dif1, dif2, dif3) |>
-  inner_join(cube_dif) |>
+  inner_join(cube_dif, by = join_by(species)) |>
   mutate(dif1 = dif1 > 0,
          dif2 = dif2 > 0,
          dif3 = dif3 > 0,
@@ -553,6 +554,7 @@ comp_dir <- abv_dif |>
 
 Kappa(table(comp_dir[, c(3, 4)]))
 ```
+
 Value of k | Strength of agreement
 ------- | --------
 < 0 | Poor
@@ -562,7 +564,7 @@ Value of k | Strength of agreement
 0.61 - 0.80 | Substantial
 0.81 - 1.00 | Almost perfect
 
-```{r Kappa for common species}
+```{r Kappa for common species, message=FALSE}
 abv_dif <- abv_data_total |>
   filter(category %in% c("Rare")) |>
   group_by(cyclus, species) |>
@@ -590,7 +592,7 @@ cube_dif <- birdcubeflanders_year |>
 
 comp_dir <- abv_dif |>
   select(species, dif1, dif2, dif3) |>
-  inner_join(cube_dif) |>
+  inner_join(cube_dif, by = join_by(species)) |>
   mutate(dif1 = dif1 > 0,
          dif2 = dif2 > 0,
          dif3 = dif3 > 0,
@@ -621,7 +623,7 @@ all birdcube squares 13596
 
 Kappa is not a good measure for comparing two discrete continuous variables, better to use this later when comparing categories, i.e. increase, decrease, ...
 
-```{r}
+```{r, message=FALSE}
 occupancy_1 <- abv_data_total %>%
   group_by(species, TAG) %>%
   summarize(occupancy_rate_1 = mean(occurrenceStatus == "PRESENT"))
