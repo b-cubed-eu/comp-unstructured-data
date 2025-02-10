@@ -20,10 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 data_path <- here::here("data", "raw")
-
-utm_grid <- read_sf(file.path(data_path, "utm_grid", "utm1_vl.shp"))
-utm_grid <- utm_grid %>%
-  mutate(mgrscode = paste0("31U", TAG))
+                                      
 ```
 
 To start we'll read in both the biodiversity and the ABV data directly from GBIF.
@@ -52,7 +49,7 @@ birdcubeflanders_year <- occ_download_sql(
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID') 
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
-  AND countryCode = 'BE'
+  AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
   AND \"year\" <= 2022
   AND speciesKey IS NOT NULL
@@ -108,7 +105,7 @@ abv_data_down <- occ_download_sql(
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID') 
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
-  AND countryCode = 'BE'
+  AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
   AND \"year\" <= 2022
   AND speciesKey IS NOT NULL
@@ -142,10 +139,6 @@ write.csv(abv_data, "../data/interim/abv_data.csv")
 
 ```{r}
 birdcubeflanders <- read.csv("../data/interim/birdcubeflanders.csv")
-
-birdcubeflanders <- utm_grid %>%
-  inner_join(birdcubeflanders, by = join_by(mgrscode)) |>
-  st_drop_geometry()
 
 birdcube <- process_cube(birdcubeflanders,
                          cols_occurrences = "n")
