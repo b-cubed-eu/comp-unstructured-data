@@ -239,7 +239,7 @@ range_comp <- function(sel_species, period = 2007:2022,
     summarise(n = sum(.data$n))
 
   total_abv <- length(set_abv$TAG)
-  perc_abv <- (total_abv / 950) * 100
+  perc_abv <- (total_abv / length(unique(dataset1$TAG))) * 100
 
   total_cube <- length(set_cube$TAG)
   perc_cube <- (total_cube / 13596) * 100
