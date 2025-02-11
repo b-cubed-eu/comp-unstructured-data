@@ -242,7 +242,7 @@ range_comp <- function(sel_species, period = 2007:2022,
   perc_abv <- (total_abv / length(unique(dataset1$TAG))) * 100
 
   total_cube <- length(set_cube$TAG)
-  perc_cube <- (total_cube / 13596) * 100
+  perc_cube <- (total_cube / length(unique(dataset2$TAG))) * 100
 
   overlap_all_abv_cube <- length(
     which(set_cube$TAG %in% unique(abv_data_total$TAG))
