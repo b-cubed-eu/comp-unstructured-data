@@ -1,0 +1,4 @@
+target_workflow:
+  script: C:/R/git_repositories/comp-unstructured-data/source/pipelines/target_workflow/_targets.R
+  store: C:/R/git_repositories/comp-unstructured-data/source/pipelines/target_workflow/_targets
+  use_crew: yes
