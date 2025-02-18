@@ -354,20 +354,21 @@ plot(newness_ts_abv)
 ### Map
 
 ```{r taxonomic distinctness map, fig.show="hold", out.width="50%"}
-tax_distinct_map_birdcube <- tax_distinct_map(birdcube, cell_size = 10)
+tax_distinct_map_birdcube <- tax_distinct_map(birdcube, cell_size = 10,
+                                              check = TRUE)
 plot(tax_distinct_map_birdcube)
 
-tax_distinct_map_abv <- tax_distinct_ts(abv, cell_size = 10)
+tax_distinct_map_abv <- tax_distinct_map(abv, cell_size = 10, check = TRUE)
 plot(tax_distinct_map_abv)
 ```
 
 ### Time series
 
-```{r taxonomic distinctness time series, fig.show="hold", out.width="50%"}
+```{r taxonomic distinctness time series, eval = FALSE, fig.show="hold", out.width="50%"}
 tax_distinct_ts_birdcube <- tax_distinct_ts(birdcube)
 plot(tax_distinct_ts_birdcube)
 
-tax_distinct_ts_abv <- tax_distinct_ts(abv)
+tax_distinct_ts_abv <- tax_distinct_ts(abv, check = TRUE)
 plot(tax_distinct_ts_abv)
 ```
 
@@ -375,11 +376,11 @@ plot(tax_distinct_ts_abv)
 
 ### Map
 
-```{r species richness map, fig.show="hold", out.width="50%"}
+```{r species richness map, eval = FALSE, fig.show="hold", out.width="50%"}
 hill0_map_birdcube <- hill0_map(birdcube, cell_size = 10)
 plot(hill0_map_birdcube)
 
-hill0_map_abv <- hill0_ts(abv, cell_size = 10)
+hill0_map_abv <- hill0_map(abv, cell_size = 10)
 plot(hill0_map_abv)
 ```
 
@@ -397,11 +398,11 @@ plot(hill0_ts_abv)
 
 ### Map
 
-```{r hill-shannnon diversity map, fig.show="hold", out.width="50%"}
+```{r hill-shannnon diversity map, eval = FALSE, fig.show="hold", out.width="50%"}
 hill1_map_birdcube <- hill1_map(birdcube, cell_size = 10)
 plot(hill1_map_birdcube)
 
-hill1_map_abv <- hill1_ts(abv, cell_size = 10)
+hill1_map_abv <- hill1_map(abv, cell_size = 10)
 plot(hill1_map_abv)
 ```
 
@@ -419,11 +420,11 @@ plot(hill1_ts_abv)
 
 ### Map
 
-```{r hill-simpson diversity map, fig.show="hold", out.width="50%"}
+```{r hill-simpson diversity map, eval=FALSE, fig.show="hold", out.width="50%"}
 hill2_map_birdcube <- hill2_map(birdcube, cell_size = 10)
 plot(hill2_map_birdcube)
 
-hill2_map_abv <- hill2_ts(abv, cell_size = 10)
+hill2_map_abv <- hill2_map(abv, cell_size = 10)
 plot(hill2_map_abv)
 ```
 
