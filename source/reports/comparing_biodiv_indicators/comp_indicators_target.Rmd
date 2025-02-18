@@ -1,0 +1,27 @@
+---
+title: "Compare biodiversity indicators from the b3gbi package"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+---
+
+```{r setup, include = FALSE}
+library(knitr)
+opts_chunk$set(collapse = TRUE, comment = "#>")
+
+library(targets)
+Sys.setenv(TAR_PROJECT = "target_workflow")
+
+library(b3gbi)
+```
+
+# hs1
+
+```{r}
+obs_richness_map_abv <- tar_read(obs_richness_map_abv)
+plot(obs_richness_map_abv)
+```
+

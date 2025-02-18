@@ -1,0 +1,11 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+read_cube_gbif|function|fb7318b724fcb3bf|||||||||||||||
+read_abv_gbif|function|0f973c90384d7a5f|||||||||||||||
+get_data|function|3341b9af0729302c|||||||||||||||
+abv_data|stem|7eac9eb19499fc39|e229d1a198614366|7a97160d57725ae1|-790396526||t20137.5599837286s|s736444b|736444|qs|local|vector|||0.37||
+abv|stem|587b47350694a029|f5ad0c893737fd7c|e653eb80b5c90164|1730016550||t20137.559996188s|s892040b|892040|qs|local|vector|||1.01||
+obs_richness_map_abv|stem|c674139a986d3be1|f97003405992072d|f7144d68646b34bb|544418752||t20137.5632771888s|s145198b|145198|qs|local|vector|||17.78||
+path_to_interim|function|36603da5829a6104
+path_to_data|object|1451679656d9b4bf
+targets_project_dir|object|0e32c01c2f47553e
+abv_data_file|stem|e21771fe2d7e7570|b6acb50d3d39ac90|89e666f628adf0f2|-226531251|C:/R/git_repositories/comp-unstructured-data/data/interim/abv_data.csv|t20129.5285387814s|s10441421b|10441421|file|local|vector|||0.95||
