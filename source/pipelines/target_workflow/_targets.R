@@ -44,8 +44,97 @@ list(
     process_cube(abv_data,
                  cols_occurrences = "n")
   ),
+  tarchetypes::tar_file(
+    birdcube_data_file,
+    path_to_interim(path_to_data = path_to_data, file = "birdcubeflanders.csv")
+  ),
   tar_target(
-    obs_richness_map_abv,
+    birdcube_data,
+    read.csv(birdcube_data_file)
+  ),
+  tar_target(
+    birdcube,
+    process_cube(birdcube_data,
+                 cols_occurrences = "n")
+  ),
+  tar_target(
+    obs_richness_map_abv_1,
     obs_richness_map(abv, cell_size = 1)
+  ),
+  tar_target(
+    obs_richness_map_abv_10,
+    obs_richness_map(abv, cell_size = 10)
+  ),
+  tar_target(
+    obs_richness_map_cube_10,
+    obs_richness_map(birdcube, cell_size = 10)
+  ),
+  tar_target(
+    obs_richness_ts_abv,
+    obs_richness_ts(abv)
+  ),
+  tar_target(
+    obs_richness_ts_cube,
+    obs_richness_ts(birdcube)
+  ),
+  tar_target(
+    total_occ_map_abv,
+    total_occ_map(abv, cell_size = 10)
+  ),
+  tar_target(
+    total_occ_map_cube,
+    total_occ_map(birdcube, cell_size = 10)
+  ),
+  tar_target(
+    total_occ_ts_abv,
+    total_occ_ts(abv)
+  ),
+  tar_target(
+    total_occ_ts_cube,
+    total_occ_ts(birdcube)
+  ),
+  tar_target(
+    pielou_evenness_map_abv,
+    pielou_evenness_map(abv, cell_size = 10)
+  ),
+  tar_target(
+    pielou_evenness_map_cube,
+    pielou_evenness_map(birdcube, cell_size = 10)
+  ),
+  tar_target(
+    pielou_evenness_ts_cube,
+    pielou_evenness_ts(birdcube)
+  ),
+  tar_target(
+    spec_occ_map_abv,
+    spec_occ_map(abv)
+  ),
+  tar_target(
+    spec_occ_map_cube,
+    spec_occ_map(birdcube)
+  ),
+  tar_target(
+    spec_occ_ts_abv,
+    spec_occ_ts(abv)
+  ),
+  tar_target(
+    spec_occ_ts_cube,
+    spec_occ_ts(birdcube)
+  ),
+  tar_target(
+    spec_range_map_abv,
+    spec_range_map(abv)
+  ),
+  tar_target(
+    spec_range_map_cube,
+    spec_range_map(birdcube)
+  ),
+  tar_target(
+    spec_range_ts_abv,
+    spec_range_ts(abv)
+  ),
+  tar_target(
+    spec_range_ts_cube,
+    spec_range_ts(birdcube)
   )
 )
