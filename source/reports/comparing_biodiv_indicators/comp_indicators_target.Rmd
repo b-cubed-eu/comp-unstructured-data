@@ -1,12 +1,18 @@
 ---
 title: "Compare biodiversity indicators from the b3gbi package"
+author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
+date: 
 output:
   html_document:
-    code_folding: show
+    code_folding: hide
     toc: true
     toc_float: true
     toc_collapsed: true
 ---
+
+# Introduction
+
+In this document we compare a selection of B-cubed biodiversity indicators between actual cube data and data from structured monitoring. For more information on both datasets check to ... document.
 
 ```{r setup, include = FALSE}
 library(knitr)
@@ -16,12 +22,77 @@ library(targets)
 Sys.setenv(TAR_PROJECT = "target_workflow")
 
 library(b3gbi)
+library(ggplot2"vbg&v²&éé")
 ```
 
-# hs1
+# Biodiversity indicators
+
+## Total occurences
+
+### Map
+
+```{r total occurrences map, fig.show="hold", out.width="50%"}
+total_occ_map_birdcube <- tar_read(total_occ_map_cube)
+plot(total_occ_map_birdcube) +
+  labs(title = "Birdcube Flanders")
+
+total_occ_map_abv <- tar_read(total_occ_map_abv)
+plot(total_occ_map_abv) +
+  labs(title = "ABV")
+```
+
+### Time series
+
+```{r total occurences time series, fig.show="hold", out.width="50%"}
+total_occ_ts_birdcube <- tar_read(total_occ_ts_cube)
+plot(total_occ_ts_birdcube)
+
+total_occ_ts_abv <- tar_read(total_occ_ts_abv)
+plot(total_occ_ts_abv)
+```
+
+## Observed richness
+
+### Map 1 km²
 
 ```{r}
-obs_richness_map_abv <- tar_read(obs_richness_map_abv)
-plot(obs_richness_map_abv)
+obs_richness_map_abv_1 <- tar_read(obs_richness_map_abv_1)
+plot(obs_richness_map_abv_1)
 ```
 
+### Map 10 km²
+
+```{r observed richness map, fig.show="hold", out.width="50%"}
+obs_richness_map_abv_10 <- tar_read(obs_richness_map_abv_10)
+plot(obs_richness_map_abv_10)
+
+obs_richness_map_cube_10 <- tar_read(obs_richness_map_cube_10)
+plot(obs_richness_map_cube_10)
+```
+
+### Time series
+
+```{r observed richness time series, fig.show="hold", out.width="50%"}
+obs_richness_ts_abv <- tar_read(obs_richness_ts_abv)
+plot(obs_richness_ts_abv)
+```
+
+## Pielou evenness
+
+### Map
+
+### Time series
+
+# Species-specific indicators
+
+## Species occurences
+
+### Map
+
+### Time series
+
+## Species range
+
+### Map
+
+### Time series
