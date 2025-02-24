@@ -5,7 +5,31 @@ get_data|function|3341b9af0729302c|||||||||||||||
 abv_data|stem|7eac9eb19499fc39|e229d1a198614366|7a97160d57725ae1|-790396526||t20137.5599837286s|s736444b|736444|qs|local|vector|||0.37||
 abv|stem|587b47350694a029|f5ad0c893737fd7c|e653eb80b5c90164|1730016550||t20137.559996188s|s892040b|892040|qs|local|vector|||1.01||
 obs_richness_map_abv|stem|c674139a986d3be1|f97003405992072d|f7144d68646b34bb|544418752||t20137.5632771888s|s145198b|145198|qs|local|vector|||17.78||
+abv_data_file|stem|e21771fe2d7e7570|b6acb50d3d39ac90|89e666f628adf0f2|-226531251|C:/R/git_repositories/comp-unstructured-data/data/interim/abv_data.csv|t20129.5285387814s|s10441421b|10441421|file|local|vector|||0.95||
+obs_richness_map_abv_1|stem|c674139a986d3be1|f97003405992072d|f7144d68646b34bb|-1849121129||t20140.3378321925s|s145198b|145198|qs|local|vector|||37.76||
+obs_richness_map_abv_10|stem|f8c4ee16abc12d5b|c32e1c894e01b54f|f7144d68646b34bb|-2121955916||t20140.3378894679s|s11754b|11754|qs|local|vector|||4.92||
+obs_richness_ts_abv|stem|b0e5c254c8d9f601|0e1e13ab8edf2b2e|f7144d68646b34bb|-1906844265||t20140.3403186782s|s2511b|2511|qs|local|vector|||5.67|Bootstrapped confidence intervals cannot be calculated for the chosen indicator.|
+total_occ_ts_abv|stem|04d6f35b4340a182|b8a82c3c5a65f3b7|f7144d68646b34bb|-1571972827||t20140.3421944534s|s2918b|2918|qs|local|vector|||15.3||
+total_occ_map_abv|stem|48df7cd771670dcd|37bf422ad4f6ba1e|f7144d68646b34bb|2144595936||t20140.3422341478s|s12069b|12069|qs|local|vector|||3.43||
+pielou_evenness_ts_abv|stem|a2e48c996ea6b50b|d315fc72cb502da2|f7144d68646b34bb|1463916421||t20140.3442884191s|s2977b|2977|qs|local|vector|||6.25||
+pielou_evenness_map_abv|stem|1081ba211f2395ed|a800a80fe2e65de3|f7144d68646b34bb|10455673||t20140.3443294543s|s12857b|12857|qs|local|vector|||3.53||
+spec_occ_ts_abv|stem|9c23f236e8c1c7c3|50e92be5970898cb|f7144d68646b34bb|187662183||t20140.3776277715s|s50749b|50749|qs|local|vector|||71.88||
+spec_occ_map_abv|stem|fd49c928981b3028|1c6c3070fe27f0f9|f7144d68646b34bb|1040382643||t20140.3776732927s|s96129b|96129|qs|local|vector|||3.94||
+spec_range_ts_abv|stem|c58e4d3ea7e3447f|b8ec36b075ba8929|f7144d68646b34bb|212098582||t20140.3887898496s|s42994b|42994|qs|local|vector|||70.39||
+spec_range_map_abv|stem|1c9f75ded21f8863|35ed1551765724ea|f7144d68646b34bb|565055131||t20140.3888362201s|s75951b|75951|qs|local|vector|||4||
+birdcube_data_file|stem|46f2305e6d3e9bf4|48a9ff406ed7d0bc|89e666f628adf0f2|1618870224|C:/R/git_repositories/comp-unstructured-data/data/interim/birdcubeflanders.csv|t20135.7971344999s|s167445602b|167445602|file|local|vector|||0.69||
+birdcube_data|stem|fed9c982ae6824ad|c219f922643095f8|7a70139df2b6e76e|804043826||t20140.3904250766s|s12445152b|12445152|qs|local|vector|||6.94||
+birdcube|stem|bd40eed5466caefd|c6a94986654dd8a8|626c257d4951fdc9|803444483||t20140.3905744133s|s15190955b|15190955|qs|local|vector|||12.26||
+obs_richness_map_cube_10|stem|e913724d5766735d|e2419c1564d217a1|976b2cf628b5bd50|-677520515||t20143.518922016s|s934323b|934323|qs|local|vector|||190.65||
+total_occ_map_cube|stem|f206e115e298973d|9d28fc231c116a65|976b2cf628b5bd50|301642794||t20143.5280047402s|s924886b|924886|qs|local|vector|||211.02||
+obs_richness_ts_cube|stem|b7ecd3562ec1764c|52c081f2d4708827|976b2cf628b5bd50|-109269857||t20143.5290599988s|s7172b|7172|qs|local|vector|||91.16|Bootstrapped confidence intervals cannot be calculated for the chosen indicator.|
+total_occ_ts_cube|stem|3da535588e82a97a|8d72fc3bd535dd65|976b2cf628b5bd50|1560660880||t20143.5322979341s|s7595b|7595|qs|local|vector|||279.75||
+pielou_evenness_map_cube|stem|7bda86aea779e274|86405f793fb7b14a|976b2cf628b5bd50|1936146881||t20143.5361970344s|s926001b|926001|qs|local|vector|||216.87||
+pielou_evenness_ts_cube|stem|bc912e8087c9604e|fab57ea502389048|976b2cf628b5bd50|163671844||t20143.5374388271s|s7689b|7689|qs|local|vector|||107.27||
+spec_occ_ts_cube|stem|d597a2c5c0036021|7a477387f00a1819|976b2cf628b5bd50|-1997763936||t20143.5466416559s|s149483b|149483|qs|local|vector|||729.9||
+spec_occ_map_cube|stem|1939b3a3d1b74e07|2923183735c9a153|976b2cf628b5bd50|-1523928707||t20143.548750003s|s1277342b|1277342|qs|local|vector|||182.07||
 path_to_interim|function|36603da5829a6104
 path_to_data|object|1451679656d9b4bf
 targets_project_dir|object|0e32c01c2f47553e
-abv_data_file|stem|e21771fe2d7e7570|b6acb50d3d39ac90|89e666f628adf0f2|-226531251|C:/R/git_repositories/comp-unstructured-data/data/interim/abv_data.csv|t20129.5285387814s|s10441421b|10441421|file|local|vector|||0.95||
+spec_range_map_cube|stem|74bc06e18d85e0b1|06c24be89a7622f3|976b2cf628b5bd50|1805158784||t20143.5520245475s|s1192143b|1192143|qs|local|vector|||222.59||
+spec_range_ts_cube|stem|6083ecd121c8467c|7eee1844a6ef902f|976b2cf628b5bd50|1980473897||t20143.560290701s|s121891b|121891|qs|local|vector|||714.17||
