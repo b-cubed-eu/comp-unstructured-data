@@ -22,7 +22,7 @@ library(targets)
 Sys.setenv(TAR_PROJECT = "target_workflow")
 
 library(b3gbi)
-library(ggplot2"vbg&v²&éé")
+library(ggplot2)
 ```
 
 # Biodiversity indicators
@@ -55,9 +55,12 @@ plot(total_occ_ts_abv)
 
 ### Map 1 km²
 
-```{r}
+```{robserved richness map 1km, fig.show="hold", out.width="50%"}
 obs_richness_map_abv_1 <- tar_read(obs_richness_map_abv_1)
 plot(obs_richness_map_abv_1)
+
+obs_richness_map_cube_1 <- tar_read(obs_richness_map_cube_1)
+plot(obs_richness_map_cube_1)
 ```
 
 ### Map 10 km²
@@ -75,15 +78,40 @@ plot(obs_richness_map_cube_10)
 ```{r observed richness time series, fig.show="hold", out.width="50%"}
 obs_richness_ts_abv <- tar_read(obs_richness_ts_abv)
 plot(obs_richness_ts_abv)
+
+obs_richness_ts_cube <- tar_read(obs_richness_ts_cube)
+plot(obs_richness_ts_cube)
 ```
 
 ## Pielou evenness
 
 ### Map
 
+```{r pielou evenness map, fig.show="hold", out.width="50%"}
+pielou_evenness_map_abv <- tar_read(pielou_evenness_map_abv)
+plot(pielou_evenness_map_abv)
+
+pielou_evenness_map_cube <- tar_read(pielou_evenness_map_cube)
+plot(pielou_evenness_map_cube)
+```
+
 ### Time series
 
+```{r pielou evenness time series, fig.show="hold", out.width="50%"}
+pielou_evenness_ts_abv <- tar_read(pielou_evenness_ts_abv)
+plot(pielou_evenness_ts_abv)
+
+pielou_evenness_ts_cube <- tar_read(pielou_evenness_ts_cube)
+plot(pielou_evenness_ts_cube)
+```
+
 # Species-specific indicators
+
+We chose three species to compare the indicators between the two data sets:
+
+-   The species with the biggest increase according to the ABV: Cetti's warbler (*Cettia cetti*)
+-   The species with the biggest decrease according to the ABV: Eurasian tree sparrow (*Passer montanus*)
+-   A species with a very stable trend: Common nightingale (*Luscinia megarhynchos*)
 
 ## Species occurences
 
