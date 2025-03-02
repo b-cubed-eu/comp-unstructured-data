@@ -62,6 +62,10 @@ list(
     obs_richness_map(abv, cell_size = 1)
   ),
   tar_target(
+    obs_richness_map_cube_1,
+    obs_richness_map(birdcube, cell_size = 1)
+  ),
+  tar_target(
     obs_richness_map_abv_10,
     obs_richness_map(abv, cell_size = 10)
   ),
