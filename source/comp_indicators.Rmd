@@ -19,8 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-data_path <- here::here("data", "raw")
-                                      
+data_path <- here::here("data")
 ```
 
 To start we'll read in both the biodiversity and the ABV data directly from GBIF.
@@ -33,8 +32,12 @@ birdcubeflanders_year <- occ_download_sql(
   email = Sys.getenv("MAIL"),
   "SELECT
   \"year\",
-  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
-  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  GBIF_EEARGCode(
+      1000,
+      decimalLatitude,
+      decimalLongitude,
+      COALESCE(coordinateUncertaintyInMeters, 1000)
+    ) AS eeaCellCode,
   speciesKey,
   species,
   family, 
@@ -59,13 +62,13 @@ birdcubeflanders_year <- occ_download_sql(
   AND collectionCode != 'ABV'
   GROUP BY
   \"year\",
-  mgrsCode,
+  eeaCellCode,
   speciesKey,
   family,
   species
   ORDER BY
   \"year\" ASC,
-  mgrsCode ASC,
+  eeaCellCode ASC,
   speciesKey ASC"
 )
 # nolint end
@@ -78,7 +81,7 @@ birdcubeflanders <- occ_download_get(birdcubeflanders_year,
                                      path = data_path) |>
   occ_download_import()
 
-write.csv(birdcubeflanders, "../data/interim/birdcubeflanders.csv")
+write.csv(birdcubeflanders, paste0(data_path, "/interim/birdcubeflanders.csv"))
 ```
 
 ```{r, eval=FALSE}
@@ -89,8 +92,12 @@ abv_data_down <- occ_download_sql(
   email = Sys.getenv("MAIL"),
   "SELECT
   \"year\",
-  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
-  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  GBIF_EEARGCode(
+      1000,
+      decimalLatitude,
+      decimalLongitude,
+      COALESCE(coordinateUncertaintyInMeters, 1000)
+    ) AS eeaCellCode,
   speciesKey,
   species,
   family, 
@@ -99,13 +106,13 @@ abv_data_down <- occ_download_sql(
   IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
   FROM
   occurrence
-  WHERE
+  WHERE 
   occurrenceStatus = 'PRESENT'
   AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID') 
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
-  AND level1gid = 'BEL.2_1'
+  AND level1gid = 'BEL.2_1' 
   AND \"year\" >= 2007
   AND \"year\" <= 2022
   AND speciesKey IS NOT NULL
@@ -115,13 +122,13 @@ abv_data_down <- occ_download_sql(
   AND collectionCode = 'ABV'
   GROUP BY
   \"year\",
-  mgrsCode,
+  eeaCellCode,
   speciesKey,
   family,
   species
   ORDER BY
   \"year\" ASC,
-  mgrsCode ASC,
+  eeaCellCode ASC,
   speciesKey ASC"
 )
 # nolint end
