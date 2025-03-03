@@ -2,3 +2,7 @@ target_workflow:
   script: C:/R/git_repositories/comp-unstructured-data/source/pipelines/target_workflow/_targets.R
   store: C:/R/git_repositories/comp-unstructured-data/source/pipelines/target_workflow/_targets
   use_crew: yes
+biodiversity_indicators:
+  script: C:/R/git_repositories/comp-unstructured-data/source/pipelines/biodiversity_indicators/_targets.R
+  store: C:/R/git_repositories/comp-unstructured-data/source/pipelines/biodiversity_indicators/_targets
+  use_crew: yes
