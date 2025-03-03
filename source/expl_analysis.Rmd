@@ -247,7 +247,8 @@ range_comp <- function(sel_species, period = 2007:2022,
   overlap_all_abv_cube <- length(
     which(set_cube$TAG %in% unique(abv_data_total$TAG))
     )
-  perc_overlap_all <- (overlap_all_abv_cube / 936) * 100
+  perc_overlap_all <- (
+    overlap_all_abv_cube / length(unique(dataset1$TAG))) * 100
 
   total_overlap <- length(which(set_cube$TAG %in% set_abv$TAG))
   perc <- (total_overlap / total_abv) * 100
@@ -311,7 +312,9 @@ comp_range_data |>
   stat_cor(mapping = aes(color = NULL),
            label.x.npc = "centre",
            label.y.npc = "bottom",
-           method = "pearson")
+           method = "pearson") +
+  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
+       y = "Percentage of ABV squares occupied\nby species in cube dataset")
 ```
 
 If we look at the graph it appears that for the subset of ABV squares the number of squares in which a species is observed in the ABV is correlated to the number of squares in which a species is observed in the cube.
@@ -326,7 +329,9 @@ comp_range_data |>
   stat_cor(mapping = aes(color = NULL),
            label.x.npc = "centre",
            label.y.npc = "bottom",
-           method = "pearson")
+           method = "pearson") +
+  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
+       y = "Percentage of cube squares occupied\nby species in cube dataset")
 ```
 
 ```{r, message=FALSE}
@@ -336,7 +341,13 @@ comp_range_data |>
   plot_ly(x = ~perc_abv_total_abv,
           y = ~perc_cube_total_cube,
           color = ~category,
-          text = ~studied_spec)
+          text = ~studied_spec) |>
+  plotly::layout(
+    xaxis = list(
+      title = "Percentage of ABV squares occupied\nby species in ABV dataset"),
+    yaxis = list(
+      title = "Percentage of cube squares occupied\nby species in cube dataset")
+    )
 ```
 
 If we look at the graph it appears that the number of squares in which a species is observed in the ABV is correlated to the number of squares in which a species is observed in the cube. The outliers appear to be either gulls or invasive species, seeming to indicate an effect of specific datasets.
@@ -352,7 +363,9 @@ comp_range_data |>
   stat_cor(mapping = aes(color = NULL),
            label.x.npc = "centre",
            label.y.npc = "bottom",
-           method = "pearson")
+           method = "pearson") +
+  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
+       y = "Percentage of cube squares occupied\nby species in cube dataset")
 ```
 
 ```{r}
@@ -400,7 +413,9 @@ comp_range_data2 |>
            label.y.npc = "bottom",
            method = "pearson") +
   facet_grid("cyclus",
-             scales = "free_y")
+             scales = "free_y") +
+  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
+       y = "Percentage of cube squares occupied\nby species in cube dataset")
 ```
 
 This graph shows the same figure as above but split for each full cycle of ABV observations.
