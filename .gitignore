@@ -56,3 +56,4 @@ renv/library
 rsconnect/
 vignettes/*.html
 vignettes/*.pdf
+data/raw

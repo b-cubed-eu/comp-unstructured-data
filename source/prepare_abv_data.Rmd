@@ -70,11 +70,11 @@ head(sampling_framework_abv)
 Occurrence data is downloaded from GBIF.org.
 Unzip and store folders under *./data/raw*.
 
-**ABV - Common breeding birds in Flanders, Belgium**: 0000102-240626123714530.zip
+**ABV - Common breeding birds in Flanders, Belgium**: 0026739-240906103802322
 
-GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.w8va93
+GBIF.org (23 September 2024) GBIF Occurrence Download https://doi.org/10.15468/dl.237fpa
 
-**ABV - Common breeding birds in Flanders, Belgium (post 2016)**: 0000105-240626123714530.zip
+**ABV - Common breeding birds in Flanders, Belgium (post 2016)**: 0000105-240626123714530
 
 GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.4htaqh
 
@@ -83,7 +83,7 @@ We read in these datasets.
 ```{r}
 # Read ABV data as tab delimited
 abv_data_raw <- read_delim(file.path(data_path,
-                                     "0000102-240626123714530",
+                                     "0026739-240906103802322",
                                      "occurrence.txt"),
                    delim = "\t",
                    show_col_types = FALSE)

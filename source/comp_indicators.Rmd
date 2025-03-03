@@ -1,0 +1,487 @@
+---
+title: "B-cubed indicators for cube vs structured data"
+author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
+date: "2024-10-31"
+output: html_document
+---
+
+# Introduction
+
+In this document we compare all B-cubed biodiversity indicators between actual cube data and data from structured monitoring.
+
+```{r setup, include=FALSE}
+library(sf)
+library(rgbif)
+library(dplyr)
+library(b3gbi)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data_path <- here::here("data")
+```
+
+To start we'll read in both the biodiversity and the ABV data directly from GBIF.
+
+```{r read data, eval=FALSE}
+# nolint start
+birdcubeflanders_year <- occ_download_sql(
+  user = Sys.getenv("USER"),
+  pwd = Sys.getenv("PSWD"),
+  email = Sys.getenv("MAIL"),
+  "SELECT
+  \"year\",
+  GBIF_EEARGCode(
+      1000,
+      decimalLatitude,
+      decimalLongitude,
+      COALESCE(coordinateUncertaintyInMeters, 1000)
+    ) AS eeaCellCode,
+  speciesKey,
+  species,
+  family, 
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,  
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  FROM
+  occurrence
+  WHERE
+  occurrenceStatus = 'PRESENT'
+  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID') 
+  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
+  AND level1gid = 'BEL.2_1'
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
+  AND class = 'Aves'
+  AND collectionCode != 'ABV'
+  GROUP BY
+  \"year\",
+  eeaCellCode,
+  speciesKey,
+  family,
+  species
+  ORDER BY
+  \"year\" ASC,
+  eeaCellCode ASC,
+  speciesKey ASC"
+)
+# nolint end
+```
+
+```{r, eval=FALSE}
+occ_download_wait(birdcubeflanders_year)
+
+birdcubeflanders <- occ_download_get(birdcubeflanders_year,
+                                     path = data_path) |>
+  occ_download_import()
+
+write.csv(birdcubeflanders, paste0(data_path, "./interim/birdcubeflanders.csv"))
+```
+
+```{r, eval=FALSE}
+# nolint start
+abv_data_down <- occ_download_sql(
+  user = Sys.getenv("USER"),
+  pwd = Sys.getenv("PSWD"),
+  email = Sys.getenv("MAIL"),
+  "SELECT
+  \"year\",
+  GBIF_EEARGCode(
+      1000,
+      decimalLatitude,
+      decimalLongitude,
+      COALESCE(coordinateUncertaintyInMeters, 1000)
+    ) AS eeaCellCode,
+  speciesKey,
+  species,
+  family, 
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,  
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  FROM
+  occurrence
+  WHERE 
+  occurrenceStatus = 'PRESENT'
+  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID') 
+  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
+  AND level1gid = 'BEL.2_1' 
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
+  AND class = 'Aves'
+  AND collectionCode = 'ABV'
+  GROUP BY
+  \"year\",
+  eeaCellCode,
+  speciesKey,
+  family,
+  species
+  ORDER BY
+  \"year\" ASC,
+  eeaCellCode ASC,
+  speciesKey ASC"
+)
+# nolint end
+```
+
+```{r, eval=FALSE}
+occ_download_wait(abv_data_down)
+
+abv_data <- occ_download_get(abv_data_down,
+                             path = data_path) |>
+  occ_download_import()
+
+write.csv(abv_data, "../data/interim/abv_data.csv")
+```
+
+```{r}
+birdcubeflanders <- read.csv("../data/interim/birdcubeflanders.csv")
+
+birdcube <- process_cube(birdcubeflanders,
+                         cols_occurrences = "n")
+```
+
+```{r}
+abv_data <- read.csv("../data/interim/abv_data.csv")
+
+abv <- process_cube(abv_data,
+                    cols_occurrences = "n")
+```
+
+# General Biodiversity indicators
+
+## Observed richness
+
+### Map
+```{r observed richness 1km map, fig.show="hold", out.width="50%"}
+obs_richness_map_birdcube <- obs_richness_map(birdcube, cell_size = 1)
+plot(obs_richness_map_birdcube)
+
+obs_richness_map_abv <- obs_richness_map(abv, cell_size = 1)
+plot(obs_richness_map_abv)
+```
+
+```{r observed richness 10km map, fig.show="hold", out.width="50%"}
+obs_richness_map_birdcube <- obs_richness_map(birdcube, cell_size = 10)
+plot(obs_richness_map_birdcube)
+
+obs_richness_map_abv <- obs_richness_map(abv, cell_size = 10)
+plot(obs_richness_map_abv)
+```
+These maps, as expected, show clear differences in the species richness observed, we also see no similar pattern in where higher species richness is seen.
+
+### Time series
+
+```{r observed richness over time, fig.show="hold", out.width="50%"}
+obs_richness_ts_birdcube <- obs_richness_ts(birdcube)
+plot(obs_richness_ts_birdcube)
+
+obs_richness_ts_abv <- obs_richness_ts(abv)
+plot(obs_richness_ts_abv)
+```
+## Total occurrences
+
+### Map
+
+```{r total occurrences map, fig.show="hold", out.width="50%"}
+total_occ_map_birdcube <- total_occ_map(birdcube, cell_size = 10)
+plot(total_occ_map_birdcube)
+
+total_occ_map_abv <- total_occ_map(abv, cell_size = 10)
+plot(total_occ_map_abv)
+```
+
+### Time series
+
+```{r total occurences time series, fig.show="hold", out.width="50%"}
+total_occ_ts_birdcube <- total_occ_ts(birdcube)
+plot(total_occ_ts_birdcube)
+
+total_occ_ts_abv <- total_occ_ts(abv)
+plot(total_occ_ts_abv)
+```
+
+## Pielou evenness
+
+### Map
+
+```{r pielou evenness map, fig.show="hold", out.width="50%"}
+pielou_evenness_map_birdcube <- pielou_evenness_map(birdcube, cell_size = 10)
+plot(pielou_evenness_map_birdcube)
+
+pielou_evenness_map_abv <- pielou_evenness_map(abv, cell_size = 10)
+plot(pielou_evenness_map_abv)
+```
+
+### Time series
+
+```{r pielou evenness time series, fig.show="hold", out.width="50%"}
+pielou_evenness_ts_birdcube <- pielou_evenness_ts(birdcube)
+plot(pielou_evenness_ts_birdcube)
+
+pielou_evenness_ts_abv <- pielou_evenness_ts(abv)
+plot(pielou_evenness_ts_abv)
+```
+
+## Williams' Evenness
+
+### Map
+
+```{r williams evenness map, fig.show="hold", out.width="50%"}
+williams_evenness_map_birdcube <- williams_evenness_map(birdcube,
+                                                        cell_size = 10)
+plot(williams_evenness_map_birdcube)
+
+williams_evenness_map_abv <- williams_evenness_map(abv, cell_size = 10)
+plot(williams_evenness_map_abv)
+```
+
+### Time series
+
+```{r williams evenness time series, fig.show="hold", out.width="50%"}
+williams_evenness_ts_birdcube <- williams_evenness_ts(birdcube)
+plot(williams_evenness_ts_birdcube)
+
+williams_evenness_ts_abv <- williams_evenness_ts(abv)
+plot(williams_evenness_ts_abv)
+```
+
+## Cumulative Species Richness
+
+### Time series
+
+```{r cumulative species richness over time, fig.show="hold", out.width="50%"}
+cum_richness_ts_birdcube <- cum_richness_ts(birdcube)
+plot(cum_richness_ts_birdcube)
+
+cum_richness_ts_abv <- cum_richness_ts(abv)
+plot(cum_richness_ts_abv)
+```
+
+## Density of Occurrences
+
+### Map
+
+```{r density of occurences map, fig.show="hold", out.width="50%"}
+occ_density_map_birdcube <- occ_density_map(birdcube, cell_size = 10)
+plot(occ_density_map_birdcube)
+
+occ_density_map_abv <- occ_density_map(abv, cell_size = 10)
+plot(occ_density_map_abv)
+```
+
+### Time series
+
+```{r density of occurences time series, fig.show="hold", out.width="50%"}
+occ_density_ts_birdcube <- occ_density_ts(birdcube)
+plot(occ_density_ts_birdcube)
+
+occ_density_ts_abv <- occ_density_ts(abv)
+plot(occ_density_ts_abv)
+```
+
+## Abundance-Based Rarity
+
+### Map
+
+```{r abundance-based rarity map, fig.show="hold", out.width="50%"}
+ab_rarity_map_birdcube <- ab_rarity_map(birdcube, cell_size = 10)
+plot(ab_rarity_map_birdcube)
+
+ab_rarity_map_abv <- ab_rarity_map(abv, cell_size = 10)
+plot(ab_rarity_map_abv)
+```
+
+### Time series
+
+```{r abundance-based rarity time series, fig.show="hold", out.width="50%"}
+ab_rarity_ts_birdcube <- ab_rarity_ts(birdcube)
+plot(ab_rarity_ts_birdcube)
+
+ab_rarity_ts_abv <- ab_rarity_ts(abv)
+plot(ab_rarity_ts_abv)
+```
+
+## Area-Based Rarity
+
+### Map
+
+```{r area-based rarity map, fig.show="hold", out.width="50%"}
+area_rarity_map_birdcube <- area_rarity_map(birdcube, cell_size = 10)
+plot(area_rarity_map_birdcube)
+
+area_rarity_map_abv <- area_rarity_map(abv, cell_size = 10)
+plot(area_rarity_map_abv)
+```
+
+### Time series
+
+```{r area-based rarity time series, fig.show="hold", out.width="50%"}
+area_rarity_ts_birdcube <- area_rarity_ts(birdcube)
+plot(area_rarity_ts_birdcube)
+
+area_rarity_ts_abv <- area_rarity_ts(abv)
+plot(area_rarity_ts_abv)
+```
+
+## Mean Year of Occurrence
+
+### Map
+
+```{r newness map, fig.show="hold", out.width="50%"}
+newness_map_birdcube <- newness_map(birdcube, cell_size = 10)
+plot(newness_map_birdcube)
+
+newness_map_abv <- newness_map(abv, cell_size = 10)
+plot(newness_map_abv)
+```
+
+### Time series
+
+```{r newness time series, fig.show="hold", out.width="50%"}
+newness_ts_birdcube <- newness_ts(birdcube)
+plot(newness_ts_birdcube)
+
+newness_ts_abv <- newness_ts(abv)
+plot(newness_ts_abv)
+```
+
+## Taxonomic Distinctness
+
+### Map
+
+```{r taxonomic distinctness map, fig.show="hold", out.width="50%"}
+tax_distinct_map_birdcube <- tax_distinct_map(birdcube, cell_size = 10,
+                                              check = TRUE)
+plot(tax_distinct_map_birdcube)
+
+tax_distinct_map_abv <- tax_distinct_map(abv, cell_size = 10, check = TRUE)
+plot(tax_distinct_map_abv)
+```
+
+### Time series
+
+```{r taxonomic distinctness time series, eval = FALSE, fig.show="hold", out.width="50%"}
+tax_distinct_ts_birdcube <- tax_distinct_ts(birdcube)
+plot(tax_distinct_ts_birdcube)
+
+tax_distinct_ts_abv <- tax_distinct_ts(abv, check = TRUE)
+plot(tax_distinct_ts_abv)
+```
+
+## Species Richness (Estimated by Coverage-Based Rarefaction)
+
+### Map
+
+```{r species richness map, eval = FALSE, fig.show="hold", out.width="50%"}
+hill0_map_birdcube <- hill0_map(birdcube, cell_size = 10)
+plot(hill0_map_birdcube)
+
+hill0_map_abv <- hill0_map(abv, cell_size = 10)
+plot(hill0_map_abv)
+```
+
+### Time series
+
+```{r species richness time series, fig.show="hold", out.width="50%"}
+hill0_ts_birdcube <- hill0_ts(birdcube)
+plot(hill0_ts_birdcube)
+
+hill0_ts_abv <- hill0_ts(abv)
+plot(hill0_ts_abv)
+```
+
+## Hill-Shannon Diversity (Estimated by Coverage-Based Rarefaction)
+
+### Map
+
+```{r hill-shannnon diversity map, eval = FALSE, fig.show="hold", out.width="50%"}
+hill1_map_birdcube <- hill1_map(birdcube, cell_size = 10)
+plot(hill1_map_birdcube)
+
+hill1_map_abv <- hill1_map(abv, cell_size = 10)
+plot(hill1_map_abv)
+```
+
+### Time series
+
+```{r hill-shannon diversity time series, fig.show="hold", out.width="50%"}
+hill1_ts_birdcube <- hill1_ts(birdcube)
+plot(hill1_ts_birdcube)
+
+hill1_ts_abv <- hill1_ts(abv)
+plot(hill1_ts_abv)
+```
+
+## Hill-Simpson Diversity (Estimated by Coverage-Based Rarefaction)
+
+### Map
+
+```{r hill-simpson diversity map, eval=FALSE, fig.show="hold", out.width="50%"}
+hill2_map_birdcube <- hill2_map(birdcube, cell_size = 10)
+plot(hill2_map_birdcube)
+
+hill2_map_abv <- hill2_map(abv, cell_size = 10)
+plot(hill2_map_abv)
+```
+
+### Time series
+
+```{r hill-simpson diversity time series, fig.show="hold", out.width="50%"}
+hill2_ts_birdcube <- hill2_ts(birdcube)
+plot(hill2_ts_birdcube)
+
+hill2_ts_abv <- hill2_ts(abv)
+plot(hill2_ts_abv)
+```
+
+## Occupancy Turnover
+
+### Time series
+
+```{r occupancy turnover time series, fig.show="hold", out.width="50%"}
+occ_turnover_ts_birdcube <- occ_turnover_ts(birdcube)
+plot(occ_turnover_ts_birdcube)
+
+occ_turnover_ts_abv <- occ_turnover_ts(abv)
+plot(occ_turnover_ts_abv)
+```
+
+
+# Species-specific Biodiversity indicators
+
+To compare these indicators we selected three species: the extremely common ..., generalist ..., the rare species ... (work with tabs possibly)
+
+## Species occurrences
+
+## Species range
+
+Ferro and Flick (2015) find that you need 15 collections of a specimen to predict it's distribution.
+
+### Map
+
+```{r}
+spec_range_map_birdcube <- spec_range_map(birdcube)
+plot(spec_range_map_birdcube, species = "Luscinia svecica")
+```
+
+### Time series
+
+```{r}
+spec_range_ts_birdcube <- spec_range_ts(birdcube)
+plot(spec_range_ts_birdcube, species = "Luscinia svecica")
+```
+
+
+
+

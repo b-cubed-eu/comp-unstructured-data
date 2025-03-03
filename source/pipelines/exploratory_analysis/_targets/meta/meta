@@ -1,0 +1,36 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+read_cube_gbif|function|fb7318b724fcb3bf|||||||||||||||
+read_abv_gbif|function|0f973c90384d7a5f|||||||||||||||
+get_data|function|3341b9af0729302c|||||||||||||||
+obs_richness_map_abv|stem|c674139a986d3be1|f97003405992072d|f7144d68646b34bb|544418752||t20137.5632771888s|s145198b|145198|qs|local|vector|||17.78||
+pielou_evenness_ts_abv|stem|a2e48c996ea6b50b|d315fc72cb502da2|f7144d68646b34bb|1463916421||t20140.3442884191s|s2977b|2977|qs|local|vector|||6.25||
+abv_data_file|stem|527d35ac7669ff2c|b6acb50d3d39ac90|89e666f628adf0f2|-226531251|C:/R/git_repositories/comp-unstructured-data/data/interim/abv_data.csv|t20148.7027485294s|s10444864b|10444864|file|local|vector|||0.72||
+birdcube_data_file|stem|519c1c07bacce2ea|48a9ff406ed7d0bc|89e666f628adf0f2|1618870224|C:/R/git_repositories/comp-unstructured-data/data/interim/birdcubeflanders.csv|t20148.6974539314s|s238113817b|238113817|file|local|vector|||0||
+abv_data|stem|b480912d37d3df6c|e229d1a198614366|d57bebce74690f1d|-790396526||t20148.7030385626s|s734920b|734920|qs|local|vector|||0.36||
+birdcube_data|stem|dbc57af89615930d|c219f922643095f8|fce17d6d9fbc08c0|804043826||t20148.7031682901s|s12335314b|12335314|qs|local|vector|||10.55||
+abv|stem|5f686d3ec523e2b9|f5ad0c893737fd7c|14ed9db9b45c9c17|1730016550||t20148.7031815535s|s892668b|892668|qs|local|vector|||1.07||
+birdcube|stem|525ff548687311f9|c6a94986654dd8a8|e37ed227da3f0d82|803444483||t20148.7033767325s|s19947156b|19947156|qs|local|vector|||15.87||
+spec_range_map_abv|stem|430c6c7111b831a4|35ed1551765724ea|0beb31fed06a2cff|565055131||t20148.7034706916s|s73356b|73356|qs|local|vector|||8.08||
+spec_range_ts_abv|stem|c612df97d7866008|b8ec36b075ba8929|0beb31fed06a2cff|212098582||t20148.7044819747s|s43034b|43034|qs|local|vector|||87.36||
+obs_richness_map_abv_1|stem|6a1b0136ccf8544d|f97003405992072d|0beb31fed06a2cff|-1849121129||t20148.70473719s|s145112b|145112|qs|local|vector|||22.01||
+spec_occ_ts_abv|stem|523e2ea4f5c7f53a|50e92be5970898cb|0beb31fed06a2cff|187662183||t20148.7057596212s|s50987b|50987|qs|local|vector|||88.33||
+total_occ_ts_abv|stem|a0e21bd2ab55ebc5|b8a82c3c5a65f3b7|0beb31fed06a2cff|-1571972827||t20148.7059303702s|s2927b|2927|qs|local|vector|||14.73||
+pielou_evenness_map_abv|stem|b744a6c7761236f0|a800a80fe2e65de3|0beb31fed06a2cff|10455673||t20148.705980857s|s12855b|12855|qs|local|vector|||4.34||
+obs_richness_map_abv_10|stem|f8293f6ba6236a08|c32e1c894e01b54f|0beb31fed06a2cff|-2121955916||t20148.7060292033s|s11761b|11761|qs|local|vector|||4.17||
+obs_richness_ts_abv|stem|36c2af1ea14027e3|0e1e13ab8edf2b2e|0beb31fed06a2cff|-1906844265||t20148.7060780799s|s2515b|2515|qs|local|vector|||4.22|Bootstrapped confidence intervals cannot be calculated for the chosen indicator.|
+total_occ_map_abv|stem|c91cdb87695f8b61|37bf422ad4f6ba1e|0beb31fed06a2cff|2144595936||t20148.7061280773s|s12077b|12077|qs|local|vector|||4.3||
+spec_occ_map_abv|stem|74530206571cff64|1c6c3070fe27f0f9|0beb31fed06a2cff|1040382643||t20148.7061883524s|s94259b|94259|qs|local|vector|||5.18||
+spec_occ_map_cube|stem|28530d44bf976352|2923183735c9a153|a5c31b662884b2bb|-1523928707||t20148.7069280832s|s358297b|358297|qs|local|vector|||63.85||
+spec_range_map_cube|stem|976c9922669aebb5|06c24be89a7622f3|a5c31b662884b2bb|1805158784||t20148.7076471583s|s272603b|272603|qs|local|vector|||62.08||
+obs_richness_ts_cube|stem|1da223133056ce2b|52c081f2d4708827|a5c31b662884b2bb|-109269857||t20148.7083309265s|s7144b|7144|qs|local|vector|||59.06|Bootstrapped confidence intervals cannot be calculated for the chosen indicator.|
+spec_range_ts_cube|stem|6c83010cb134e752|7eee1844a6ef902f|a5c31b662884b2bb|1980473897||t20148.7162639453s|s121432b|121432|qs|local|vector|||685.39||
+obs_richness_map_cube_10|stem|dee458f23e469676|e2419c1564d217a1|a5c31b662884b2bb|-677520515||t20148.7168106236s|s17281b|17281|qs|local|vector|||47.22||
+total_occ_ts_cube|stem|7e9ed41e6af6a6c6|8d72fc3bd535dd65|a5c31b662884b2bb|1560660880||t20148.7194517961s|s7573b|7573|qs|local|vector|||228.19||
+total_occ_map_cube|stem|d821b4ccf042456d|9d28fc231c116a65|a5c31b662884b2bb|301642794||t20148.7199878716s|s17723b|17723|qs|local|vector|||46.31||
+pielou_evenness_map_cube|stem|ad77e6d4da619406|86405f793fb7b14a|a5c31b662884b2bb|1936146881||t20148.7205271543s|s18484b|18484|qs|local|vector|||46.58||
+pielou_evenness_ts_cube|stem|50bd767cd851c70d|fab57ea502389048|a5c31b662884b2bb|163671844||t20148.7210688536s|s7647b|7647|qs|local|vector|||46.8||
+spec_occ_ts_cube|stem|068cd37666dc5abc|7a477387f00a1819|a5c31b662884b2bb|-1997763936||t20148.727323413s|s148416b|148416|qs|local|vector|||540.39||
+path_to_interim|function|36603da5829a6104
+path_to_data|object|1451679656d9b4bf
+targets_project_dir|object|0e32c01c2f47553e
+obs_richness_map_cube_1|stem|89d23ee87b4a659e|66f1d7db7aad6b78|a5c31b662884b2bb|-1405350137||t20148.7771409072s|s184803b|184803|qs|local|vector|||64.83||

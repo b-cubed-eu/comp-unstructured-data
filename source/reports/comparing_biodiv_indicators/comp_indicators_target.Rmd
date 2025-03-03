@@ -1,0 +1,253 @@
+---
+title: "Compare biodiversity indicators from the b3gbi package"
+author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
+date: 
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+---
+
+# Introduction
+
+In this document we compare a selection of B-cubed biodiversity indicators between actual cube data and data from structured monitoring. For more information on both datasets check to ... document.
+
+```{r setup, include = FALSE}
+library(knitr)
+opts_chunk$set(collapse = TRUE, comment = "#>")
+
+library(targets)
+Sys.setenv(TAR_PROJECT = "biodiversity_indicators")
+
+library(b3gbi)
+library(ggplot2)
+```
+
+# Biodiversity indicators
+
+## Total occurrences
+
+### Map
+
+```{r total occurrences map, fig.show="hold", out.width="50%"}
+total_occ_map_birdcube <- tar_read(total_occ_map_cube)
+plot(total_occ_map_birdcube) +
+  labs(title = "Birdcube Flanders")
+
+total_occ_map_abv <- tar_read(total_occ_map_abv)
+plot(total_occ_map_abv) +
+  labs(title = "ABV")
+```
+
+### Time series
+
+```{r total occurrences time series, fig.show="hold", out.width="50%"}
+total_occ_ts_birdcube <- tar_read(total_occ_ts_cube)
+plot(total_occ_ts_birdcube)
+
+total_occ_ts_abv <- tar_read(total_occ_ts_abv)
+plot(total_occ_ts_abv)
+```
+
+## Observed richness
+
+### Map 1 km²
+
+```{robserved richness map 1km, fig.show="hold", out.width="50%"}
+obs_richness_map_abv_1 <- tar_read(obs_richness_map_abv_1)
+plot(obs_richness_map_abv_1)
+
+obs_richness_map_cube_1 <- tar_read(obs_richness_map_cube_1)
+plot(obs_richness_map_cube_1)
+```
+
+### Map 10 km²
+
+```{r observed richness map, fig.show="hold", out.width="50%"}
+obs_richness_map_abv_10 <- tar_read(obs_richness_map_abv_10)
+plot(obs_richness_map_abv_10)
+
+obs_richness_map_cube_10 <- tar_read(obs_richness_map_cube_10)
+plot(obs_richness_map_cube_10)
+```
+
+### Time series
+
+```{r observed richness time series, fig.show="hold", out.width="50%"}
+obs_richness_ts_abv <- tar_read(obs_richness_ts_abv)
+plot(obs_richness_ts_abv)
+
+obs_richness_ts_cube <- tar_read(obs_richness_ts_cube)
+plot(obs_richness_ts_cube)
+```
+
+## Pielou evenness
+
+### Map
+
+```{r pielou evenness map, fig.show="hold", out.width="50%"}
+pielou_evenness_map_abv <- tar_read(pielou_evenness_map_abv)
+plot(pielou_evenness_map_abv)
+
+pielou_evenness_map_cube <- tar_read(pielou_evenness_map_cube)
+plot(pielou_evenness_map_cube)
+```
+
+### Time series
+
+```{r pielou evenness time series, fig.show="hold", out.width="50%"}
+pielou_evenness_ts_abv <- tar_read(pielou_evenness_ts_abv)
+plot(pielou_evenness_ts_abv)
+
+pielou_evenness_ts_cube <- tar_read(pielou_evenness_ts_cube)
+plot(pielou_evenness_ts_cube)
+```
+
+# Species-specific indicators {.tabset}
+
+We chose three species to compare the indicators between the two data sets:
+
+-   The species with the biggest increase according to the ABV: Cetti's warbler (*Cettia cetti*)
+-   The species with the biggest decrease according to the ABV: Eurasian tree sparrow (*Passer montanus*)
+-   A species with a very stable trend: Common nightingale (*Luscinia megarhynchos*)
+
+## Cetti's Warbler
+
+### Species occurrences
+
+#### Map
+
+```{r species occurrences map cettis warbler, fig.show="hold", out.width="50%"}
+spec_occ_map_abv <- tar_read(spec_occ_map_abv)
+plot(spec_occ_map_abv, species = "Cettia cetti")
+
+spec_occ_map_cube <- tar_read(spec_occ_map_cube)
+plot(spec_occ_map_cube, species = "Cettia cetti")
+```
+
+#### Time series
+
+```{r species occurrences time series cettis warbler, fig.show="hold", out.width="50%"}
+spec_occ_ts_abv <- tar_read(spec_occ_ts_abv)
+plot(spec_occ_ts_abv, species = "Cettia cetti")
+
+spec_occ_ts_cube <- tar_read(spec_occ_ts_cube)
+plot(spec_occ_ts_cube, species = "Cettia cetti")
+```
+
+### Species range
+
+#### Map
+
+```{r species range map cettis warbler, fig.show="hold", out.width="50%"}
+spec_range_map_abv <- tar_read(spec_range_map_abv)
+plot(spec_range_map_abv, species = "Cettia cetti")
+
+spec_range_map_cube <- tar_read(spec_range_map_cube)
+plot(spec_range_map_cube, species = "Cettia cetti")
+```
+
+#### Time series
+
+```{r species range time series cettis warbler, fig.show="hold", out.width="50%"}
+spec_range_ts_abv <- tar_read(spec_range_ts_abv)
+plot(spec_range_ts_abv, species = "Cettia cetti")
+
+spec_range_ts_cube <- tar_read(spec_range_ts_cube)
+plot(spec_range_ts_cube, species = "Cettia cetti")
+```
+
+## Eurasian tree sparrow
+
+### Species occurrences
+
+#### Map
+
+```{r species occurrences map Eurasian tree sparrow, fig.show="hold", out.width="50%"}
+spec_occ_map_abv <- tar_read(spec_occ_map_abv)
+plot(spec_occ_map_abv, species = "Passer montanus")
+
+spec_occ_map_cube <- tar_read(spec_occ_map_cube)
+plot(spec_occ_map_cube, species = "Passer montanus")
+```
+
+#### Time series
+
+```{r species occurrences time series Eurasian tree sparrow, fig.show="hold", out.width="50%"}
+spec_occ_ts_abv <- tar_read(spec_occ_ts_abv)
+plot(spec_occ_ts_abv, species = "Passer montanus")
+
+spec_occ_ts_cube <- tar_read(spec_occ_ts_cube)
+plot(spec_occ_ts_cube, species = "Passer montanus")
+```
+
+### Species range
+
+#### Map
+
+```{r species range map Eurasian tree sparrow, fig.show="hold", out.width="50%"}
+spec_range_map_abv <- tar_read(spec_range_map_abv)
+plot(spec_range_map_abv, species = "Passer montanus")
+
+spec_range_map_cube <- tar_read(spec_range_map_cube)
+plot(spec_range_map_cube, species = "Passer montanus")
+```
+
+#### Time series
+
+```{r species range time series Eurasian tree sparrow, fig.show="hold", out.width="50%"}
+spec_range_ts_abv <- tar_read(spec_range_ts_abv)
+plot(spec_range_ts_abv, species = "Passer montanus")
+
+spec_range_ts_cube <- tar_read(spec_range_ts_cube)
+plot(spec_range_ts_cube, species = "Passer montanus")
+```
+
+## Common nightingale
+
+### Species occurrences
+
+#### Map
+
+```{r species occurrences map Common nightingale, fig.show="hold", out.width="50%"}
+spec_occ_map_abv <- tar_read(spec_occ_map_abv)
+plot(spec_occ_map_abv, species = "Luscinia megarhynchos")
+
+spec_occ_map_cube <- tar_read(spec_occ_map_cube)
+plot(spec_occ_map_cube, species = "Luscinia megarhynchos")
+```
+
+#### Time series
+
+```{r species occurrences time series Common nightingale, fig.show="hold", out.width="50%"}
+spec_occ_ts_abv <- tar_read(spec_occ_ts_abv)
+plot(spec_occ_ts_abv, species = "Luscinia megarhynchos")
+
+spec_occ_ts_cube <- tar_read(spec_occ_ts_cube)
+plot(spec_occ_ts_cube, species = "Luscinia megarhynchos")
+```
+
+### Species range
+
+#### Map
+
+```{r species range map Common nightingale, fig.show="hold", out.width="50%"}
+spec_range_map_abv <- tar_read(spec_range_map_abv)
+plot(spec_range_map_abv, species = "Luscinia megarhynchos")
+
+spec_range_map_cube <- tar_read(spec_range_map_cube)
+plot(spec_range_map_cube, species = "Luscinia megarhynchos")
+```
+
+#### Time series
+
+```{r species range time series Common nightingale, fig.show="hold", out.width="50%"}
+spec_range_ts_abv <- tar_read(spec_range_ts_abv)
+plot(spec_range_ts_abv, species = "Luscinia megarhynchos")
+
+spec_range_ts_cube <- tar_read(spec_range_ts_cube)
+plot(spec_range_ts_cube, species = "Luscinia megarhynchos")
+```
+
