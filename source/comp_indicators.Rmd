@@ -81,7 +81,7 @@ birdcubeflanders <- occ_download_get(birdcubeflanders_year,
                                      path = data_path) |>
   occ_download_import()
 
-write.csv(birdcubeflanders, paste0(data_path, "/interim/birdcubeflanders.csv"))
+write.csv(birdcubeflanders, paste0(data_path, "./interim/birdcubeflanders.csv"))
 ```
 
 ```{r, eval=FALSE}

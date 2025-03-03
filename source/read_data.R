@@ -2,6 +2,8 @@ library(rgbif)
 library(sf)
 library(dplyr)
 
+# nolint start
+
 data_path <- here::here("data")
 
 utm_grid <- read_sf(file.path(data_path, "raw", "utm_grid", "utm1_vl.shp"))
@@ -111,3 +113,5 @@ abv_data <- occ_download_get(abv_data_down,
   occ_download_import()
 
 write.csv(abv_data, paste0(data_path, "/interim/abv_data.csv"))
+
+# nolint end
