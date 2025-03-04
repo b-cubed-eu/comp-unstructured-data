@@ -92,12 +92,16 @@ download_occ_cube(
 We read in the data cube and add dataset names.
 
 ```{r}
-birdcubeflanders_dataset <- read_csv(
+birdcubeflanders_dataset_raw <- read_csv(
   here::here("data", "interim", "birdcubeflanders_dataset.csv"),
   show_col_types = FALSE)
 
 # Add dataset names
-birdcubeflanders_dataset <- get_dataset_names(birdcubeflanders_dataset)
+birdcubeflanders_dataset <- get_dataset_names(birdcubeflanders_dataset_raw) %>%
+  dplyr::select("mgrscode", "year", "specieskey", "species", "family",
+                "datasetkey", "datasetname", "n",
+                "mincoordinateuncertaintyinmeters", "familycount") %>%
+  arrange(year, mgrscode, species, datasetname)
 
 glimpse(birdcubeflanders_dataset)
 ```
@@ -122,3 +126,68 @@ birdcubeflanders_dataset %>%
   arrange(desc(n_obs)) %>%
   knitr::kable()
 ```
+
+# Comparing species prevalence
+
+We load the ABV data (structured monitoring data).
+We categorise the species according to rarity:
+
+| number of rows  | rarity           |
+| :-------------: | :--------------- |
+| [1, 10)         | very rare        |
+| [10, 100)       | rare             |
+| [100, 1000)     | common           |
+| [1000, 10.000)  | very common      |
+| [10.000, +Inf)  | extremely common |
+
+```{r, message=FALSE}
+abv_data_raw <- read_csv(
+  here::here("data", "interim", "abv_data.csv"),
+  show_col_types = FALSE)
+
+# Cut rarity
+abv_data <- abv_data_raw[-1] %>%
+  dplyr::select("mgrscode", "year", "specieskey", "species", "family", "n",
+              "mincoordinateuncertaintyinmeters", "familycount") %>%
+  mutate(n_obs = n(),
+         .by = "species") %>%
+  mutate(rarity = cut(
+    n_obs,
+    breaks = c(0, 10, 100, 1000, 10000, +Inf),
+    labels = c("Very rare", "Rare", "Common",
+               "Very common", "Extremely common"),
+    right = FALSE)
+  ) %>%
+  arrange(year, mgrscode, species)
+
+glimpse(abv_data)
+```
+
+We filter the data cube based on species in ABV and add rarity categories.
+
+```{r}
+# Get ABV categories
+abv_species <- unique(abv_data$species)
+
+# Filter cube based on ABV species and add rarity categories
+birdcube_dataset_filtered <- birdcubeflanders_dataset %>%
+  dplyr::filter(species %in% abv_species) %>%
+  left_join(distinct(abv_data[, c("species", "rarity")]),
+            by = join_by("species"))
+
+# Also aggregate over datasets
+birdcube_filtered <- birdcube_dataset_filtered %>%
+  group_by(mgrscode, year, specieskey, species, family, familycount) %>%
+  summarise(
+    n = sum(n),
+    mincoordinateuncertaintyinmeters = min(mincoordinateuncertaintyinmeters),
+    .groups = "drop"
+  )
+```
+
+- calculate indicator on abv_species and birdcube_filtered
+- calculate indicator on birdcube_dataset_filtered with LOO CV
+
+# Species specific indicators
+
+- LOO CV on species specific indicators
