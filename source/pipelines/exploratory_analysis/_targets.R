@@ -4,8 +4,7 @@ library(targets)
 
 # Set target options:
 tar_option_set(
-  packages = c("rgbif",
-               "sf",
+  packages = c(
                "dplyr"
                ),
   format = "qs" # Optionally set the default storage format. qs is fast.
@@ -17,15 +16,15 @@ path_to_data <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("data")
 
 tar_config_set(
-  script = file.path(targets_project_dir, "target_workflow", "_targets.R"),
-  store = file.path(targets_project_dir, "target_workflow",
+  script = file.path(targets_project_dir, "exploratory_analysis", "_targets.R"),
+  store = file.path(targets_project_dir, "exploratory_analysis",
                     "_targets/"),
   config = "_targets.yaml",
-  project = "target_workflow",
+  project = "exploratory_analysis",
   use_crew = TRUE)
 
 # Run the R scripts in the R/ folder with your custom functions:
-tar_source(file.path(targets_project_dir, "target_workflow", "R"))
+tar_source(file.path(targets_project_dir, "exploratory_analysis", "R"))
 
 # Replace the target list below with your own:
 list(

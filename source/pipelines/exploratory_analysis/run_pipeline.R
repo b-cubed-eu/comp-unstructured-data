@@ -1,7 +1,7 @@
 # run the pipeline
 
 library(targets)
-Sys.setenv(TAR_PROJECT = "biodiversity_indicators")
+Sys.setenv(TAR_PROJECT = "exploratory_analysis")
 
 tar_make()
 
