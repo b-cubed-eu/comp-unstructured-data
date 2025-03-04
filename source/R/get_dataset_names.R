@@ -3,7 +3,7 @@ get_dataset_names <- function(df) {
   require("rlang")
 
   unique_datasets <- df %>%
-    distinct(datasetkey, datasetname)
+    distinct("datasetkey", "datasetname")
 
   dataset_names <- sapply(as.list(unique_datasets$datasetkey), function(key) {
     rgbif::dataset_get(key)$title
