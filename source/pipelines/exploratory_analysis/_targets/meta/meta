@@ -30,7 +30,7 @@ total_occ_map_cube|stem|d821b4ccf042456d|9d28fc231c116a65|a5c31b662884b2bb|30164
 pielou_evenness_map_cube|stem|ad77e6d4da619406|86405f793fb7b14a|a5c31b662884b2bb|1936146881||t20148.7205271543s|s18484b|18484|qs|local|vector|||46.58||
 pielou_evenness_ts_cube|stem|50bd767cd851c70d|fab57ea502389048|a5c31b662884b2bb|163671844||t20148.7210688536s|s7647b|7647|qs|local|vector|||46.8||
 spec_occ_ts_cube|stem|068cd37666dc5abc|7a477387f00a1819|a5c31b662884b2bb|-1997763936||t20148.727323413s|s148416b|148416|qs|local|vector|||540.39||
+obs_richness_map_cube_1|stem|89d23ee87b4a659e|66f1d7db7aad6b78|a5c31b662884b2bb|-1405350137||t20148.7771409072s|s184803b|184803|qs|local|vector|||64.83||
 path_to_interim|function|36603da5829a6104
 path_to_data|object|1451679656d9b4bf
 targets_project_dir|object|0e32c01c2f47553e
-obs_richness_map_cube_1|stem|89d23ee87b4a659e|66f1d7db7aad6b78|a5c31b662884b2bb|-1405350137||t20148.7771409072s|s184803b|184803|qs|local|vector|||64.83||
