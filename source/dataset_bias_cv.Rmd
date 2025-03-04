@@ -4,7 +4,7 @@ author: "Ward Langeraert"
 date: "`r Sys.Date()`"
 output:
   html_document:
-    code_folding: show
+    code_folding: hide
     toc: true
     toc_float: true
     toc_collapsed: true
@@ -20,11 +20,105 @@ knitr::opts_chunk$set(echo = TRUE)
 # Load packages
 library(tidyverse) # Data wrangling and visualisation
 library(dubicube)  # Cross-validation
+
+# Source functions
+source(here::here("source", "R", "download_occ_cube.R"))
+source(here::here("source", "R", "get_dataset_names.R"))
 ```
 
 # Goal
 
-
+Investigate bias in indicators caused by over-/underrepresentation of certain datasets in the occurrence cube.
 
 # Load data
 
+We download the occurrence cube.
+This cube is four dimensional, where the fourth dimension is the dataset.
+
+```{r, message=FALSE}
+# nolint start: line_length_linter.
+query <- "SELECT
+  \"year\",
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
+  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  speciesKey,
+  species,
+  family,
+  datasetName,
+  datasetKey,
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  FROM
+  occurrence
+  WHERE
+  occurrenceStatus = 'PRESENT'
+  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')
+  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
+  AND level1gid = 'BEL.2_1'
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
+  AND class = 'Aves'
+  AND collectionCode != 'ABV'
+  GROUP BY
+  \"year\",
+  mgrsCode,
+  speciesKey,
+  species,
+  family,
+  datasetName,
+  datasetKey
+  ORDER BY
+  \"year\" ASC,
+  mgrsCode ASC,
+  speciesKey ASC,
+  datasetName ASC"
+# nolint end
+
+download_occ_cube(
+  sql_query = query,
+  file = "birdcubeflanders_dataset.csv",
+  overwrite = FALSE
+)
+```
+
+> GBIF.org (04 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.kmzpht
+
+We read in the data cube and add dataset names.
+
+```{r}
+birdcubeflanders_dataset <- read_csv(
+  here::here("data", "interim", "birdcubeflanders_dataset.csv"),
+  show_col_types = FALSE)
+
+# Add dataset names
+birdcubeflanders_dataset <- get_dataset_names(birdcubeflanders_dataset)
+
+glimpse(birdcubeflanders_dataset)
+```
+
+There are `r nrow(birdcubeflanders_dataset)` rows in the dataset.
+They should be the same as the unique combinations of grid cell code, species, year and dataset.
+
+```{r}
+n_distinct <- birdcubeflanders_dataset %>%
+  distinct(mgrscode, specieskey, year, datasetname) %>%
+  nrow()
+
+nrow(birdcubeflanders_dataset) == n_distinct
+```
+
+Number of observations (sum) per dataset in the cube.
+
+```{r}
+birdcubeflanders_dataset %>%
+  summarise(n_obs = sum(n),
+            .by = "datasetname") %>%
+  arrange(desc(n_obs)) %>%
+  knitr::kable()
+```
