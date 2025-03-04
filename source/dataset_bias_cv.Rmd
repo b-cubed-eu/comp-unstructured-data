@@ -28,7 +28,7 @@ source(here::here("source", "R", "get_dataset_names.R"))
 
 # Goal
 
-Investigate bias in indicators caused by over-/underrepresentation of certain datasets in the occurrence cube.
+Investigate bias in indicators caused by the over/under representation of certain datasets in the occurrence cube.
 
 # Load data
 
