@@ -606,9 +606,11 @@ trend_dataset %>%
 The effective number of datasets takes into account the proportion of observations per dataset.
 It is calculated per species $j$ as the exponent of the Shannon Entropy:
 
+<!-- spell-check: ignore:start -->
 $$
 N_{E,j} = \exp(- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))
 $$
+<!-- spell-check: ignore:end -->
 
 where $D_j$ the total number of datasets where species $j$ is present, and $p_i$ the proportion of entries (rows) of species $j$ in dataset $i$. 
 
@@ -624,9 +626,11 @@ trend_dataset %>%
 Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
 Pielou’s Evenness index $J$ is calculated as the normalised Shannon Entropy:
 
+<!-- spell-check: ignore:start -->
 $$
 J_{j} = \frac{- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))}{\ln(D_j)}
 $$
+<!-- spell-check: ignore:end -->
 
 ```{r}
 trend_dataset %>%
