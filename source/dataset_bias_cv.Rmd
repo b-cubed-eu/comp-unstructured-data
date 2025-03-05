@@ -224,12 +224,12 @@ species_prevalence <- function(df) {
   require("rlang")
 
   total_grid_cells <- length(unique(df$mgrscode))
-  
+
   df_out <- df %>%
     group_by(.data$species, .data$rarity) %>%
     summarise(diversity_val = n_distinct(.data$mgrscode) / total_grid_cells,
               .groups = "drop")
-  
+
   return(df_out)
 }
 ```
@@ -297,7 +297,7 @@ prevalence_cv %>%
                                  paste0(species, "\n(value: ",
                                         round(rmse, 3), ")"),
                                  NA)
-                  ), 
+                  ),
               hjust = 1, vjust = -0.5, size = 3, check_overlap = TRUE) +
     labs(x = "Proportion of occupied grid cells\nin ABV dataset",
          y = "Proportion of occupied grid cells\nin cube dataset",
@@ -322,7 +322,7 @@ prevalence_cv %>%
                                  paste0(species, "\n(value: ",
                                         round(max_error, 3), ")"),
                                  NA)
-                  ), 
+                  ),
               hjust = 1, vjust = -0.5, size = 3, check_overlap = TRUE) +
     labs(x = "Proportion of occupied grid cells\nin ABV dataset",
          y = "Proportion of occupied grid cells\nin cube dataset",
