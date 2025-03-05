@@ -256,8 +256,7 @@ prevalence_df %>%
     theme_minimal()
 ```
 
-- calculate indicator on birdcube_dataset_filtered with LOO CV
-remotes::install_github("b-cubed-eu/dubicube#25")
+We calculate error measures for the indicator based on leave-one-dataset-out cross-validation (use `remotes::install_github("b-cubed-eu/dubicube#25")`).
 
 ```{r, message=FALSE}
 prevalence_cv <- cross_validate_cube(
@@ -275,7 +274,7 @@ quantile <- 0.95
 
 We visualise several error measures per species. Labels are included for species with values above the `r quantile * 100` % quantile (`r round(length(unique(prevalence_cv$species)) * (1 - quantile), 0)` species).
 
-```{r, warning=FALSE, out.width="90%"}
+```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Calculate maximum error per species
 prevalence_cv %>%
   mutate(max_error = max(error),
