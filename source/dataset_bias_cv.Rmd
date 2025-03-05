@@ -227,7 +227,7 @@ species_prevalence <- function(df) {
   
   df_out <- df %>%
     group_by(.data$species, .data$rarity) %>%
-    summarise(prevalence = n_distinct(.data$mgrscode) / total_grid_cells,
+    summarise(diversity_val = n_distinct(.data$mgrscode) / total_grid_cells,
               .groups = "drop")
   
   return(df_out)
@@ -241,24 +241,96 @@ abv_prevalence <- species_prevalence(abv_data) %>%
   mutate(data = "abv")
 
 prevalence_df <- bind_rows(birdcube_prevalence, abv_prevalence) %>%
-  pivot_wider(names_from = data, values_from = prevalence)
+  pivot_wider(names_from = data, values_from = diversity_val)
 ```
 
 ```{r}
 prevalence_df %>%
   ggplot(aes(x = abv, y = birdcube)) +
     geom_smooth(method = "lm", formula = "y ~ log(x)", colour = "firebrick") +
-    geom_point(aes(colour = rarity), size = 2) +
+    geom_point(aes(shape = rarity), size = 2, colour = "cornflowerblue") +
     labs(x = "Proportion of occupied grid cells\nin ABV dataset",
          y = "Proportion of occupied grid cells\nin cube dataset",
-         colour = "Rarity") +
+         shape = "Rarity") +
     theme_minimal()
 ```
 
-
-
-
 - calculate indicator on birdcube_dataset_filtered with LOO CV
+remotes::install_github("b-cubed-eu/dubicube#25")
+
+```{r}
+prevalence_cv <- cross_validate_cube(
+  birdcube_dataset_filtered,
+  fun = species_prevalence,
+  grouping_var = c("species", "rarity"),
+  out_var = "datasetkey",
+  progress = TRUE
+)
+```
+
+We visualise the root mean squared error (RMSE) per species. Labels are included for species with values above the 95% quantile of.
+
+```{r}
+prevalence_cv %>%
+  distinct(species, rarity, rmse) %>%
+  left_join(prevalence_df, by = join_by(species, rarity)) %>%
+  mutate(rmse_95 = quantile(rmse, probs = 0.95)) %>%
+  ggplot(aes(x = abv, y = birdcube)) +
+    geom_smooth(method = "lm", formula = "y ~ log(x)", colour = "firebrick") +
+    geom_point(aes(shape = rarity, colour = rmse), size = 2) +
+    labs(x = "Proportion of occupied grid cells\nin ABV dataset",
+         y = "Proportion of occupied grid cells\nin cube dataset",
+         shape = "Rarity", colour = "RMSE") +
+    scale_colour_viridis_c(option = "turbo") +
+    theme_minimal()
+```
+
+```{r}
+prevalence_cv %>%
+  distinct(species, rarity, rmse) %>%
+  left_join(prevalence_df, by = join_by(species, rarity)) %>%
+  mutate(rmse_95 = quantile(rmse, probs = 0.95)) %>%
+  ggplot(aes(x = abv, y = birdcube)) +
+    geom_smooth(method = "lm", formula = "y ~ log(x)", colour = "firebrick") +
+    geom_point(aes(shape = rarity, colour = rmse), size = 2) +
+    geom_text(aes(label = ifelse(rmse > rmse_95,
+                                 paste0(species, "\n(value: ",
+                                        round(rmse, 3), ")"),
+                                 NA)
+                  ), 
+              hjust = 1, vjust = -0.5, size = 3, check_overlap = TRUE) +
+    labs(x = "Proportion of occupied grid cells\nin ABV dataset",
+         y = "Proportion of occupied grid cells\nin cube dataset",
+         shape = "Rarity", colour = "RMSE") +
+    scale_colour_viridis_c(option = "turbo") +
+    scale_y_continuous(expand = expansion(mult = 0.1)) +
+    theme_minimal()
+```
+
+We visualise the maximum error per species. Labels are included for species with values above the 95% quantile of.
+
+```{r}
+prevalence_cv %>%
+  summarise(max_error = max(error),
+            .by = c("species", "rarity")) %>%
+  left_join(prevalence_df, by = join_by(species, rarity)) %>%
+  mutate(max_error_95 = quantile(max_error, probs = 0.95)) %>%
+  ggplot(aes(x = abv, y = birdcube)) +
+    geom_smooth(method = "lm", formula = "y ~ log(x)", colour = "firebrick") +
+    geom_point(aes(shape = rarity, colour = max_error), size = 2) +
+    geom_text(aes(label = ifelse(max_error > max_error_95,
+                                 paste0(species, "\n(value: ",
+                                        round(max_error, 3), ")"),
+                                 NA)
+                  ), 
+              hjust = 1, vjust = -0.5, size = 3, check_overlap = TRUE) +
+    labs(x = "Proportion of occupied grid cells\nin ABV dataset",
+         y = "Proportion of occupied grid cells\nin cube dataset",
+         shape = "Rarity", colour = "Max. error") +
+    scale_colour_viridis_c(option = "turbo") +
+    scale_y_continuous(expand = expansion(mult = 0.1)) +
+    theme_minimal()
+```
 
 # Species specific indicators
 
