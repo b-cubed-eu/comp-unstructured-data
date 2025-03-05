@@ -139,7 +139,7 @@ birdcubeflanders_dataset %>%
              fill = "cornflowerblue") +
     geom_text(aes(label = n_obs), vjust = 0.3, hjust = -0.3, size = 3) +
     scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
-    scale_y_continuous(limits = c(0, 10^7 + 1000000)) +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.2))) +
     labs(x = "", y = "Number of observations (sum)") +
     theme_minimal() +
     coord_flip()
@@ -245,10 +245,21 @@ prevalence_df <- bind_rows(birdcube_prevalence, abv_prevalence) %>%
   pivot_wider(names_from = data, values_from = diversity_val)
 ```
 
+Rare species are more prevalent in the cube dataset while more common species are more prevalent in the ABV dataset.
+
 ```{r}
 prevalence_df %>%
   ggplot(aes(x = abv, y = birdcube)) +
-    geom_smooth(method = "lm", formula = "y ~ log(x)", colour = "firebrick") +
+    geom_abline(slope = 1, intercept = 0, colour = "firebrick",
+                linewidth = 1) +
+    annotate("label", x = 0.75, y = 0.6,
+             label = "Higher prevalence in ABV",
+             color = "black") +
+    annotate("label", x = 0.45, y = 0.6,
+             label = "Higher prevalence in cube",
+             color = "black") +
+    geom_smooth(method = "loess", formula = "y ~ x",
+                colour = "darkgrey", linetype = "dashed") +
     geom_point(aes(shape = rarity), size = 2) +
     labs(x = "Proportion of occupied grid cells\nin ABV dataset",
          y = "Proportion of occupied grid cells\nin cube dataset",
@@ -274,6 +285,8 @@ quantile <- 0.95
 
 We visualise several error measures per species. Labels are included for species with values above the `r quantile * 100` % quantile (`r round(length(unique(prevalence_cv$species)) * (1 - quantile), 0)` species).
 
+### Maximum error
+
 ```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Calculate maximum error per species
 prevalence_cv %>%
@@ -283,7 +296,47 @@ prevalence_cv %>%
     prevalence_df,
     measure = "max_error",
     quant = quantile)
+```
 
+We look at the `r (1 - quantile) * 100` % species with the highest maximum error.
+
+```{r}
+top_spec_max_error_df <- prevalence_cv %>%
+  mutate(max_error = max(error),
+         .by = c("species", "rarity")) %>%
+  distinct(species, rarity, max_error) %>%
+  slice_max(max_error, prop = 1 - quantile) %>%
+  arrange(desc(max_error))
+
+top_spec_max_error_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_max_error_specs <- top_spec_max_error_df %>%
+  slice_max(max_error, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_max_error_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_max_error_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, max_error, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+    labs(x = "", y = "Number of observations (count)") +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+    theme_minimal() +
+    coord_flip() +
+    facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+### Minimum error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Calculate minimum error per species
 prevalence_cv %>%
   mutate(min_error = abs(min(error)),
@@ -292,7 +345,47 @@ prevalence_cv %>%
     prevalence_df,
     measure = "min_error",
     quant = quantile)
+```
 
+We look at the `r (1 - quantile) * 100` % species with the highest minimum error (absolute value).
+
+```{r}
+top_spec_min_error_df <- prevalence_cv %>%
+  mutate(min_error = abs(min(error)),
+         .by = c("species", "rarity")) %>%
+  distinct(species, rarity, min_error) %>%
+  slice_max(min_error, prop = 1 - quantile) %>%
+  arrange(desc(min_error))
+
+top_spec_min_error_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_min_error_specs <- top_spec_min_error_df %>%
+  slice_max(min_error, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_min_error_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_min_error_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, min_error, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+    labs(x = "", y = "Number of observations (count)") +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+    theme_minimal() +
+    coord_flip() +
+    facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+### Maximum relative error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Calculate maximum relative error per species
 prevalence_cv %>%
   mutate(max_rel_error = max(rel_error),
@@ -301,13 +394,245 @@ prevalence_cv %>%
     prevalence_df,
     measure = "max_rel_error",
     quant = quantile)
+```
 
+We look at the `r (1 - quantile) * 100` % species with the highest maximum relative error.
+
+```{r}
+top_spec_max_rel_error_df <- prevalence_cv %>%
+  mutate(max_rel_error = max(rel_error),
+         .by = c("species", "rarity")) %>%
+  distinct(species, rarity, max_rel_error) %>%
+  slice_max(max_rel_error, prop = 1 - quantile) %>%
+  arrange(desc(max_rel_error))
+
+top_spec_max_rel_error_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_max_rel_error_specs <- top_spec_max_rel_error_df %>%
+  slice_max(max_rel_error, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_max_rel_error_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_max_rel_error_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, max_rel_error, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+    labs(x = "", y = "Number of observations (count)") +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+    theme_minimal() +
+    coord_flip() +
+    facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+### Mean relative error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
+# Mean relative error
+plot_cross_validation(
+  prevalence_cv,
+  prevalence_df,
+  measure = "mre",
+  quant = quantile)
+```
+
+We look at the `r (1 - quantile) * 100` % species with the highest maximum relative error.
+
+```{r}
+top_spec_mre_df <- prevalence_cv %>%
+  distinct(species, rarity, mre) %>%
+  slice_max(mre, prop = 1 - quantile) %>%
+  arrange(desc(mre))
+
+top_spec_mre_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_mre_specs <- top_spec_mre_df %>%
+  slice_max(mre, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_mre_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_mre_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, mre, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+    labs(x = "", y = "Number of observations (count)") +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+    theme_minimal() +
+    coord_flip() +
+    facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+### Root mean squared error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Root mean squared error
 plot_cross_validation(
   prevalence_cv,
   prevalence_df,
   measure = "rmse",
   quant = quantile)
+```
+
+We look at the `r (1 - quantile) * 100` % species with the highest RMSE.
+
+```{r}
+top_spec_rmse_df <- prevalence_cv %>%
+  distinct(species, rarity, rmse) %>%
+  slice_max(rmse, prop = 1 - quantile) %>%
+  arrange(desc(rmse))
+
+top_spec_rmse_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_rmse_specs <- top_spec_rmse_df %>%
+  slice_max(rmse, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_rmse_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_rmse_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, rmse, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+    labs(x = "", y = "Number of observations (count)") +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+    theme_minimal() +
+    coord_flip() +
+    facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+We look at the `r (1 - quantile) * 100` % species with the lowest RMSE.
+
+```{r}
+top_spec_rmse_df <- prevalence_cv %>%
+  distinct(species, rarity, rmse) %>%
+  slice_min(rmse, prop = 1 - quantile) %>%
+  arrange(rmse)
+
+top_spec_rmse_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_rmse_specs <- top_spec_rmse_df %>%
+  slice_min(rmse, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_rmse_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_rmse_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, rmse, decreasing = FALSE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+    labs(x = "", y = "Number of observations (count)") +
+    scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+    theme_minimal() +
+    coord_flip() +
+    facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+## Trends in error
+
+We look at trends in CV error measures related to:
+
+1  differences in rarity
+2. number of datasets
+3. effective number of datasets
+4. dataset evenness
+
+### Differences in rarity
+
+```{r}
+prevalence_cv %>%
+  ggplot(aes(x = rarity, y = rmse, colour = rarity)) +
+    geom_boxplot()
+```
+
+### Number of datasets
+
+```{r}
+trend_dataset <- birdcube_dataset_filtered %>%
+  left_join(prevalence_cv %>% distinct(species, rarity, rmse),
+            by = join_by(species, rarity)) %>%
+  select(mgrscode, year, species, datasetname, rarity, rmse) %>%
+  count(species, rarity, rmse, datasetname) %>%
+  group_by(species, rarity, rmse) %>%
+  mutate(tot = sum(n),
+         p = n / tot) %>%
+  summarise(
+    n_datasets = n_distinct(datasetname),
+    shannon = -sum(p * log(p)),
+    neff_datasets = exp(shannon),
+    evenness = shannon / log(n_datasets),
+    .groups = "drop")
+```
+
+Does RMSE change with number of datasets?
+
+```{r}
+trend_dataset %>%
+  ggplot(aes(x = n_datasets, y = rmse, colour = rarity)) +
+    geom_point() +
+    geom_smooth(method = "lm",  formula = "y ~ x")
+```
+
+### Effective number of datasets
+
+The effective number of datasets takes into account the proportion of observations per dataset.
+It is calculated per species $j$ as the exponent of the Shannon Entropy:
+
+$$
+N_{E,j} = \exp(- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))
+$$
+
+where $D_j$ the total number of datasets where species $j$ is present, and $p_i$ the proportion of entries (rows) of species $j$ in dataset $i$. 
+
+```{r}
+trend_dataset %>%
+  ggplot(aes(x = neff_datasets, y = rmse, colour = rarity)) +
+    geom_point() +
+    geom_smooth(method = "lm",  formula = "y ~ x")
+```
+
+### Dataset evenness
+
+Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
+Pielou’s Evenness index $J$ is calculated as the normalised Shannon Entropy:
+
+$$
+J_{j} = \frac{- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))}{\ln(D_j)}
+$$
+
+```{r}
+trend_dataset %>%
+  ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
+    geom_point() +
+    geom_smooth(method = "lm",  formula = "y ~ x")
 ```
 
 # Species specific indicators
