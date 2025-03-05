@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Load packages
 library(tidyverse) # Data wrangling and visualisation
 library(dubicube)  # Cross-validation
+library(sf)        # Spatial objects
 
 # Source functions
 source(here::here("source", "R", "download_occ_cube.R"))
@@ -144,6 +145,7 @@ birdcubeflanders_dataset %>%
 ```
 
 # Comparing species prevalence
+## Load and process data
 
 We load the ABV data (structured monitoring data).
 We categorise the species according to rarity:
@@ -157,22 +159,32 @@ We categorise the species according to rarity:
 | [10.000, +Inf)  | extremely common |
 
 ```{r, message=FALSE}
-abv_data_raw <- read_csv(
-  here::here("data", "interim", "abv_data.csv"),
-  show_col_types = FALSE)
+abv_data_total_sf <- read_sf(
+  here::here("data", "interim", "abv_data_total.gpkg"))
 
 # Cut rarity
-abv_data <- abv_data_raw[-1] %>%
-  dplyr::select("mgrscode", "year", "specieskey", "species", "family", "n",
-              "mincoordinateuncertaintyinmeters", "familycount") %>%
+abv_data <- abv_data_total_sf %>%
+  st_drop_geometry() %>%
+  # Soepeend, Soepgans
+  filter(!is.na(species)) %>%
+  mutate(mgrscode = paste0("31U", TAG)) %>%
+  dplyr::select("mgrscode", "year", "specieskey" = "speciesKey", "species") %>%
   mutate(n_obs = n(),
          .by = "species") %>%
-  mutate(rarity = cut(
-    n_obs,
-    breaks = c(0, 10, 100, 1000, 10000, +Inf),
-    labels = c("Very rare", "Rare", "Common",
-               "Very common", "Extremely common"),
-    right = FALSE)
+  mutate(
+    rarity = cut(
+      n_obs,
+      breaks = c(0, 10, 100, 1000, 10000, +Inf),
+      labels = c("Very rare", "Rare", "Common",
+                 "Very common", "Extremely common"),
+      right = FALSE
+    ),
+    species = case_when(
+      species == "Parus montanus" ~ "Poecile montanus",
+      species == "Dendrocopus major" ~ "Dendrocopos major",
+      species == "Saxicola torquatus" ~ "Saxicola rubicola",
+      TRUE ~ species
+      )
   ) %>%
   arrange(year, mgrscode, species)
 
@@ -193,7 +205,7 @@ birdcube_dataset_filtered <- birdcubeflanders_dataset %>%
 
 # Also aggregate over datasets
 birdcube_filtered <- birdcube_dataset_filtered %>%
-  group_by(mgrscode, year, specieskey, species, family, familycount) %>%
+  group_by(mgrscode, year, specieskey, species, family, familycount, rarity) %>%
   summarise(
     n = sum(n),
     mincoordinateuncertaintyinmeters = min(mincoordinateuncertaintyinmeters),
@@ -201,7 +213,51 @@ birdcube_filtered <- birdcube_dataset_filtered %>%
   )
 ```
 
-- calculate indicator on abv_species and birdcube_filtered
+## Indicator calculation
+
+We calculate species prevalence.
+For each dataset we calculate the proportion of occupied grid cells by each species.
+
+```{r}
+species_prevalence <- function(df) {
+  require("dplyr")
+  require("rlang")
+
+  total_grid_cells <- length(unique(df$mgrscode))
+  
+  df_out <- df %>%
+    group_by(.data$species, .data$rarity) %>%
+    summarise(prevalence = n_distinct(.data$mgrscode) / total_grid_cells,
+              .groups = "drop")
+  
+  return(df_out)
+}
+```
+
+```{r}
+birdcube_prevalence <- species_prevalence(birdcube_filtered) %>%
+  mutate(data = "birdcube")
+abv_prevalence <- species_prevalence(abv_data) %>%
+  mutate(data = "abv")
+
+prevalence_df <- bind_rows(birdcube_prevalence, abv_prevalence) %>%
+  pivot_wider(names_from = data, values_from = prevalence)
+```
+
+```{r}
+prevalence_df %>%
+  ggplot(aes(x = abv, y = birdcube)) +
+    geom_smooth(method = "lm", formula = "y ~ log(x)", colour = "firebrick") +
+    geom_point(aes(colour = rarity), size = 2) +
+    labs(x = "Proportion of occupied grid cells\nin ABV dataset",
+         y = "Proportion of occupied grid cells\nin cube dataset",
+         colour = "Rarity") +
+    theme_minimal()
+```
+
+
+
+
 - calculate indicator on birdcube_dataset_filtered with LOO CV
 
 # Species specific indicators
