@@ -127,6 +127,22 @@ birdcubeflanders_dataset %>%
   knitr::kable()
 ```
 
+```{r}
+birdcubeflanders_dataset %>%
+  summarise(n_obs = sum(n),
+            .by = "datasetname") %>%
+  mutate(datasetname = reorder(datasetname, n_obs)) %>%
+  ggplot(aes(x = datasetname, y = n_obs)) +
+    geom_bar(stat = "identity",
+             fill = "cornflowerblue") +
+    geom_text(aes(label = n_obs), vjust = 0.3, hjust = -0.3, size = 3) +
+    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+    scale_y_continuous(limits = c(0, 10^7 + 1000000)) +
+    labs(x = "", y = "Number of observations (sum)") +
+    theme_minimal() +
+    coord_flip()
+```
+
 # Comparing species prevalence
 
 We load the ABV data (structured monitoring data).
