@@ -220,9 +220,10 @@ studied_spec <- unique(abv_data_total$species) |>
 Let's check if these species are observed in the same UTM squares for the full period. Let's make this a function depending on period and species that gives us the percentage of squares.
 
 ```{r}
-range_comp <- function(sel_species, period = 2007:2022,
+range_comp <- function(period = 2007:2022,
                        dataset1 = abv_data_total,
-                       dataset2 = birdcubeflanders_year) {
+                       dataset2 = birdcubeflanders_year,
+                       sel_species = unique(dataset1$species)) {
 
   # We filter both datasets for the species and period of interest
   # and group them by TAG (identifier of utm square)
