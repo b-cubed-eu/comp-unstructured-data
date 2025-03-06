@@ -59,8 +59,16 @@ birdcubeflanders <- occ_download_get(birdcubeflanders_year,
                                      path = paste0(data_path, "/raw")) |>
   occ_download_import()
 
+# select only squares within Flanders
 birdcubeflanders <- utm_grid %>%
   inner_join(birdcubeflanders, by = join_by(mgrscode))
+
+# Make sure both datasets use the same accepted name for the same species
+birdcubeflanders <- birdcubeflanders |>
+  mutate(species = case_when(
+    species == "Poecile montanus" ~ "Parus montanus",
+    TRUE ~ species
+  ))
 
 write.csv(birdcubeflanders, paste0(data_path, "/interim/birdcubeflanders.csv"))
 
@@ -111,6 +119,14 @@ occ_download_wait(abv_data_down)
 abv_data <- occ_download_get(abv_data_down,
                              path = paste0(data_path, "/raw")) |>
   occ_download_import()
+
+# Make sure both datasets use the same accepted name for the same species
+abv_data <- abv_data |>
+  mutate(species = case_when(
+    species == "Dendrocopus major" ~ "Dendrocopos major",
+    species == "Saxicola torquatus" ~ "Saxicola rubicola",
+    TRUE ~ species
+  ))
 
 write.csv(abv_data, paste0(data_path, "/interim/abv_data.csv"))
 
