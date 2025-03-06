@@ -18,10 +18,20 @@ library(targets)
 Sys.setenv(TAR_PROJECT = "exploratory_analysis")
 
 library(ggplot2)
+library(ggpubr)
 ```
 
 ```{r}
-abv_data <- tar_read(abv_data)
+tar_read(range_comp_0) |>
+  ggplot(aes(x = perc_abv_total_abv,
+             y = perc_cube_total_cube)) +
+  geom_point() +
+  stat_cor(mapping = aes(color = NULL),
+           label.x.npc = "centre",
+           label.y.npc = "bottom",
+           method = "pearson") +
+  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
+       y = "Percentage of ABV squares occupied\nby species in cube dataset")
 ```
 
 ```{r}
