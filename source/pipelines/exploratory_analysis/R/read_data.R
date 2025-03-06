@@ -16,18 +16,32 @@ add_cyclus <- function(data){
   return(output)
 }
 
-rename_species <- function(data){
-  output <- data |>
-    mutate(species = case_when(
-      species == "Parus montanus" ~ "Poecile montanus",
-      species == "Dendrocopus major" ~ "Dendrocopos major",
-      species == "Saxicola torquatus" ~ "Saxicola rubicola",
-      TRUE ~ species
-    ))
+filter_1 <- function(data){
+  abv_birds <- read.csv("./data/interim/abv_birds.csv")
 
-  return(output)
+  output <- data |>
+    filter(species %in% abv_birds$species)
 }
 
-filter_1 <- function(data){
+#' Rules (loosely based on ABV):
+#' 1) A square is only relevant is the species was observed in more than one time period
+#' 2) A minimum of three relevant squares to include the species
+#' 3) A minimum of a hundred observations to include the species
 
+filter_2 <- function(data, time_period = "year"){
+  output <- data |>
+    group_by(mgrscode, species) |>
+    mutate(periods = n_distinct(!!sym(time_period))) |>
+    ungroup() |>
+    filter(periods > 1) |>
+    group_by(species) |>
+    mutate(squares = n_distinct(mgrscode)) |>
+    ungroup() |>
+    filter(squares > 2) |>
+    group_by(species) |>
+    mutate(obs = n()) |>
+    ungroup() |>
+    filter(obs > 100)
+
+  return(output)
 }

@@ -43,5 +43,25 @@ list(
   tar_target(
     birdcube_data,
     read.csv(birdcube_data_file)
+  ),
+  tar_target(
+    filter1_abv,
+    filter_1(abv_data)
+  ),
+  tar_target(
+    filter1_cube,
+    filter_1(birdcube_data)
+  ),
+  tar_target(
+    filter2_abv,
+    filter_2(abv_data)
+  ),
+  tar_target(
+    filter2_cube,
+    filter_2(birdcube_data)
+  ),
+  tar_target(
+    range_comp_0,
+    range_comp_data(abv_data, birdcube_data)
   )
 )
