@@ -10,6 +10,8 @@ output:
     toc_collapsed: true
 ---
 
+In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
+
 ```{r setup, include = FALSE}
 library(knitr)
 opts_chunk$set(collapse = TRUE, comment = "#>")
