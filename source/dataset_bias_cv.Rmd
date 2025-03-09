@@ -220,11 +220,11 @@ We calculate species prevalence.
 For each dataset we calculate the proportion of occupied grid cells by each species.
 
 ```{r}
-species_prevalence <- function(df) {
+species_prevalence <- function(
+    df,
+    total_grid_cells = length(unique(df$mgrscode))) {
   require("dplyr")
   require("rlang")
-
-  total_grid_cells <- length(unique(df$mgrscode))
 
   df_out <- df %>%
     group_by(.data$species, .data$rarity) %>%
@@ -252,10 +252,10 @@ prevalence_df %>%
   ggplot(aes(x = abv, y = birdcube)) +
     geom_abline(slope = 1, intercept = 0, colour = "firebrick",
                 linewidth = 1) +
-    annotate("label", x = 0.75, y = 0.6,
+    annotate("label", x = 0.8, y = 0.6, size = 3,
              label = "Higher prevalence in ABV",
              color = "black") +
-    annotate("label", x = 0.45, y = 0.6,
+    annotate("label", x = 0.4, y = 0.6, size = 3,
              label = "Higher prevalence in cube",
              color = "black") +
     geom_smooth(method = "loess", formula = "y ~ x",
@@ -268,11 +268,13 @@ prevalence_df %>%
 ```
 
 We calculate error measures for the indicator based on leave-one-dataset-out cross-validation (use `remotes::install_github("b-cubed-eu/dubicube#25")`).
+We use a constant total of grid cells (`r length(unique(birdcube_dataset_filtered$mgrscode))`) such that this is independent from the datasets left out.
 
 ```{r, message=FALSE}
 prevalence_cv <- cross_validate_cube(
   birdcube_dataset_filtered,
   fun = species_prevalence,
+  total_grid_cells = length(unique(birdcube_dataset_filtered$mgrscode)),
   grouping_var = c("species", "rarity"),
   out_var = "datasetkey",
   progress = TRUE
@@ -285,12 +287,12 @@ quantile <- 0.95
 
 We visualise several error measures per species. Labels are included for species with values above the `r quantile * 100` % quantile (`r round(length(unique(prevalence_cv$species)) * (1 - quantile), 0)` species).
 
-### Maximum error
+### Maximum absolute error
 
 ```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Calculate maximum error per species
 prevalence_cv %>%
-  mutate(max_error = max(error),
+  mutate(max_error = max(abs_error),
          .by = c("species", "rarity")) %>%
   plot_cross_validation(
     prevalence_df,
@@ -298,11 +300,11 @@ prevalence_cv %>%
     quant = quantile)
 ```
 
-We look at the `r (1 - quantile) * 100` % species with the highest maximum error.
+We look at the `r (1 - quantile) * 100` % species with the highest maximum absolute error.
 
 ```{r}
 top_spec_max_error_df <- prevalence_cv %>%
-  mutate(max_error = max(error),
+  mutate(max_error = max(abs_error),
          .by = c("species", "rarity")) %>%
   distinct(species, rarity, max_error) %>%
   slice_max(max_error, prop = 1 - quantile) %>%
@@ -322,55 +324,6 @@ birdcube_dataset_filtered %>%
   count(species, datasetname) %>%
   left_join(top_spec_max_error_df, by = join_by(species)) %>%
   mutate(species = reorder(species, max_error, decreasing = TRUE)) %>%
-  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
-  ggplot(aes(x = datasetname, y = n)) +
-    geom_bar(stat = "identity") +
-    geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
-    scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
-    labs(x = "", y = "Number of observations (count)") +
-    scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
-    theme_minimal() +
-    coord_flip() +
-    facet_wrap(~species, ncol = 1, scales = "free")
-```
-
-### Minimum error
-
-```{r, warning=FALSE, out.width="90%", message=FALSE}
-# Calculate minimum error per species
-prevalence_cv %>%
-  mutate(min_error = abs(min(error)),
-         .by = c("species", "rarity")) %>%
-  plot_cross_validation(
-    prevalence_df,
-    measure = "min_error",
-    quant = quantile)
-```
-
-We look at the `r (1 - quantile) * 100` % species with the highest minimum error (absolute value).
-
-```{r}
-top_spec_min_error_df <- prevalence_cv %>%
-  mutate(min_error = abs(min(error)),
-         .by = c("species", "rarity")) %>%
-  distinct(species, rarity, min_error) %>%
-  slice_max(min_error, prop = 1 - quantile) %>%
-  arrange(desc(min_error))
-
-top_spec_min_error_df %>%
-  knitr::kable(digits = 5)
-```
-
-```{r}
-top_min_error_specs <- top_spec_min_error_df %>%
-  slice_max(min_error, n = 5) %>%
-  pull(species)
-
-birdcube_dataset_filtered %>%
-  dplyr::filter(species %in% top_min_error_specs) %>%
-  count(species, datasetname) %>%
-  left_join(top_spec_min_error_df, by = join_by(species)) %>%
-  mutate(species = reorder(species, min_error, decreasing = TRUE)) %>%
   mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
   ggplot(aes(x = datasetname, y = n)) +
     geom_bar(stat = "identity") +
