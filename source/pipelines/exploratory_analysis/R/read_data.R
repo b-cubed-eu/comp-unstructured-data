@@ -16,6 +16,21 @@ add_cyclus <- function(data){
   return(output)
 }
 
+add_category <- function(data){
+  output <- data |>
+    group_by(species) |>
+    mutate(n_obs = sum(n)) |>
+    ungroup() |>
+    mutate(category = cut(n_obs,
+                          breaks = c(0, 10, 100, 1000, 10000, +Inf),
+                          labels = c("Very rare", "Rare", "Common",
+                                     "Very common", "Extremely common"),
+                          right = FALSE))
+
+  return(output)
+}
+
+
 filter_1 <- function(data){
   abv_birds <- read.csv("./data/interim/abv_birds.csv")
 
