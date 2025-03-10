@@ -37,6 +37,9 @@ range_comp_data <- function(dataset1,
   comp_range_data$perc_abv_total_abv <- NA
   comp_range_data$cube_squares <- NA
   comp_range_data$perc_cube_total_cube <- NA
+  comp_range_data <- comp_range_data |>
+    inner_join(dataset1 |> distinct(species, category),
+               by = join_by(sel_species == species))
 
   for (i in sel_species){
     test <- range_comp(dataset1 = dataset1,
@@ -51,4 +54,31 @@ range_comp_data <- function(dataset1,
   }
 
   return(comp_range_data)
+}
+
+trend_comp_data <- function(data1,
+                            data2,
+                            period = "year"){
+  time_series_1 <- data1 |>
+    group_by(species, !!sym(period)) |>
+    summarize(occurrence = sum(n))
+
+  time_series_2 <- data2 |>
+    group_by(species, !!sym(period))  |>
+    summarize(occurrence = sum(n))
+
+  # Pearson Correlation for each species
+  # inner_join makes sure that only species-year combinations present
+  # in both datasets are included
+  time_series_cor <- time_series_1 |>
+    inner_join(time_series_2,
+               by = c("species", period),
+               suffix = c("_1", "_2"))  |>
+    group_by(species) |>
+    summarize(correlation = cor(occurrence_1, occurrence_2,
+                                method = "pearson"))|>
+    inner_join(data1 |> distinct(species, category),
+               by = join_by(species))
+
+  return(time_series_cor)
 }
