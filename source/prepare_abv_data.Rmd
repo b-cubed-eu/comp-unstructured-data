@@ -70,8 +70,8 @@ head(sampling_framework_abv)
 
 ## Occurrence data
 
-Occurrence data is downloaded from GBIF.org.
-Unzip and store folders under *./data/raw*.
+The ABV data is downloaded as a cube from GBIF.org.
+The zip file is stored under *./data/raw*.
 
 ```{r}
 # nolint start: line_length_linter.
@@ -115,10 +115,12 @@ query <- "SELECT
 
 abv_data_total <- download_occ_cube(
   sql_query = query,
-  file = file.path(data_path, "abv_cube_download.zip"),
+  file = data_path,
   overwrite = FALSE
 )
 ```
+
+
 
 We get a big dataframe with all occurrences.
 

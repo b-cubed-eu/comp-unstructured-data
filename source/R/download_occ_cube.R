@@ -3,13 +3,6 @@ download_occ_cube <- function(sql_query, file, overwrite = FALSE) {
   require("dplyr")
   require("rlang")
 
-  # Stop if overwrite = FALSE and file does not exist
-  if (file.exists(file) && !overwrite) {
-    return(
-      warning(paste("Execution halted! File already exists.",
-                    "Set `overwrite = TRUE` to overwrite file.", sep = "\n")))
-  }
-
   # Download occurrence cube
   birdcubeflanders_year <- occ_download_sql(
     user = Sys.getenv("USER"),
