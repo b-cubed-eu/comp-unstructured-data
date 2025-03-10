@@ -75,7 +75,7 @@ The zip file is stored under *./data/raw*.
 
 ```{r}
 # nolint start: line_length_linter.
-query <- "SELECT
+query_abv <- "SELECT
   \"year\",
   GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
   COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
@@ -114,13 +114,14 @@ query <- "SELECT
 # nolint end
 
 abv_data_total <- download_occ_cube(
-  sql_query = query,
-  file = data_path,
+  sql_query = query_abv,
+  file = "abv_data.csv",
+  path = data_path,
   overwrite = FALSE
 )
 ```
 
-
+> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.qqzgt3
 
 We get a big dataframe with all occurrences.
 
@@ -131,216 +132,80 @@ glimpse(abv_data_total)
 
 # Unstructured data
 
-We retrieved species occurrence cubes using Microsoft Azure Databricks as described [here](https://techdocs.gbif.org/en/data-use/b-cubed/generate-cube-databricks).
+The ABV data is downloaded as a cube from GBIF.org.
+The zip file is stored under *./data/raw*.
 
-We first selected all bird data in Belgium `birds_data.belgium` from 2007-2022 using this query:
-
-```sql
-CREATE DATABASE IF NOT EXISTS birds_data;
-CREATE TABLE IF NOT EXISTS birds_data.belgium AS SELECT
-  *
-FROM
-  gbif.occurrence
-WHERE
+```{r}
+# nolint start: line_length_linter.
+query_birdcube <- "SELECT
+  \"year\",
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
+  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  speciesKey,
+  species,
+  family,
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  FROM
+  occurrence
+  WHERE
   occurrenceStatus = 'PRESENT'
-  AND NOT array_contains(issue.array_element, 'ZERO_COORDINATE')
-  AND NOT array_contains(issue.array_element, 'COORDINATE_OUT_OF_RANGE')
-  AND NOT array_contains(issue.array_element, 'COORDINATE_INVALID')
-  AND NOT array_contains(issue.array_element, 'COUNTRY_COORDINATE_MISMATCH')
-  AND countrycode = 'BE'
-  AND year BETWEEN 2007 AND 2022
-  AND speciesKey IS NOT NULL 
-  AND decimallatitude IS NOT NULL
-  AND decimallongitude IS NOT NULL
-  AND class = 'Aves';
-```
-
-We excluded ABV data into a new table `birds_data.unstructured` using this SQL code:
-
-```sql
-CREATE TABLE IF NOT EXISTS birds_data.unstructured AS SELECT
-  *
-FROM
-  birds_data.belgium
-WHERE
-  collectionCode != 'ABV';
-```
-
-## Occurrence cube: MGRS per month
-
-We generate the occurrence cube on a 1 km scale per month.
-To account for sampling bias, the specification recommends including an occurrence count for a higher taxon, typically the family.
-
-```sql
-SELECT
-  -- Dimensions
-  CONCAT_WS('-', year, month) AS yearMonth,
-  mgrsCode(
-    1000,
-    decimalLatitude,
-    decimalLongitude,
-    COALESCE(coordinateUncertaintyInMeters, 1000)
-  ) AS mgrsCode,
-  speciesKey,
-  species,
-  family,
-  -- Measurements
-  COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
-  -- Higher taxon measurement
-  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
-FROM
-  birds_data.unstructured
-WHERE month IS NOT NULL
-GROUP BY
-  yearMonth,
+  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')
+  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
+  AND level1gid = 'BEL.2_1'
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
+  AND class = 'Aves'
+  AND collectionCode != 'ABV'
+  GROUP BY
+  \"year\",
   mgrsCode,
   speciesKey,
   family,
   species
-ORDER BY
-  yearMonth ASC,
+  ORDER BY
+  \"year\" ASC,
   mgrsCode ASC,
-  speciesKey ASC;
+  speciesKey ASC"
+# nolint end
+
+birdcube_data_total <- download_occ_cube(
+  sql_query = query_birdcube,
+  file = "birdcube_data.csv",
+  path = data_path,
+  overwrite = FALSE
+)
 ```
 
-The contributions of GBIF-mediated datasets can be determined with a second SQL query, using the WHERE clause of the first. In effect, this is a two-dimensional "cube".
+> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.eusvcc
 
-```sql
-SELECT
-  -- Dimensions
-  datasetKey,
-  collectionCode,
-  license,
-  -- Measurement
-  COUNT(*) AS n
-FROM
-  birds_data.unstructured
-WHERE month IS NOT NULL
-GROUP BY
-  datasetKey,
-  collectionCode,
-  license;
-```
-
-We read in the datacube.
+We get a big dataframe with all occurrences.
 
 ```{r}
-# Read in datacube from CSV
-birdcubeflanders_yearmonth <- read_csv(
-  file.path(data_path, "birdcubeflanders_yearmonth_mgrs.csv"),
-  show_col_types = FALSE)
-
 # Explore dataframe
-glimpse(birdcubeflanders_yearmonth)
-```
-
-## Occurrence cube: MGRS per year
-
-We generate the occurrence cube on a 1 km scale per year similar as above.
-
-```sql
-SELECT
-  -- Dimensions
-  year,
-  mgrsCode(
-    1000,
-    decimalLatitude,
-    decimalLongitude,
-    COALESCE(coordinateUncertaintyInMeters, 1000)
-  ) AS mgrsCode,
-  speciesKey,
-  species,
-  family,
-  -- Measurements
-  COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
-  -- Higher taxon measurement
-  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
-FROM
-  birds_data.unstructured
-GROUP BY
-  year,
-  mgrsCode,
-  speciesKey,
-  family,
-  species
-ORDER BY
-  year ASC,
-  mgrsCode ASC,
-  speciesKey ASC;
-```
-
-The contributions of GBIF-mediated datasets:
-
-```sql
-SELECT
-  -- Dimensions
-  datasetKey,
-  collectionCode,
-  license,
-  -- Measurement
-  COUNT(*) AS n
-FROM
-  birds_data.unstructured
-GROUP BY
-  datasetKey,
-  collectionCode,
-  license;
-```
-
-We read in the datacube.
-
-```{r}
-# Read in datacube from CSV
-birdcubeflanders_year <- read_csv(
-  file.path(data_path, "birdcubeflanders_year_mgrs.csv"),
-  show_col_types = FALSE)
-
-# Explore dataframe
-glimpse(birdcubeflanders_year)
+glimpse(birdcube_data_total)
 ```
 
 # Select Flanders grid cells
-
-```{r}
-# Retain observations from Flanders
-# Read UTM grid
-utm_grid <- sf::read_sf(
-  file.path(data_path, "raw", "utm_grid", "utm1_vl.shp"))
-# Add 31U to the tag names of the grid
-utm_grid <- utm_grid %>%
-  mutate(mgrscode = paste0("31U", .data$TAG)) %>%
-  sf::st_drop_geometry()
-  
-birdcubeflanders <- utm_grid %>%
-  inner_join(birdcubeflanders, by = join_by("mgrscode"))
-
-# Write out file
-readr::write_csv(
-  x = birdcubeflanders,
-  file = here("data", "interim", "abv_data.csv"),
-  append = FALSE)
-```
-
-
 The datacubes cover multiple zones although Flanders is present only in zone 31U. 
 
 ```{r}
 # Number of rows per zone
-table(substring(birdcubeflanders_year$mgrsCode, 1, 3))
+table(substring(abv_data_total$mgrscode, 1, 3))
 ```
 
-We add 31U to the tag names of the sampling framework and the ABV data.
+We add 31U to the tag names of the sampling framework.
 
 ```{r}
 # Create new column with correct MGRS code
 sampling_framework_abv <- sampling_framework_abv %>%
-  mutate(mgrsCode = paste0("31U", UTM))
-
-abv_data_total <- abv_data_total %>%
-  mutate(verbatimLocality2 = gsub("ABV_", "", verbatimLocality)) %>%
-  mutate(mgrsCode = paste0("31U", verbatimLocality2))
+  mutate(mgrscode = paste0("31U", UTM))
 ```
 
 We load in the UTM grid for Flanders (1 km) and add 31U to the tag names.
@@ -349,7 +214,7 @@ We load in the UTM grid for Flanders (1 km) and add 31U to the tag names.
 # Read UTM 1 km grid and add new column with correct MGRS code
 utm_grid <- read_sf(file.path(data_path, "utm_grid", "utm1_vl.shp"))
 utm_grid <- utm_grid %>%
-  mutate(mgrsCode = paste0("31U", TAG))
+  mutate(mgrscode = paste0("31U", TAG))
 
 # Explore dataframe
 glimpse(utm_grid)
@@ -360,12 +225,12 @@ We add the geometry to the data layers by taking an inner join.
 ```{r}
 # Add UTM geometry by taking an inner join
 sampling_framework_abv_sf <- utm_grid %>%
-  inner_join(sampling_framework_abv, by = join_by(mgrsCode)) %>%
+  inner_join(sampling_framework_abv, by = join_by(mgrscode)) %>%
   st_sf(sf_column_name = "geometry")
 
 # Visualise spatial distribution sampling framework
 utm_grid %>%
-  left_join(sampling_framework_abv, by = join_by(mgrsCode)) %>%
+  left_join(sampling_framework_abv, by = join_by(mgrscode)) %>%
   st_sf(sf_column_name = "geometry") %>%
   ggplot() +
     geom_sf(aes(fill = Stratum),
@@ -376,63 +241,41 @@ utm_grid %>%
 ```{r}
 # Add UTM geometry by taking an inner join
 abv_data_total_sf <- utm_grid %>%
-  inner_join(abv_data_total, by = join_by(mgrsCode)) %>%
+  inner_join(abv_data_total, by = join_by(mgrscode)) %>%
   st_sf(sf_column_name = "geometry")
 
 # Visualise spatial distribution of the ABV data
 utm_grid %>%
   left_join(abv_data_total %>%
-              filter(occurrenceStatus == "PRESENT") %>%
-              distinct(occurrenceStatus, mgrsCode),
-            by = join_by(mgrsCode)) %>%
+              mutate(presence = "present") %>%
+              distinct(presence, mgrscode),
+            by = join_by(mgrscode)) %>%
+  mutate(sample = ifelse(is.na(presence), "no", "yes")) %>%
   ggplot() +
-    geom_sf(aes(fill = occurrenceStatus), col = alpha("white", 0)) +
+    geom_sf(aes(fill = sample), col = alpha("white", 0)) +
     ggtitle("UTM 1 km grid cells Flanders")
 ```
 
 We select cube data from Flanders and add the geometry to the data layers by taking an inner join.
-Per month:
 
 ```{r}
 # Add UTM geometry and select data by taking an inner join
-birdcubeflanders_yearmonth_sf <- utm_grid %>%
-  inner_join(birdcubeflanders_yearmonth, by = join_by(mgrsCode)) %>%
+birdcube_data_total_sf <- utm_grid %>%
+  inner_join(birdcube_data_total, by = join_by(mgrscode)) %>%
   st_sf(sf_column_name = "geometry")
 ```
 
 ```{r}
 # Visualise spatial distribution data cube as number of species
 utm_grid %>%
-  left_join(birdcubeflanders_yearmonth %>%
-              group_by(mgrsCode) %>%
+  left_join(birdcube_data_total %>%
+              group_by(mgrscode) %>%
               summarise(n_species = n_distinct(species), .groups = "drop"),
-            by = join_by(mgrsCode)) %>%
+            by = join_by(mgrscode)) %>%
   ggplot() +
     geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
     scale_fill_viridis_c(option = "inferno") +
-    ggtitle("Bird cube data from Flanders per month")
-```
-
-Per year:
-
-```{r}
-# Add UTM geometry and select data by taking an inner join
-birdcubeflanders_year_sf <- utm_grid %>%
-  inner_join(birdcubeflanders_year, by = join_by(mgrsCode)) %>%
-  st_sf(sf_column_name = "geometry")
-```
-
-```{r}
-# Visualise spatial distribution data cube as number of species
-utm_grid %>%
-  left_join(birdcubeflanders_year %>%
-              group_by(mgrsCode) %>%
-              summarise(n_species = n_distinct(species), .groups = "drop"),
-            by = join_by(mgrsCode)) %>%
-  ggplot() +
-    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
-    scale_fill_viridis_c(option = "inferno") +
-    ggtitle("Bird cube data from Flanders per year")
+    ggtitle("Bird cube data from Flanders")
 ```
 
 We see a striped pattern because of large uncertainty.
@@ -441,15 +284,15 @@ We filter `minCoordinateUncertaintyInMeters` smaller or equal to 1000 meters:
 ```{r}
 # Add filter
 utm_grid %>%
-  left_join(birdcubeflanders_yearmonth %>%
-              filter(minCoordinateUncertaintyInMeters <= 1000) %>%
-              group_by(mgrsCode) %>%
+  left_join(birdcube_data_total %>%
+              filter(mincoordinateuncertaintyinmeters <= 1000) %>%
+              group_by(mgrscode) %>%
               summarise(n_species = n_distinct(species), .groups = "drop"),
-            by = join_by(mgrsCode)) %>%
+            by = join_by(mgrscode)) %>%
   ggplot() +
     geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
     scale_fill_viridis_c(option = "inferno") +
-    ggtitle("Bird cube data from Flanders per month")
+    ggtitle("Bird cube data from Flanders")
 ```
 
 # Write out data
