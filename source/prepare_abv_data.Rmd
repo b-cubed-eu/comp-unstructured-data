@@ -73,6 +73,8 @@ head(sampling_framework_abv)
 The ABV data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
+> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.qqzgt3
+
 ```{r}
 # nolint start: line_length_linter.
 query_abv <- "SELECT
@@ -121,8 +123,6 @@ abv_data_total <- download_occ_cube(
 )
 ```
 
-> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.qqzgt3
-
 We get a big dataframe with all occurrences.
 
 ```{r}
@@ -134,6 +134,8 @@ glimpse(abv_data_total)
 
 The ABV data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
+
+> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.eusvcc
 
 ```{r}
 # nolint start: line_length_linter.
@@ -182,8 +184,6 @@ birdcube_data_total <- download_occ_cube(
   overwrite = FALSE
 )
 ```
-
-> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.eusvcc
 
 We get a big dataframe with all occurrences.
 
