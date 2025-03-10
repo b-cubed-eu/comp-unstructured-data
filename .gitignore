@@ -56,4 +56,7 @@ renv/library
 rsconnect/
 vignettes/*.html
 vignettes/*.pdf
-data/raw
+
+# Ignore all data except the utm grid
+data/*
+!data/raw/utm_grid/
