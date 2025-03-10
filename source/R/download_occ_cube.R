@@ -15,7 +15,7 @@ download_occ_cube <- function(sql_query, file, path, overwrite = FALSE) {
   }
 
   # Download occurrence cube
-  birdcubeflanders_year <- occ_download_sql(
+  birdcubeflanders_year <- rgbif::occ_download_sql(
     user = Sys.getenv("USER"),
     pwd = Sys.getenv("PSWD"),
     email = Sys.getenv("MAIL"),
@@ -23,12 +23,12 @@ download_occ_cube <- function(sql_query, file, path, overwrite = FALSE) {
   )
 
   # Get occurrence cube
-  occ_download_wait(birdcubeflanders_year)
+  rgbif::occ_download_wait(birdcubeflanders_year)
 
-  occ_cube <- occ_download_get(birdcubeflanders_year,
-                                       path = path,
-                                       overwrite = overwrite) |>
-    occ_download_import()
+  occ_cube <- rgbif::occ_download_get(birdcubeflanders_year,
+                                      path = path,
+                                      overwrite = overwrite) %>%
+    rgbif::occ_download_import()
 
   # Write csv
   readr::write_csv(
