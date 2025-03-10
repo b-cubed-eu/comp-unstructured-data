@@ -60,3 +60,11 @@ filter_2 <- function(data, time_period = "year"){
 
   return(output)
 }
+
+filter_3 <- function(data, time_period = "year"){
+  output <- data |>
+    group_by(!!sym(time_period)) |>
+    mutate(total_obs = sum(n)) |>
+    ungroup() |>
+    mutate(n = n/total_obs)
+}
