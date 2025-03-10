@@ -10,8 +10,6 @@ output:
     toc_collapsed: true
 ---
 
-In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
-
 ```{r setup, include = FALSE}
 library(knitr)
 opts_chunk$set(collapse = TRUE, comment = "#>")
@@ -23,20 +21,126 @@ library(ggplot2)
 library(ggpubr)
 ```
 
+```{r consistent colors}
+# Create a custom color scale
+library(RColorBrewer)
+myColors <- brewer.pal(5, "Dark2")
+names(myColors) <- c("Very rare", "Rare", "Common",
+                     "Very common", "Extremely common")
+colScale <- scale_color_manual(name = "Category",
+                                values = myColors)
+fillScale <- scale_fill_manual(name = "Category",
+                                values = myColors)
+```
+
+In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
+
+The following filters are used:
+
+  - No filter
+  - Filter 1: only species that were analysed in the ABV framework (further reading)
+  - Filter 2: loosely based on the rules set in the ABV framework
+    - A square is only relevant for a species if that species is observed in this square for more than one time period
+    - A minimum of three relevant squares are needed to include the species
+    - A minimum of a hundred observations are needed to include the species
+  - Filter 3: number of observations is weighed by total number of observations for that year for the cube data
+
+## Range comparison {.tabset}
+
+### No filter
+
 ```{r}
 tar_read(range_comp_0) |>
   ggplot(aes(x = perc_abv_total_abv,
-             y = perc_cube_total_cube)) +
+             y = perc_cube_total_cube,
+             color = category)) +
   geom_point() +
+  colScale +
   stat_cor(mapping = aes(color = NULL),
            label.x.npc = "centre",
            label.y.npc = "bottom",
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
-       y = "Percentage of ABV squares occupied\nby species in cube dataset")
+       y = "Percentage of cube squares occupied\nby species in cube dataset") +
+  guides( color = guide_legend(override.aes = aes(label = "")))
 ```
 
-```{r}
+### Filter 1
 
+```{r}
+tar_read(range_comp_1) |>
+  ggplot(aes(x = perc_abv_total_abv,
+             y = perc_cube_total_cube,
+             color = category)) +
+  geom_point() +
+  colScale +
+  stat_cor(mapping = aes(color = NULL),
+           label.x.npc = "centre",
+           label.y.npc = "bottom",
+           method = "pearson") +
+  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
+       y = "Percentage of cube squares occupied\nby species in cube dataset") +
+  guides( color = guide_legend(override.aes = aes(label = "")))
+```
+
+### Filter 2
+
+```{r}
+tar_read(range_comp_2) |>
+  ggplot(aes(x = perc_abv_total_abv,
+             y = perc_cube_total_cube,
+             color = category)) +
+  geom_point() +
+  colScale +
+  stat_cor(mapping = aes(color = NULL),
+           label.x.npc = "centre",
+           label.y.npc = "bottom",
+           method = "pearson") +
+  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
+       y = "Percentage of cube squares occupied\nby species in cube dataset") +
+  guides( color = guide_legend(override.aes = aes(label = "")))
+```
+
+
+## Trend comparison {.tabset}
+
+### No filter
+```{r}
+tar_read(trend_comp_0) |>  
+  ggplot(aes(x = correlation, fill = category)) +
+  geom_histogram() +
+  fillScale +
+  labs(x = "Correlation",
+       y = "Number of species")
+```
+
+### Filter 1
+```{r}
+tar_read(trend_comp_1) |>  
+  ggplot(aes(x = correlation, fill = category)) +
+  geom_histogram() +
+  fillScale +
+  labs(x = "Correlation",
+       y = "Number of species")
+```
+
+### Filter 2
+```{r}
+tar_read(trend_comp_2) |>  
+  ggplot(aes(x = correlation, fill = category)) +
+  geom_histogram() +
+  fillScale +
+  labs(x = "Correlation",
+       y = "Number of species")
+```
+
+### Filter 3
+```{r}
+tar_read(trend_comp_3) |>  
+  ggplot(aes(x = correlation, fill = category)) +
+  geom_histogram() +
+  fillScale +
+  labs(x = "Correlation",
+       y = "Number of species")
 ```
 
