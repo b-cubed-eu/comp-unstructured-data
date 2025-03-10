@@ -24,7 +24,7 @@ library(here)      # Relative paths
 library(sf)        # Work with spatial data
 
 # Source
-source("source/R/download_occ_cube.R")
+source(here("source/R/download_occ_cube.R"))
 ```
 
 # Goal
@@ -39,7 +39,7 @@ We download the sampling framework from zenodo.
 
 ```{r}
 # Data path and create directory if necessary
-data_path <- here::here("data", "raw")
+data_path <- here("data", "raw")
 dir.create(data_path, showWarnings = FALSE, recursive = TRUE)
 
 # Download data from zenodo if necessary
@@ -235,7 +235,7 @@ utm_grid %>%
   ggplot() +
     geom_sf(aes(fill = Stratum),
             col = alpha("white", 0)) +
-    ggtitle("UTM 1 km grid cells Flanders")
+    ggtitle("Sampling framework ABV")
 ```
 
 ```{r}
@@ -253,7 +253,7 @@ utm_grid %>%
   mutate(sample = ifelse(is.na(presence), "no", "yes")) %>%
   ggplot() +
     geom_sf(aes(fill = sample), col = alpha("white", 0)) +
-    ggtitle("UTM 1 km grid cells Flanders")
+    ggtitle("ABV sampling locations")
 ```
 
 We select cube data from Flanders and add the geometry to the data layers by taking an inner join.
@@ -295,23 +295,84 @@ utm_grid %>%
     ggtitle("Bird cube data from Flanders")
 ```
 
+# Correction of species names
+
+There are some double accepted species names that cause trouble.
+
+```{r}
+abv_data_total_sf <- abv_data_total_sf %>%
+  mutate(
+    species = case_when(
+      species == "Dendrocopus major" ~ "Dendrocopos major",
+      species == "Saxicola torquatus" ~ "Saxicola rubicola",
+      TRUE ~ species),
+    specieskey = case_when(
+      species == "Dendrocopos major" ~ 2477968,
+      species == "Saxicola rubicola" ~ 4408759,
+      TRUE ~ specieskey)
+  )
+```
+
+```{r}
+birdcube_data_total_sf <- birdcube_data_total_sf %>%
+  mutate(
+    species = case_when(
+      species == "Poecile montanus" ~ "Parus montanus",
+      TRUE ~ species),
+    specieskey = case_when(
+      species == "Parus montanus" ~ 4409010,
+      TRUE ~ specieskey)
+  )
+```
+
 # Write out data
+
+We select the columns we want in a logical order:
+
+```{r}
+abv_data_out_sf <- abv_data_total_sf %>%
+  select("mgrscode", "year", "specieskey", "species", "family", "n",
+         "mincoordinateuncertaintyinmeters", "familycount", "geometry")
+abv_data_out <- st_drop_geometry(abv_data_out_sf)
+
+colnames(sampling_framework_abv_sf) <- tolower(colnames(
+  sampling_framework_abv_sf))
+sampling_framework_out_sf <- sampling_framework_abv_sf %>%
+  select("mgrscode", "stratum", "oppervlakte", "landbouw", "urbaan", "bos",
+         "suburbaan", "heideduin", "moeraswater", "geometry")
+sampling_framework_out <- st_drop_geometry(sampling_framework_out_sf)
+
+birdcube_data_out_sf <- birdcube_data_total_sf %>%
+  select("mgrscode", "year", "specieskey", "species", "family", "n",
+         "mincoordinateuncertaintyinmeters", "familycount", "geometry")
+birdcube_data_out <- st_drop_geometry(birdcube_data_out_sf)
+```
 
 We write out the data for exploration and analysis.
 
 ```{r}
-out_path <- here::here("data", "interim")
+out_path <- here("data", "interim")
 dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
 
 # Structured data
-write_sf(abv_data_total_sf,
-         file.path(out_path, "abv_data_total.gpkg"))
-write_sf(sampling_framework_abv_sf,
+## CSV
+write_csv(abv_data_out,
+          file.path(out_path, "abv_data_cube.csv"))
+write_csv(sampling_framework_out,
+          file.path(out_path, "sampling_framework_abv.csv"))
+
+## Spatial object
+write_sf(abv_data_out_sf,
+         file.path(out_path, "abv_data_cube.gpkg"))
+write_sf(sampling_framework_out_sf,
          file.path(out_path, "sampling_framework_abv.gpkg"))
 
 # Unstructured data
-write_sf(birdcubeflanders_yearmonth_sf,
-         file.path(out_path, "birdcubeflanders_yearmonth.gpkg"))
-write_sf(birdcubeflanders_year_sf,
-         file.path(out_path, "birdcubeflanders_year.gpkg"))
+## CSV
+write_csv(birdcube_data_out,
+          file.path(out_path, "birdcubeflanders.csv"))
+
+## Spatial object
+write_sf(birdcube_data_out_sf,
+         file.path(out_path, "birdcubeflanders.gpkg"))
 ```
