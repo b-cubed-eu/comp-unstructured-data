@@ -1,7 +1,18 @@
-download_occ_cube <- function(sql_query, file, overwrite = FALSE) {
+download_occ_cube <- function(sql_query, file, path, overwrite = FALSE) {
   require("rgbif")
   require("dplyr")
   require("rlang")
+
+  # Stop if overwrite = FALSE and file does not exist
+  file_path <- file.path(path, file)
+  if (file.exists(file_path) && !overwrite) {
+    message(paste("File already exists. Reading existing file.",
+            "Set `overwrite = TRUE` to overwrite file.", sep = "\n"))
+
+    occ_cube <- readr::read_csv(file = file_path, show_col_types = FALSE)
+
+    return(occ_cube)
+  }
 
   # Download occurrence cube
   birdcubeflanders_year <- occ_download_sql(
@@ -14,8 +25,17 @@ download_occ_cube <- function(sql_query, file, overwrite = FALSE) {
   # Get occurrence cube
   occ_download_wait(birdcubeflanders_year)
 
-  birdcubeflanders <- occ_download_get(birdcubeflanders_year,
-                                       path = file,
+  occ_cube <- occ_download_get(birdcubeflanders_year,
+                                       path = path,
                                        overwrite = overwrite) |>
     occ_download_import()
+
+  # Write csv
+  readr::write_csv(
+    x = occ_cube,
+    file = file_path,
+    append = FALSE)
+
+  # Return tibble
+  return(occ_cube)
 }
