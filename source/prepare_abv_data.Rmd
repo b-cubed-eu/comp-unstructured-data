@@ -22,6 +22,9 @@ library(tidyverse) # Data wrangling and visualisation
 library(zen4R)     # Download from zenodo
 library(here)      # Relative paths
 library(sf)        # Work with spatial data
+
+# Source
+source("source/R/download_occ_cube.R")
 ```
 
 # Goal
@@ -70,39 +73,51 @@ head(sampling_framework_abv)
 Occurrence data is downloaded from GBIF.org.
 Unzip and store folders under *./data/raw*.
 
-**ABV - Common breeding birds in Flanders, Belgium**: 0026739-240906103802322
-
-GBIF.org (23 September 2024) GBIF Occurrence Download https://doi.org/10.15468/dl.237fpa
-
-**ABV - Common breeding birds in Flanders, Belgium (post 2016)**: 0000105-240626123714530
-
-GBIF.org (26 June 2024) GBIF Occurrence Download  https://doi.org/10.15468/dl.4htaqh
-
-We read in these datasets.
-
 ```{r}
-# Read ABV data as tab delimited
-abv_data_raw <- read_delim(file.path(data_path,
-                                     "0026739-240906103802322",
-                                     "occurrence.txt"),
-                   delim = "\t",
-                   show_col_types = FALSE)
-abv_data2_raw <- read_delim(file.path(data_path,
-                                      "0000105-240626123714530",
-                                      "occurrence.txt"),
-                   delim = "\t",
-                   show_col_types = FALSE)
-```
+# nolint start: line_length_linter.
+query <- "SELECT
+  \"year\",
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
+  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  speciesKey,
+  species,
+  family,
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  FROM
+  occurrence
+  WHERE
+  occurrenceStatus = 'PRESENT'
+  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')
+  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
+  AND level1gid = 'BEL.2_1'
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
+  AND class = 'Aves'
+  AND collectionCode = 'ABV'
+  GROUP BY
+  \"year\",
+  mgrsCode,
+  speciesKey,
+  family,
+  species
+  ORDER BY
+  \"year\" ASC,
+  mgrsCode ASC,
+  speciesKey ASC"
+# nolint end
 
-We combine the datasets.
-
-```{r}
-# Combine to single dataframe
-abv_data_total_raw <- bind_rows(abv_data_raw, abv_data2_raw)
-
-# Remove empty columns
-abv_data_total <- abv_data_total_raw[, colSums(is.na(abv_data_total_raw)) <
-                                       nrow(abv_data_total_raw)]
+abv_data_total <- download_occ_cube(
+  sql_query = query,
+  file = file.path(data_path, "abv_cube_download.zip"),
+  overwrite = FALSE
+)
 ```
 
 We get a big dataframe with all occurrences.
@@ -285,6 +300,27 @@ glimpse(birdcubeflanders_year)
 ```
 
 # Select Flanders grid cells
+
+```{r}
+# Retain observations from Flanders
+# Read UTM grid
+utm_grid <- sf::read_sf(
+  file.path(data_path, "raw", "utm_grid", "utm1_vl.shp"))
+# Add 31U to the tag names of the grid
+utm_grid <- utm_grid %>%
+  mutate(mgrscode = paste0("31U", .data$TAG)) %>%
+  sf::st_drop_geometry()
+  
+birdcubeflanders <- utm_grid %>%
+  inner_join(birdcubeflanders, by = join_by("mgrscode"))
+
+# Write out file
+readr::write_csv(
+  x = birdcubeflanders,
+  file = here("data", "interim", "abv_data.csv"),
+  append = FALSE)
+```
+
 
 The datacubes cover multiple zones although Flanders is present only in zone 31U. 
 
