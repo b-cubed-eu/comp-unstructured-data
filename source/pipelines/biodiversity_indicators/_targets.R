@@ -30,7 +30,7 @@ tar_source(file.path(targets_project_dir, "biodiversity_indicators", "R"))
 list(
   tarchetypes::tar_file(
     abv_data_file,
-    path_to_interim(path_to_data = path_to_data, file = "abv_data.csv")
+    path_to_interim(path_to_data = path_to_data, file = "abv_data_cube.csv")
   ),
   tar_target(
     abv_data,

@@ -30,7 +30,7 @@ tar_source(file.path(targets_project_dir, "exploratory_analysis", "R"))
 list(
   tarchetypes::tar_file(
     abv_data_file,
-    path_to_interim(path_to_data = path_to_data, file = "abv_data.csv")
+    path_to_interim(path_to_data = path_to_data, file = "abv_data_cube.csv")
   ),
   tar_target(
     abv_data_int1,
@@ -73,6 +73,10 @@ list(
     filter_2(birdcube_data)
   ),
   tar_target(
+    filter3_abv,
+    filter_3(abv_data)
+  ),
+  tar_target(
     filter3_cube,
     filter_3(birdcube_data)
   ),
@@ -102,7 +106,7 @@ list(
   ),
   tar_target(
     trend_comp_3,
-    trend_comp_data(abv_data, filter3_cube)
+    trend_comp_data(filter3_abv, filter3_cube)
   ),
   tar_target(
     trend_comp_0c,
@@ -121,7 +125,7 @@ list(
   ),
   tar_target(
     trend_comp_3c,
-    trend_comp_data(abv_data, filter3_cube,
+    trend_comp_data(filter3_abv, filter3_cube,
                     period = "cyclus")
   )
 )
