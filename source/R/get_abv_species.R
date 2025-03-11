@@ -1,4 +1,6 @@
-example_specs2 <- c(
+# First source functions in taxon_mapping.R
+
+example_specs <- c(
   "Cetti's zanger", "Putter", "Kleine mantelmeeuw", "Roek", "Kuifeend",
   "Halsbandparkiet", "Aalscholver", "Kauw", "Buizerd", "Nijlgans",
   "Roodborsttapuit", "Boomklever", "Meerkoet", "Zwarte roodstaart",
@@ -20,8 +22,8 @@ example_specs2 <- c(
   "Gierzwaluw", "Nachtegaal", "Huiszwaluw", "Staartmees", "Dodaars"
 )
 abv_ana_birds <- data.frame(
-  id = seq_along(example_specs2),
-  dwc_vernacularName = example_specs2,
+  id = seq_along(example_specs),
+  dwc_vernacularName = example_specs,
   dwc_class = rep("Aves", 3)
 )
 abv_ana_birds
