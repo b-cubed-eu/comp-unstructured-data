@@ -44,7 +44,7 @@ The following filters are used:
     - A square is only relevant for a species if that species is observed in this square for more than one time period
     - A minimum of three relevant squares are needed to include the species
     - A minimum of a hundred observations are needed to include the species
-  - Filter 3: number of observations is weighed by total number of observations for that year for the cube data
+  - Filter 3: number of observations is weighed by total number of observations for that year
 
 ## Data exploration
 
@@ -148,7 +148,7 @@ cube |>
 
 The cube contains information on 666 species. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times.
 
-## Range comparison {.tabset}
+## Occupancy comparison {.tabset}
 
 ### No filter
 
