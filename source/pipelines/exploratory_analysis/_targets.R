@@ -103,5 +103,25 @@ list(
   tar_target(
     trend_comp_3,
     trend_comp_data(abv_data, filter3_cube)
+  ),
+  tar_target(
+    trend_comp_0c,
+    trend_comp_data(abv_data, birdcube_data,
+                    period = "cyclus")
+  ),
+  tar_target(
+    trend_comp_1c,
+    trend_comp_data(filter1_abv, filter1_cube,
+                    period = "cyclus")
+  ),
+  tar_target(
+    trend_comp_2c,
+    trend_comp_data(filter2_abv, filter2_cube,
+                    period = "cyclus")
+  ),
+  tar_target(
+    trend_comp_3c,
+    trend_comp_data(abv_data, filter3_cube,
+                    period = "cyclus")
   )
 )
