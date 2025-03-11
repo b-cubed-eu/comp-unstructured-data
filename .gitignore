@@ -17,7 +17,6 @@
 # translation temp files
 *-Ex.R
 *.csv
-*.dbf
 *.doc*
 *.gddoc
 *.gdsheet
@@ -26,8 +25,6 @@
 *.knit.md
 *.mdb
 *.pdf
-*.shp*
-*.shx
 *.txt
 *.utf8.md
 *.xls*
@@ -56,4 +53,23 @@ renv/library
 rsconnect/
 vignettes/*.html
 vignettes/*.pdf
-data/raw
+
+# Ignore all data except data/raw/utm_grid
+data/*
+!data/raw/
+data/raw/*
+!data/raw/utm_grid/
+
+# Ignore all shapefiles
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+
+# Allow the specific shapefile (replace "utm_grid" with the actual name)
+!data/raw/utm_grid/*.shp
+!data/raw/utm_grid/*.shx
+!data/raw/utm_grid/*.dbf
+!data/raw/utm_grid/*.prj
+!data/raw/utm_grid/*.cpg
