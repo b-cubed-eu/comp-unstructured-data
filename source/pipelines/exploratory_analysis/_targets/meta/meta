@@ -27,27 +27,29 @@ pielou_evenness_map_cube|stem|ad77e6d4da619406|86405f793fb7b14a|a5c31b662884b2bb
 pielou_evenness_ts_cube|stem|50bd767cd851c70d|fab57ea502389048|a5c31b662884b2bb|163671844||t20148.7210688536s|s7647b|7647|qs|local|vector|||46.8||
 spec_occ_ts_cube|stem|068cd37666dc5abc|7a477387f00a1819|a5c31b662884b2bb|-1997763936||t20148.727323413s|s148416b|148416|qs|local|vector|||540.39||
 obs_richness_map_cube_1|stem|89d23ee87b4a659e|66f1d7db7aad6b78|a5c31b662884b2bb|-1405350137||t20148.7771409072s|s184803b|184803|qs|local|vector|||64.83||
-birdcube_data_file|stem|237e54faa9b2ce49|48a9ff406ed7d0bc|89e666f628adf0f2|1618870224|C:/R/git_repositories/comp-unstructured-data/data/interim/birdcubeflanders.csv|t20151.6224586459s|s253076889b|253076889|file|local|vector|||0||
-abv_data_file|stem|81ae4870a8675fb5|b6acb50d3d39ac90|89e666f628adf0f2|-226531251|C:/R/git_repositories/comp-unstructured-data/data/interim/abv_data.csv|t20151.6238569056s|s11269412b|11269412|file|local|vector|||0.01||
-abv_data_int1|stem|019cdb8b56a4095f|e229d1a198614366|c4c753612d22b5c4|79986706||t20157.597417736s|s751565b|751565|qs|local|vector|||0.84||
-birdcube_data_int|stem|42845f02b06f3c71|c219f922643095f8|0dd131f26a8c3cb3|1614450379||t20157.5975324967s|s12355397b|12355397|qs|local|vector|||9.34||
-abv_data_int2|stem|c3f802cc474cd4cc|45b8553b0a133879|b23b4b37e6ac9685|-774397266||t20157.5975333097s|s763552b|763552|qs|local|vector|||0.02||
-birdcube_data|stem|ea2ddcaa2b16a9b3|d57533d6678d4457|ae7a9ede8a604f80|804043826||t20157.5975432295s|s12522991b|12522991|qs|local|vector|||0.26||
-filter1_cube|stem|9df4cde715a57bc4|c1fd49b0b7a0f907|17caa99342efc229|383042957||t20157.5978639665s|s9769912b|9769912|qs|local|vector|||0.27||
-filter2_cube|stem|f6848ce3d11c736b|420ceed06d7a4569|fa05da35f48a1263|-838545082||t20157.5979456398s|s15759469b|15759469|qs|local|vector|||6.45||
-filter1_abv|stem|2cfac9b3ea76f33d|317167e5dc9dcd42|8338fccf87c6c24f|-1655722892||t20157.5979465078s|s884206b|884206|qs|local|vector|||0.03||
-filter2_abv|stem|c11cbab3864ee973|36663b8e3e390a9d|ac1d3176236db6e4|1784010289||t20157.5982242573s|s947493b|947493|qs|local|vector|||0.76||
-range_comp_0|stem|74dac37d971a160b|159cd1b17deb1157|be169c49e092272b|1263720519||t20157.6380826015s|s5865b|5865|qs|local|vector|||29.08||
-range_comp_1|stem|33fa83acc51810be|819bdb5b8b4ba1fa|5cde0a2533218634|1899932574||t20157.6382540528s|s3517b|3517|qs|local|vector|||14.24||
-range_comp_2|stem|bece06b6c7bf907d|e7da9735da2e6aee|96b56c52d0916026|-1679452881||t20157.6384218652s|s3273b|3273|qs|local|vector|||13.74||
-trend_comp_0|stem|44bc924b9575b263|266ff9dd1a011ade|1d021128046d0041|-2028922957||t20157.642223003s|s3762b|3762|qs|local|vector|||0.42|There were 11 warnings in summarize.The first warning wasℹ In argument correlation  coroccurrence_1, occurrence_2, method   pearson.ℹ In group 17 species  Anser albifrons.Caused by warning in cor the standard deviation is zeroℹ Run dplyrlast_dplyr_warnings to see the 10 remaining warnings.|
-trend_comp_1|stem|2d7f461ac7b2ea50|bf789219946b0f2a|426f05dbfc17e8a7|259795514||t20157.6454332999s|s2281b|2281|qs|local|vector|||0.18||
-trend_comp_2|stem|be215c99357389ac|5d9df95cc1dea61c|a5fa6adba63f0f85|699221411||t20157.6454459961s|s2106b|2106|qs|local|vector|||0.13||
-abv_data|stem|e086b6c57e427138|7c2ae51beb6ee920|c966b6ae0e97e524|-790396526||t20157.6801156822s|s920262b|920262|qs|local|vector|||0.03||
 filter_3_cube|stem|527212ca18a21001|b670f4002346aabd|a9b40ab6d1c736b6|-1697309092||t20157.6801402408s|s14182963b|14182963|qs|local|vector|||0.03||
-filter3_cube|stem|527212ca18a21001|b670f4002346aabd|a9b40ab6d1c736b6|-1583901660||t20157.6804695287s|s14182963b|14182963|qs|local|vector|||0.12||
-trend_comp_3|stem|882a1964c82a194b|da546fa0cd4730d9|bd9e9857b647f315|-1621708013||t20157.6804769499s|s3752b|3752|qs|local|vector|||0.56|There were 11 warnings in summarize.The first warning wasℹ In argument correlation  coroccurrence_1, occurrence_2, method   pearson.ℹ In group 17 species  Anser albifrons.Caused by warning in cor the standard deviation is zeroℹ Run dplyrlast_dplyr_warnings to see the 10 remaining warnings.|
 trend_comp_4|stem|a5f39e55e50ddae0|7a499492a409e21f|d0724b8a44aac677|1403839019||t20157.680480144s|s2273b|2273|qs|local|vector|||0.22||
+abv_data_file|stem|7611b266957a43b6|473f1bc40fd02efd|89e666f628adf0f2|-226531251|C:/R/git_repositories/comp-unstructured-data/data/interim/abv_data_cube.csv|t20158.5921368483s|s8382131b|8382131|file|local|vector|||0||
+birdcube_data_file|stem|8d890e239bd6e3da|48a9ff406ed7d0bc|89e666f628adf0f2|1618870224|C:/R/git_repositories/comp-unstructured-data/data/interim/birdcubeflanders.csv|t20158.5921762536s|s131093150b|131093150|file|local|vector|||0||
+abv_data_int1|stem|ffc4acff06355bdc|e229d1a198614366|439ce68bf7ab8f45|79986706||t20158.600102995s|s724496b|724496|qs|local|vector|||0.3||
+birdcube_data_int|stem|dcb5751a10150d70|c219f922643095f8|ddae7105d9c344f0|1614450379||t20158.6001622715s|s11929908b|11929908|qs|local|vector|||4.64||
+abv_data_int2|stem|4f3cf78f1710eaa4|45b8553b0a133879|99b997ab354a877e|-774397266||t20158.6001630163s|s745843b|745843|qs|local|vector|||0.02||
+birdcube_data|stem|9725e45371259f19|d57533d6678d4457|269f0834bc87bd02|804043826||t20158.6001726366s|s12107932b|12107932|qs|local|vector|||0.32||
+abv_data|stem|4174cf5722d05495|7c2ae51beb6ee920|5478271b63cd75b4|-790396526||t20158.6001734706s|s902799b|902799|qs|local|vector|||0.03||
+filter1_cube|stem|f95853432f59382a|c1fd49b0b7a0f907|0521eb862d66c441|383042957||t20158.6117948154s|s7968637b|7968637|qs|local|vector|||0.34||
+filter3_cube|stem|96b9577f111bc7f8|b670f4002346aabd|3be0a9a6985876e5|-1583901660||t20158.611803573s|s13813265b|13813265|qs|local|vector|||0.08||
+filter2_cube|stem|beb7cb2ec7535712|420ceed06d7a4569|4bb578e543bd2f72|-838545082||t20158.6119098368s|s14460443b|14460443|qs|local|vector|||8.5||
+filter1_abv|stem|02547f46d193aefc|317167e5dc9dcd42|2a8bb05ba5820670|-1655722892||t20158.6119110963s|s854788b|854788|qs|local|vector|||0.01||
+range_comp_0|stem|80d6a795d6eaae4b|159cd1b17deb1157|ddb33220f00a86c8|1263720519||t20158.6122470691s|s5834b|5834|qs|local|vector|||29.02||
+trend_comp_0c|stem|7531bd6f468e8b97|f7a8c07c670d6696|425cae3a27dee4b2|-1276478009||t20158.6122520743s|s3781b|3781|qs|local|vector|||0.42|There were 9 warnings in summarize.The first warning wasℹ In argument correlation  coroccurrence_1, occurrence_2, method   pearson.ℹ In group 17 species  Anser albifrons.Caused by warning in cor the standard deviation is zeroℹ Run dplyrlast_dplyr_warnings to see the 8 remaining warnings.|
+filter2_abv|stem|f8c58d9dd3a1d61d|36663b8e3e390a9d|ef6e3fe611a46093|1784010289||t20158.6122633402s|s807263b|807263|qs|local|vector|||0.92||
+trend_comp_0|stem|77105d1a04075485|266ff9dd1a011ade|425cae3a27dee4b2|-2028922957||t20158.6122680144s|s3772b|3772|qs|local|vector|||0.39|There were 11 warnings in summarize.The first warning wasℹ In argument correlation  coroccurrence_1, occurrence_2, method   pearson.ℹ In group 17 species  Anser albifrons.Caused by warning in cor the standard deviation is zeroℹ Run dplyrlast_dplyr_warnings to see the 10 remaining warnings.|
+trend_comp_1c|stem|e85bc3cd6c20038b|24119e7c1d188c4f|909b192d99df25d3|-1184777553||t20158.6122796902s|s2278b|2278|qs|local|vector|||0.17||
+range_comp_1|stem|4b5f19d62de58d36|819bdb5b8b4ba1fa|d315edfda2a97dd4|1899932574||t20158.6124395725s|s3598b|3598|qs|local|vector|||13.82||
+trend_comp_1|stem|ba359ff1c94f50de|bf789219946b0f2a|909b192d99df25d3|259795514||t20158.6124412766s|s2278b|2278|qs|local|vector|||0.14||
+range_comp_2|stem|a3504267952b7ab3|e7da9735da2e6aee|8c9c7c5e7db31d60|-1679452881||t20158.6125977961s|s3189b|3189|qs|local|vector|||13.52||
+trend_comp_2c|stem|00d4e496c6ff9187|3a6a06e59ff222d1|6fe8a9a20caed3be|-72896249||t20158.6126001245s|s2071b|2071|qs|local|vector|||0.19||
+trend_comp_2|stem|4c7d2b88bf35ca53|5d9df95cc1dea61c|6fe8a9a20caed3be|699221411||t20158.6126025724s|s2078b|2078|qs|local|vector|||0.2||
 trend_comp_data|function|33c9c57c6cbf8e9d
 path_to_interim|function|36603da5829a6104
 range_comp|function|0f2e2e11659c0d51
@@ -59,7 +61,6 @@ filter_2|function|dddfc0c92810604f
 filter_3|function|aacee6ad9bbe0d04
 targets_project_dir|object|0e32c01c2f47553e
 range_comp_data|function|f88172dbacd301e5
-trend_comp_0c|stem|697434a1cdcccc0f|f7a8c07c670d6696|1d021128046d0041|-1276478009||t20158.3763943273s|s3775b|3775|qs|local|vector|||0.38|There were 9 warnings in summarize.The first warning wasℹ In argument correlation  coroccurrence_1, occurrence_2, method   pearson.ℹ In group 17 species  Anser albifrons.Caused by warning in cor the standard deviation is zeroℹ Run dplyrlast_dplyr_warnings to see the 8 remaining warnings.|
-trend_comp_3c|stem|85248192f51ef793|3c2676074c0a940f|bd9e9857b647f315|1853057741||t20158.3764057505s|s3755b|3755|qs|local|vector|||0.26|There were 9 warnings in summarize.The first warning wasℹ In argument correlation  coroccurrence_1, occurrence_2, method   pearson.ℹ In group 17 species  Anser albifrons.Caused by warning in cor the standard deviation is zeroℹ Run dplyrlast_dplyr_warnings to see the 8 remaining warnings.|
-trend_comp_1c|stem|5ddaa1eb51ab1023|24119e7c1d188c4f|426f05dbfc17e8a7|-1184777553||t20158.3764131431s|s2274b|2274|qs|local|vector|||0.1||
-trend_comp_2c|stem|460980a253915ea3|3a6a06e59ff222d1|a5fa6adba63f0f85|-72896249||t20158.3764231022s|s2118b|2118|qs|local|vector|||0.21||
+filter3_abv|stem|4a9a870ac9575d78|9ee042e878870ea0|824d37102aafc317|547330681||t20158.628757945s|s1002230b|1002230|qs|local|vector|||0.01||
+trend_comp_3c|stem|3e846510414acd87|2672076aa3bf402e|b042d928dd54b34c|1853057741||t20158.6287688249s|s3806b|3806|qs|local|vector|||0.23||
+trend_comp_3|stem|c3609193b55f7aa6|88290514ce001fe6|b042d928dd54b34c|-1621708013||t20158.6287707493s|s3832b|3832|qs|local|vector|||0.15||
