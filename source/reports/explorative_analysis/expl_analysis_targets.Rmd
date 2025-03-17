@@ -146,7 +146,15 @@ cube |>
 ```
 
 
-The cube contains information on 666 species. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times.
+The cube contains information on 663 species. 25 of these are hybrids. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times.
+
+```{r}
+cube |>
+  filter(mincoordinateuncertaintyinmeters < 5000) |>
+  ggplot(aes(x = mincoordinateuncertaintyinmeters)) +
+  geom_histogram()
+```
+
 
 ## Occupancy comparison {.tabset}
 
