@@ -132,7 +132,7 @@ glimpse(abv_data_total)
 
 # Unstructured data
 
-The ABV data is downloaded as a cube from GBIF.org.
+The cube data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
 > GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.eusvcc
