@@ -135,7 +135,7 @@ glimpse(abv_data_total)
 The cube data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.eusvcc
+> GBIF.org (27 March 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.8ck34h
 
 ```{r}
 # nolint start: line_length_linter.
@@ -278,7 +278,7 @@ utm_grid %>%
     ggtitle("Bird cube data from Flanders")
 ```
 
-We see a striped pattern because of large uncertainty.
+We see a dotted pattern because of large uncertainty.
 We filter `minCoordinateUncertaintyInMeters` smaller or equal to 1000 meters:
 
 ```{r}
