@@ -37,6 +37,11 @@ range_comp_data <- function(dataset1,
   comp_range_data$perc_abv_total_abv <- NA
   comp_range_data$cube_squares <- NA
   comp_range_data$perc_cube_total_cube <- NA
+  if (assertthat::has_name(dataset1, "filter_per")){
+    comp_range_data$filter_per <- paste0(dataset1$filter_per[1],
+                                         dataset2$filter_per[1])
+  }
+
   comp_range_data <- comp_range_data |>
     inner_join(dataset1 |> distinct(species, category),
                by = join_by(sel_species == species))
@@ -78,7 +83,8 @@ trend_comp_data <- function(data1,
     summarize(correlation = cor(occurrence_1, occurrence_2,
                                 method = "pearson"))|>
     inner_join(data1 |> distinct(species, category),
-               by = join_by(species))
+               by = join_by(species)) |>
+    mutate(trend_comp_per = period)
 
   return(time_series_cor)
 }

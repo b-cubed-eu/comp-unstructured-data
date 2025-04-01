@@ -56,7 +56,8 @@ filter_2 <- function(data, time_period = "year"){
     group_by(species) |>
     mutate(obs = n()) |>
     ungroup() |>
-    filter(obs > 100)
+    filter(obs > 100) |>
+    mutate(filter_per = time_period)
 
   return(output)
 }
@@ -66,5 +67,6 @@ filter_3 <- function(data, time_period = "year"){
     group_by(!!sym(time_period)) |>
     mutate(total_obs = sum(n)) |>
     ungroup() |>
-    mutate(n = n/total_obs)
+    mutate(n = n/total_obs)|>
+    mutate(filter_per = time_period)
 }
