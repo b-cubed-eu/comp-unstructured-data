@@ -198,6 +198,7 @@ tar_read(range_comp_1) |>
 
 ```{r}
 tar_read(range_comp_2) |>
+  filter(filter_per == "yearyear") |>
   ggplot(aes(x = perc_abv_total_abv,
              y = perc_cube_total_cube,
              color = category)) +
@@ -217,7 +218,8 @@ tar_read(range_comp_2) |>
 
 ### No filter
 ```{r}
-tar_read(trend_comp_0) |>  
+tar_read(trend_comp_0) |>
+  filter(trend_comp_per == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
@@ -227,7 +229,8 @@ tar_read(trend_comp_0) |>
 
 ### Filter 1
 ```{r}
-tar_read(trend_comp_1) |>  
+tar_read(trend_comp_1) |>
+  filter(trend_comp_per == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
@@ -237,7 +240,8 @@ tar_read(trend_comp_1) |>
 
 ### Filter 2
 ```{r}
-tar_read(trend_comp_2) |>  
+tar_read(trend_comp_2) |>
+  filter(trend_comp_per == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
@@ -247,7 +251,8 @@ tar_read(trend_comp_2) |>
 
 ### Filter 3
 ```{r}
-tar_read(trend_comp_3) |>  
+tar_read(trend_comp_3) |>
+  filter(trend_comp_per == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
@@ -259,7 +264,8 @@ tar_read(trend_comp_3) |>
 
 ### No filter
 ```{r}
-tar_read(trend_comp_0c) |>  
+tar_read(trend_comp_0) |>
+  filter(trend_comp_per == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
@@ -269,7 +275,8 @@ tar_read(trend_comp_0c) |>
 
 ### Filter 1
 ```{r}
-tar_read(trend_comp_1c) |>  
+tar_read(trend_comp_1) |>
+  filter(trend_comp_per == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
@@ -279,7 +286,8 @@ tar_read(trend_comp_1c) |>
 
 ### Filter 2
 ```{r}
-tar_read(trend_comp_2c) |>  
+tar_read(trend_comp_2) |>
+  filter(trend_comp_per == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
@@ -289,11 +297,34 @@ tar_read(trend_comp_2c) |>
 
 ### Filter 3
 ```{r}
-tar_read(trend_comp_3c) |>  
+tar_read(trend_comp_3) |>
+  filter(trend_comp_per == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
 ```
+
+```{r}
+tar_read(trend_comp_3) |>
+  filter(trend_comp_per == "cyclus") |>
+  filter(category %in% c("Common", "Very common", "Extremly common"),
+         correlation < 0.5) |> 
+  knitr::kable()
+```
+
+#### Lowest correlations {.tabset}
+
+##### **Sylvia curruca**
+
+```{r}
+tar_read(filter3_abv) |>
+  ggplot(aes(x = cyclus))
+```
+
+
+
+
+
 
