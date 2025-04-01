@@ -9,7 +9,7 @@ tar_make()
 # inspect pipeline
 tar_prune()
 
-tar_visnetwork()
+tar_visnetwork(targets_only = TRUE)
 meta <- tar_meta()
 
 
