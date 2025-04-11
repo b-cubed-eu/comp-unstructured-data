@@ -20,6 +20,7 @@ Sys.setenv(TAR_PROJECT = "exploratory_analysis")
 library(ggplot2)
 library(ggpubr)
 library(dplyr)
+library(ggforce)
 ```
 
 ```{r consistent colors}
@@ -150,9 +151,15 @@ The cube contains information on 663 species. 25 of these are hybrids. 355 of th
 
 ```{r}
 cube |>
-  filter(mincoordinateuncertaintyinmeters < 5000) |>
   ggplot(aes(x = mincoordinateuncertaintyinmeters)) +
-  geom_histogram()
+  geom_histogram(fill = "#66A61E", color = "black",
+                 bins = 100) +
+  labs(x = "Minimum coordinate uncertainty in meters",
+       y = "Count") +
+  facet_zoom(zoom.size = 0.5,
+             ylim = c(0, 300),
+             xlim = c(5500,37500),
+             horizontal = FALSE)
 ```
 
 
@@ -309,8 +316,9 @@ tar_read(trend_comp_3) |>
 ```{r}
 tar_read(trend_comp_3) |>
   filter(trend_comp_per == "cyclus") |>
-  filter(category %in% c("Common", "Very common", "Extremly common"),
-         correlation < 0.5) |> 
+  filter(category %in% c("Common", "Very common", "Extremely common"),
+         correlation < 0.5) |>
+  arrange(correlation) |>
   knitr::kable()
 ```
 
@@ -320,10 +328,16 @@ tar_read(trend_comp_3) |>
 
 ```{r}
 tar_read(filter3_abv) |>
-  ggplot(aes(x = cyclus))
+  filter(filter_per == "cyclus",
+         species == "Sylvia curruca") |>
+  ggplot(aes(x = cyclus, y = n)) +
+  geom_point()
+  
 ```
 
+##### **Buteo buteo**
 
+##### **Carduelis carduelis**	
 
 
 
