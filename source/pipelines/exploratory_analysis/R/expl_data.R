@@ -27,7 +27,11 @@ range_comp <- function(data) {
     mutate(percentage = n_dist_gridcells/tot_n_dist_gridcells) |>
     pivot_wider(id_cols = c(id_spat_res, species, matches("^id_filter")),
                 names_from = id_dataset,
-                values_from = c(n_dist_gridcells, percentage))
+                values_from = c(n_dist_gridcells, percentage))|>
+    left_join(data |>
+                filter(id_dataset == dataset_least_species) |>
+                distinct(species, category),
+              by = join_by(species))
 
   return(comp_range_data)
 }
@@ -60,7 +64,7 @@ trend_comp <- function(data, time_period){
            correlation = cor(abv_data, birdflanders,
                              method = "pearson")) |>
     left_join(data |>
-                filter(id_dataset == "abv_data") |>
+                filter(id_dataset == dataset_least_species) |>
                 distinct(species, category),
               by = join_by(species))
 
