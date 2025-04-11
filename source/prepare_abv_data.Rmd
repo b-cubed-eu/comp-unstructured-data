@@ -70,22 +70,21 @@ head(sampling_framework_abv)
 
 ## Occurrence data
 
-The ABV data is downloaded as a cube from GBIF.org.
+The ABV data is downloaded as a cube from GBIF.org. We set the randomization to zero, since the monitoring takes place in specific squares.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.qqzgt3
+> GBIF.org (10 April 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.2y89a9
 
 ```{r}
 # nolint start: line_length_linter.
 query_abv <- "SELECT
   \"year\",
-  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
-  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude, 0) AS mgrsCode,
   speciesKey,
   species,
   family,
   COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 0)) AS minCoordinateUncertaintyInMeters,
   IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
   FROM
   occurrence
@@ -258,17 +257,6 @@ utm_grid %>%
     ggtitle("ABV sampling locations")
 ```
 
-```{r}
-mapview::mapview(utm_grid %>%
-  left_join(abv_data_total %>%
-              mutate(presence = "present") %>%
-              distinct(presence, mgrscode),
-            by = join_by(mgrscode)),
-  at = "presence")
-```
-
-
-
 We select cube data from Flanders and add the geometry to the data layers by taking an inner join.
 
 ```{r}
@@ -370,22 +358,22 @@ dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
 # Structured data
 ## CSV
 write_csv(abv_data_out,
-          file.path(out_path, "abv_data_cube.csv"))
+          file.path(out_path, "abv_data_cube_1km.csv"))
 write_csv(sampling_framework_out,
           file.path(out_path, "sampling_framework_abv.csv"))
 
 ## Spatial object
 write_sf(abv_data_out_sf,
-         file.path(out_path, "abv_data_cube.gpkg"))
+         file.path(out_path, "abv_data_cube_1km.gpkg"))
 write_sf(sampling_framework_out_sf,
          file.path(out_path, "sampling_framework_abv.gpkg"))
 
 # Unstructured data
 ## CSV
 write_csv(birdcube_data_out,
-          file.path(out_path, "birdcubeflanders.csv"))
+          file.path(out_path, "birdflanders_cube_1km.csv"))
 
 ## Spatial object
 write_sf(birdcube_data_out_sf,
-         file.path(out_path, "birdcubeflanders.gpkg"))
+         file.path(out_path, "birdflanders_cube_1km.gpkg"))
 ```

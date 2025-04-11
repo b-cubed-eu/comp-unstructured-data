@@ -288,9 +288,9 @@ write_sf(abv_data_out_sf,
 # Unstructured data
 ## CSV
 write_csv(birdcube_data_out,
-          file.path(out_path, "birdcubeflanders_10km.csv"))
+          file.path(out_path, "birdflanders_cube_10km.csv"))
 
 ## Spatial object
 write_sf(birdcube_data_out_sf,
-         file.path(out_path, "birdcubeflanders_10km.gpkg"))
+         file.path(out_path, "birdflanders_cube_10km.gpkg"))
 ```
