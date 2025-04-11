@@ -181,7 +181,21 @@ filter3_0c571300c9872792|branch|76046433185fb8dc|401d98c529a52799|1236b0e9470ebb
 filter3_3a1d0f94e1b7d815|branch|804a6679a32c1ace|401d98c529a52799|aa3651900db7572b|-113780780||t20189.5102310058s|s2465879b|2465879|qs|local|vector|filter3||0.02||
 filter3_6f29943e8c757d6c|branch|3bd13b0e57573cff|401d98c529a52799|aa3651900db7572b|2097128119||t20189.510235251s|s2387321b|2387321|qs|local|vector|filter3||0.03||
 filter3|pattern|1a36b879a3942302|401d98c529a52799||-1314917285||||38120226|qs|local|vector||filter3_f1f74701e3e5f85a*filter3_6cd7fbfdce023604*filter3_27b7b1b2c2027995*filter3_524fe83e402ece3e*filter3_ca364804d5cde2cb*filter3_0c571300c9872792*filter3_3a1d0f94e1b7d815*filter3_6f29943e8c757d6c|0.29||
-range_comp_0|stem|d485b2c4e06fc938|125f5787a253f428|91ba97a782b04829|1263720519||t20189.5958079487s|s7733b|7733|qs|local|vector|||0.9||
+trend_comp_0|pattern|78ae3d669f9756d9|10af96594c220449||-2028922957||||35372|qs|local|vector||trend_comp_0_7e52083f5afe5d32*trend_comp_0_2d015e7bca5c3c76|1.38||
+trend_comp_2|pattern|d949bdf281518dde|34775b72a938fc27||699221411||||29349|qs|local|vector||trend_comp_2_7e52083f5afe5d32*trend_comp_2_2d015e7bca5c3c76|2.2||
+trend_comp_3|pattern|6324d441cf7557b2|b529d541e210bca2||-1621708013||||152433|qs|local|vector||trend_comp_3_7e52083f5afe5d32*trend_comp_3_2d015e7bca5c3c76|2.64||
+range_comp_0|stem|8b0d0ced2de2e85b|125f5787a253f428|3f48d35757046df4|1263720519||t20189.6155570506s|s8056b|8056|qs|local|vector|||0.99||
+trend_comp_0_7e52083f5afe5d32|branch|0117271369205283|10af96594c220449|e3900bed7cf08863|-1322497073||t20189.6155770834s|s23557b|23557|qs|local|vector|trend_comp_0||0.53||
+trend_comp_0_2d015e7bca5c3c76|branch|22bec90e5d42dab0|10af96594c220449|e3900bed7cf08863|-880916140||t20189.6155961336s|s11815b|11815|qs|local|vector|trend_comp_0||0.63||
+range_comp_1|stem|7b2ec515bf4e7936|f536ed47d27f11cb|feb1452bead37557|1899932574||t20189.6156128175s|s5499b|5499|qs|local|vector|||0.73|Detected an unexpected manytomany relationship between x and y.ℹ Row 1 of x matches multiple rows in y.ℹ Row 73 of y matches multiple rows in x.ℹ If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+trend_comp_1_7e52083f5afe5d32|branch|c8c250ddb1a47da9|8a00db3c12a850b6|53f52a56184b52bb|-1970434452||t20189.6156267281s|s15355b|15355|qs|local|vector|trend_comp_1||0.52|Detected an unexpected manytomany relationship between x and y.ℹ Row 1 of x matches multiple rows in y.ℹ Row 73 of y matches multiple rows in x.ℹ If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+trend_comp_1_2d015e7bca5c3c76|branch|162ff6e4e7c527e7|8a00db3c12a850b6|53f52a56184b52bb|-268899675||t20189.6156418101s|s7632b|7632|qs|local|vector|trend_comp_1||0.61|Detected an unexpected manytomany relationship between x and y.ℹ Row 1 of x matches multiple rows in y.ℹ Row 73 of y matches multiple rows in x.ℹ If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+trend_comp_1|pattern|6c89c20088e0780b|8a00db3c12a850b6||259795514||||22987|qs|local|vector||trend_comp_1_7e52083f5afe5d32*trend_comp_1_2d015e7bca5c3c76|1.13||
+range_comp_2|stem|3452e6376e9ab50b|a9504f8677ce4ac4|a38065ec86c897f7|-1679452881||t20189.6156837162s|s7014b|7014|qs|local|vector|||1.31||
+trend_comp_2_7e52083f5afe5d32|branch|ead73d0e90d307d0|34775b72a938fc27|979097d2c72db9d8|-683159121||t20189.6157220951s|s19316b|19316|qs|local|vector|trend_comp_2||1.11||
+trend_comp_2_2d015e7bca5c3c76|branch|0df6731c567a969b|34775b72a938fc27|979097d2c72db9d8|-489654775||t20189.6157649606s|s10033b|10033|qs|local|vector|trend_comp_2||1.29||
+trend_comp_3_7e52083f5afe5d32|branch|5dd7d1f3954faff0|b529d541e210bca2|3ce36b272ff35134|-349869486||t20189.6158076211s|s105371b|105371|qs|local|vector|trend_comp_3||1.23||
+trend_comp_3_2d015e7bca5c3c76|branch|acd3f4279f259f6d|b529d541e210bca2|3ce36b272ff35134|1055399620||t20189.6158513681s|s47062b|47062|qs|local|vector|trend_comp_3||1.28||
 read_andid|function|374bf358729fae4f
 my_group_by|function|4c7c5bba22fac320
 path_to_interim|function|e6d463e1b14a7d03
@@ -192,19 +206,5 @@ filter_1|function|8bd8f150443f31f2
 filter_2|function|d9ad4e89bd86d097
 filter_3|function|c97514a90b3e26a1
 targets_project_dir|object|0e32c01c2f47553e
-trend_comp|function|511f9d30b7a10799
-range_comp|function|9f0beb43c51bf0a7
-trend_comp_0_7e52083f5afe5d32|branch|0117271369205283|10af96594c220449|b62e4c91e07a913c|-1322497073||t20189.5977172242s|s23557b|23557|qs|local|vector|trend_comp_0||0.74||
-trend_comp_0_2d015e7bca5c3c76|branch|22bec90e5d42dab0|10af96594c220449|b62e4c91e07a913c|-880916140||t20189.5977382978s|s11815b|11815|qs|local|vector|trend_comp_0||0.64||
-trend_comp_0|pattern|78ae3d669f9756d9|10af96594c220449||-2028922957||||35372|qs|local|vector||trend_comp_0_7e52083f5afe5d32*trend_comp_0_2d015e7bca5c3c76|1.38||
-range_comp_1|stem|19e03dc857fb5d86|f536ed47d27f11cb|c7b83a1aad29488f|1899932574||t20189.5977535201s|s4503b|4503|qs|local|vector|||0.5||
-trend_comp_1_7e52083f5afe5d32|branch|4875111d62fc6141|8a00db3c12a850b6|a16c847fe283d640|-1970434452||t20189.5977678363s|s13896b|13896|qs|local|vector|trend_comp_1||0.54||
-trend_comp_1_2d015e7bca5c3c76|branch|59bd55d0f650c03d|8a00db3c12a850b6|a16c847fe283d640|-268899675||t20189.5977818868s|s6831b|6831|qs|local|vector|trend_comp_1||0.41||
-trend_comp_1|pattern|a663c00247b16fc4|8a00db3c12a850b6||259795514||||20727|qs|local|vector||trend_comp_1_7e52083f5afe5d32*trend_comp_1_2d015e7bca5c3c76|0.95||
-range_comp_2|stem|8f49f929b9bf7016|a9504f8677ce4ac4|5e7ad1f879b6641f|-1679452881||t20189.597825283s|s6807b|6807|qs|local|vector|||1.26||
-trend_comp_2_7e52083f5afe5d32|branch|ead73d0e90d307d0|34775b72a938fc27|5a3115c816258e24|-683159121||t20189.5978638969s|s19316b|19316|qs|local|vector|trend_comp_2||1.1||
-trend_comp_2_2d015e7bca5c3c76|branch|0df6731c567a969b|34775b72a938fc27|5a3115c816258e24|-489654775||t20189.5979024169s|s10033b|10033|qs|local|vector|trend_comp_2||1.1||
-trend_comp_2|pattern|d949bdf281518dde|34775b72a938fc27||699221411||||29349|qs|local|vector||trend_comp_2_7e52083f5afe5d32*trend_comp_2_2d015e7bca5c3c76|2.2||
-trend_comp_3_7e52083f5afe5d32|branch|5dd7d1f3954faff0|b529d541e210bca2|a9a68c2e3ff536eb|-349869486||t20189.5979462393s|s105371b|105371|qs|local|vector|trend_comp_3||1.34||
-trend_comp_3_2d015e7bca5c3c76|branch|acd3f4279f259f6d|b529d541e210bca2|a9a68c2e3ff536eb|1055399620||t20189.5979902269s|s47062b|47062|qs|local|vector|trend_comp_3||1.3||
-trend_comp_3|pattern|6324d441cf7557b2|b529d541e210bca2||-1621708013||||152433|qs|local|vector||trend_comp_3_7e52083f5afe5d32*trend_comp_3_2d015e7bca5c3c76|2.64||
+trend_comp|function|cf754ac0034510bf
+range_comp|function|d0bca54942e4da0d
