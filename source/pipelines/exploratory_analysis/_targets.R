@@ -91,23 +91,23 @@ list(
   ),
   tar_target(
     trend_comp_0,
-    trend_comp_data(abv_data, birdcube_data, time_period),
-    pattern = cross(map(abv_data, birdcube_data), time_period)
+    trend_comp(data, time_period),
+    pattern = map(time_period)
   ),
   tar_target(
     trend_comp_1,
-    trend_comp_data(filter1_abv, filter1_cube, time_period),
-    pattern = cross(map(filter1_abv, filter1_cube), time_period)
+    trend_comp(filter1, time_period),
+    pattern = map(time_period)
   ),
   tar_target(
     trend_comp_2,
-    trend_comp_data(filter2_abv, filter2_cube, time_period),
-    pattern = cross(map(filter2_abv, filter2_cube), time_period)
+    trend_comp(filter2, time_period),
+    pattern = map(time_period)
   ),
   tar_target(
     trend_comp_3,
-    trend_comp_data(filter3_abv, filter3_cube, time_period),
-    pattern = cross(map(filter3_abv, filter3_cube), time_period)
+    trend_comp(filter3, time_period),
+    pattern = map(time_period)
   )
 )
 
