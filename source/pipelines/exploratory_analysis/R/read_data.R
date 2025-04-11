@@ -1,5 +1,16 @@
-path_to_interim <- function(path_to_data, file) {
+path_to_interim <- function(path_to_data, dataset, spat_res) {
+  file = paste0(dataset, "_cube_", spat_res, ".csv")
   file.path(path_to_data, "interim", file)
+}
+
+read_andid <- function(data_file, dataset, spat_res){
+  data <- read.csv(data_file)
+
+  output <- data |>
+    mutate(id_dataset = dataset,
+           id_spat_res = spat_res)
+
+  return(output)
 }
 
 add_cyclus <- function(data){
@@ -57,7 +68,7 @@ filter_2 <- function(data, time_period = "year"){
     mutate(obs = n()) |>
     ungroup() |>
     filter(obs > 100) |>
-    mutate(filter_per = time_period)
+    mutate(id_filter_per = time_period)
 
   return(output)
 }
@@ -68,5 +79,5 @@ filter_3 <- function(data, time_period = "year"){
     mutate(total_obs = sum(n)) |>
     ungroup() |>
     mutate(n = n/total_obs)|>
-    mutate(filter_per = time_period)
+    mutate(id_filter_per = time_period)
 }
