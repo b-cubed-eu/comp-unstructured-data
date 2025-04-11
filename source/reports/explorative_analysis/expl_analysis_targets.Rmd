@@ -50,8 +50,12 @@ The following filters are used:
 ## Data exploration
 
 ```{r}
-abv <- tar_read(abv_data)
-cube <- tar_read(birdcube_data)
+abv <- tar_read(data) |>
+  filter(id_dataset == "abv_data",
+         id_spat_res == "1km")
+cube <- tar_read(data) |>
+  filter(id_dataset == "birdflanders",
+         id_spat_res == "1km")
 ```
 
 During our initial analysis we noticed some problems with species names:
@@ -158,7 +162,7 @@ cube |>
        y = "Count") +
   facet_zoom(zoom.size = 0.5,
              ylim = c(0, 300),
-             xlim = c(5500,37500),
+             xlim = c(5500,120000),
              horizontal = FALSE)
 ```
 
@@ -169,8 +173,9 @@ cube |>
 
 ```{r}
 tar_read(range_comp_0) |>
-  ggplot(aes(x = perc_abv_total_abv,
-             y = perc_cube_total_cube,
+  filter(id_spat_res == "1km") |>
+  ggplot(aes(x = percentage_abv_data,
+             y = percentage_birdflanders,
              color = category)) +
   geom_point() +
   colScale +
@@ -180,15 +185,16 @@ tar_read(range_comp_0) |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides( color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = "")))
 ```
 
 ### Filter 1
 
 ```{r}
 tar_read(range_comp_1) |>
-  ggplot(aes(x = perc_abv_total_abv,
-             y = perc_cube_total_cube,
+filter(id_spat_res == "1km") |>
+  ggplot(aes(x = percentage_abv_data,
+             y = percentage_birdflanders,
              color = category)) +
   geom_point() +
   colScale +
