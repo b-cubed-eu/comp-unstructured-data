@@ -32,30 +32,37 @@ range_comp <- function(data) {
   return(comp_range_data)
 }
 
-trend_comp_data <- function(data1,
-                            data2,
-                            period = "year"){
-  time_series_1 <- data1 |>
-    group_by(species, !!sym(period)) |>
-    summarize(occurrence = sum(n))
+trend_comp <- function(data, time_period){
+  dataset_least_species <- data |>
+    group_by(id_dataset) |>
+    summarize(n_species = n_distinct(species)) |>
+    filter(n_species == min(n_species)) |>
+    pull(id_dataset)
 
-  time_series_2 <- data2 |>
-    group_by(species, !!sym(period))  |>
-    summarize(occurrence = sum(n))
+  species_list <- data |>
+    filter(id_dataset == dataset_least_species) |>
+    select(species) |>
+    distinct() |>
+    pull()
 
-  # Pearson Correlation for each species
-  # inner_join makes sure that only species-year combinations present
-  # in both datasets are included
-  time_series_cor <- time_series_1 |>
-    inner_join(time_series_2,
-               by = c("species", period),
-               suffix = c("_1", "_2"))  |>
-    group_by(species) |>
-    summarize(correlation = cor(occurrence_1, occurrence_2,
-                                method = "pearson"))|>
-    left_join(data1 |> distinct(species, category),
-               by = join_by(species)) |>
-    mutate(trend_comp_per = period)
+  trend_range_data <- data |>
+    filter(species %in% species_list) |>
+    my_group_by(c(c(species, !!sym(time_period)), matches("^id_"))) |>
+    summarize(occurrence = sum(n)) |>
+    ungroup() |>
+    pivot_wider(id_cols = c(id_spat_res,
+                            species,
+                            !!sym(time_period),
+                            matches("^id_filter")),
+                names_from = id_dataset,
+                values_from = occurrence) |>
+    mutate(time_period = !!sym(time_period),
+           correlation = cor(abv_data, birdflanders,
+                             method = "pearson")) |>
+    left_join(data |>
+                filter(id_dataset == "abv_data") |>
+                distinct(species, category),
+              by = join_by(species))
 
-  return(time_series_cor)
+  return(trend_range_data)
 }
