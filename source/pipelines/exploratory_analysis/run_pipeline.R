@@ -18,6 +18,8 @@ meta <- tar_meta()
 # R console
 library(targets)
 
+tar_read()
+
 # Restart your R session.
 rstudioapi::restartSession()
 
