@@ -211,9 +211,10 @@ filter(id_spat_res == "1km") |>
 
 ```{r}
 tar_read(range_comp_2) |>
-  filter(filter_per == "yearyear") |>
-  ggplot(aes(x = perc_abv_total_abv,
-             y = perc_cube_total_cube,
+  filter(id_spat_res == "1km") |>
+  filter(id_filter_per == "year") |>
+  ggplot(aes(x = percentage_abv_data,
+             y = percentage_birdflanders,
              color = category)) +
   geom_point() +
   colScale +
@@ -226,15 +227,20 @@ tar_read(range_comp_2) |>
   guides( color = guide_legend(override.aes = aes(label = "")))
 ```
 
+##
+
+Given the limitations of the ABV monitoring setup we can't compare exact patterns in biodiversity, for this we refer to the South-African analysis.
 
 ## Trend comparison {.tabset}
 
 ### No filter
 ```{r}
 tar_read(trend_comp_0) |>
-  filter(trend_comp_per == "year") |>
+  filter(id_spat_res == "1km",
+         time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
@@ -243,9 +249,11 @@ tar_read(trend_comp_0) |>
 ### Filter 1
 ```{r}
 tar_read(trend_comp_1) |>
-  filter(trend_comp_per == "year") |>
+ filter(id_spat_res == "1km",
+         time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
@@ -254,9 +262,11 @@ tar_read(trend_comp_1) |>
 ### Filter 2
 ```{r}
 tar_read(trend_comp_2) |>
-  filter(trend_comp_per == "year") |>
+  filter(id_spat_res == "1km",
+         time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
@@ -265,9 +275,12 @@ tar_read(trend_comp_2) |>
 ### Filter 3
 ```{r}
 tar_read(trend_comp_3) |>
-  filter(trend_comp_per == "year") |>
+  filter(id_spat_res == "1km",
+         time_period == "year",
+         id_filter_per == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
@@ -278,9 +291,11 @@ tar_read(trend_comp_3) |>
 ### No filter
 ```{r}
 tar_read(trend_comp_0) |>
-  filter(trend_comp_per == "cyclus") |>
+ filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
@@ -289,9 +304,11 @@ tar_read(trend_comp_0) |>
 ### Filter 1
 ```{r}
 tar_read(trend_comp_1) |>
-  filter(trend_comp_per == "cyclus") |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
@@ -300,9 +317,11 @@ tar_read(trend_comp_1) |>
 ### Filter 2
 ```{r}
 tar_read(trend_comp_2) |>
-  filter(trend_comp_per == "cyclus") |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
@@ -311,40 +330,16 @@ tar_read(trend_comp_2) |>
 ### Filter 3
 ```{r}
 tar_read(trend_comp_3) |>
-  filter(trend_comp_per == "cyclus") |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus",
+         id_filter_per == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
+  xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
 ```
-
-```{r}
-tar_read(trend_comp_3) |>
-  filter(trend_comp_per == "cyclus") |>
-  filter(category %in% c("Common", "Very common", "Extremely common"),
-         correlation < 0.5) |>
-  arrange(correlation) |>
-  knitr::kable()
-```
-
-#### Lowest correlations {.tabset}
-
-##### **Sylvia curruca**
-
-```{r}
-tar_read(filter3_abv) |>
-  filter(filter_per == "cyclus",
-         species == "Sylvia curruca") |>
-  ggplot(aes(x = cyclus, y = n)) +
-  geom_point()
-  
-```
-
-##### **Buteo buteo**
-
-##### **Carduelis carduelis**	
-
 
 
 
