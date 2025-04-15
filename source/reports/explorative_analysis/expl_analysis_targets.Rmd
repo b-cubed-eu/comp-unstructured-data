@@ -162,7 +162,7 @@ cube |>
        y = "Count") +
   facet_zoom(zoom.size = 0.5,
              ylim = c(0, 300),
-             xlim = c(5500,120000),
+             xlim = c(10500,150000),
              horizontal = FALSE)
 ```
 
