@@ -75,9 +75,14 @@ filter_2 <- function(data, time_period = "year"){
 
 filter_3 <- function(data, time_period = "year"){
   output <- data |>
+    group_by(id_dataset, id_spat_res, species, category, !!sym(time_period)) |>
+    summarise(n = sum(n)) |>
+    ungroup() |>
     group_by(!!sym(time_period)) |>
     mutate(total_obs = sum(n)) |>
     ungroup() |>
     mutate(n = n/total_obs)|>
     mutate(id_filter_per = time_period)
+
+  return(output)
 }
