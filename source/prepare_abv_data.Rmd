@@ -73,7 +73,7 @@ head(sampling_framework_abv)
 The ABV data is downloaded as a cube from GBIF.org. We set the randomization to zero, since the monitoring takes place in specific squares.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (10 April 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.2y89a9
+> GBIF.org (15 April 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.ddzhrc
 
 ```{r}
 # nolint start: line_length_linter.
@@ -135,7 +135,7 @@ glimpse(abv_data_total)
 The cube data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (27 March 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.8ck34h
+> GBIF.org (15 April 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.mn4ybb
 
 ```{r}
 # nolint start: line_length_linter.
