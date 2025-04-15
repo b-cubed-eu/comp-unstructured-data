@@ -60,6 +60,7 @@ trend_comp <- function(data, time_period){
                             matches("^id_filter")),
                 names_from = id_dataset,
                 values_from = occurrence) |>
+    drop_na() |>
     my_group_by(c(c(species, id_spat_res), matches("^id_filter"))) |>
     summarise(correlation = cor(abv_data,
                                 birdflanders,
