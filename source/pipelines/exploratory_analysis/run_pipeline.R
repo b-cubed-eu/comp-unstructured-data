@@ -23,7 +23,8 @@ tar_read()
 # Restart your R session.
 rstudioapi::restartSession()
 
-# Loads globals like tar_option_set() packages, simulate_data(), and analyze_data():
+# Loads globals like tar_option_set() packages, simulate_data(), and
+# analyze_data():
 tar_load_globals()
 
 # Load the data that the target depends on.

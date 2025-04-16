@@ -8,6 +8,8 @@ output:
     toc: true
     toc_float: true
     toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE}
@@ -30,9 +32,9 @@ myColors <- brewer.pal(5, "Dark2")
 names(myColors) <- c("Very rare", "Rare", "Common",
                      "Very common", "Extremely common")
 colScale <- scale_color_manual(name = "Category",
-                                values = myColors)
+                               values = myColors)
 fillScale <- scale_fill_manual(name = "Category",
-                                values = myColors)
+                               values = myColors)
 ```
 
 In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar ranges and trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
@@ -96,8 +98,7 @@ This categorization is used throughout further analyses.
 ```{r}
 abv |>
   distinct(category, species) |>
-  group_by(category) |>
-  summarise(n())  |>
+  count(category) |>
   knitr::kable()
 ```
 
@@ -162,7 +163,7 @@ cube |>
        y = "Count") +
   facet_zoom(zoom.size = 0.5,
              ylim = c(0, 300),
-             xlim = c(10500,150000),
+             xlim = c(10500, 150000),
              horizontal = FALSE)
 ```
 
@@ -192,7 +193,7 @@ tar_read(range_comp_0) |>
 
 ```{r}
 tar_read(range_comp_1) |>
-filter(id_spat_res == "1km") |>
+  filter(id_spat_res == "1km") |>
   ggplot(aes(x = percentage_abv_data,
              y = percentage_birdflanders,
              color = category)) +
@@ -204,7 +205,7 @@ filter(id_spat_res == "1km") |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides( color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = "")))
 ```
 
 ### Filter 2
@@ -224,7 +225,7 @@ tar_read(range_comp_2) |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides( color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = "")))
 ```
 
 ##
@@ -249,7 +250,7 @@ tar_read(trend_comp_0) |>
 ### Filter 1
 ```{r}
 tar_read(trend_comp_1) |>
- filter(id_spat_res == "1km",
+  filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
@@ -291,7 +292,7 @@ tar_read(trend_comp_3) |>
 ### No filter
 ```{r}
 tar_read(trend_comp_0) |>
- filter(id_spat_res == "1km",
+  filter(id_spat_res == "1km",
          time_period == "cyclus") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
@@ -340,6 +341,3 @@ tar_read(trend_comp_3) |>
   labs(x = "Correlation",
        y = "Number of species")
 ```
-
-
-
