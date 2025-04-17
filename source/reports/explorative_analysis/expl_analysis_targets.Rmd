@@ -21,6 +21,9 @@ library(ggplot2)
 library(ggpubr)
 library(dplyr)
 library(ggforce)
+library(crosstalk)
+library(DT)
+library(plotly)
 ```
 
 ```{r consistent colors}
@@ -246,6 +249,17 @@ tar_read(trend_comp_0) |>
        y = "Number of species")
 ```
 
+```{r}
+tar_read(data) |> 
+  filter(species == "Motacilla flava",
+         id_spat_res == "1km") |>
+  group_by(species, id_dataset, year) |>
+  summarise(n = sum(n)) |>
+  ggplot(aes(x = year, y = n, color = id_dataset)) +
+  geom_point() +
+  geom_line()
+```
+
 ### Filter 1
 ```{r}
 tar_read(trend_comp_1) |>
@@ -259,6 +273,17 @@ tar_read(trend_comp_1) |>
        y = "Number of species")
 ```
 
+```{r}
+tar_read(filter1) |> 
+  filter(species == "Motacilla flava",
+         id_spat_res == "1km") |>
+  group_by(species, id_dataset, year) |>
+  summarise(n = sum(n)) |>
+  ggplot(aes(x = year, y = n, color = id_dataset)) +
+  geom_point() +
+  geom_line()
+```
+
 ### Filter 2
 ```{r}
 tar_read(trend_comp_2) |>
@@ -270,6 +295,18 @@ tar_read(trend_comp_2) |>
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
+```
+
+```{r}
+tar_read(filter2) |> 
+  filter(species == "Motacilla flava",
+         id_spat_res == "1km",
+         id_filter_per == "year") |>
+  group_by(species, id_dataset, year) |>
+  summarise(n = sum(n)) |>
+  ggplot(aes(x = year, y = n, color = id_dataset)) +
+  geom_point() +
+  geom_line()
 ```
 
 ### Filter 3
@@ -286,53 +323,167 @@ tar_read(trend_comp_3) |>
        y = "Number of species")
 ```
 
+```{r}
+tar_read(filter3) |> 
+  filter(species == "Motacilla flava",
+         id_spat_res == "1km",
+         id_filter_per == "year") |>
+  ggplot(aes(x = year, y = n, color = id_dataset)) +
+  geom_point() +
+  geom_line()
+```
+
+### Filter 4
+```{r}
+tar_read(trend_comp_4) |>
+  filter(id_spat_res == "1km",
+         time_period == "year",
+         id_filter_per == "year",
+         id_filter_per2 == "year") |>
+  ggplot(aes(x = correlation, fill = category)) +
+  geom_histogram() +
+  xlim(-1, 1) +
+  fillScale +
+  labs(x = "Correlation",
+       y = "Number of species")
+```
+
+```{r}
+tar_read(filter4) |> 
+  filter(species == "Motacilla flava",
+         id_spat_res == "1km",
+         id_filter_per == "year",
+         id_filter_per2 == "year") |>
+  ggplot(aes(x = year, y = n, color = id_dataset)) +
+  geom_point() +
+  geom_line()
+```
+
 ## Trend comparison with data aggregated per cyclus {.tabset}
 
 ### No filter
 ```{r}
-tar_read(trend_comp_0) |>
+trend_comp_0_cyclus <- tar_read(trend_comp_0) |>
  filter(id_spat_res == "1km",
-         time_period == "cyclus") |>
+         time_period == "cyclus")
+
+trend_comp_0_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
+```
+
+```{r}
+datatable(trend_comp_0_cyclus)
+```
+
+```{r}
+shared_filter0_cyclus <- SharedData$new(
+  tar_read(data) |> 
+    filter(id_spat_res == "1km") |>
+    group_by(species, id_dataset, cyclus) |>
+    summarise(n = sum(n)))
+
+
+bscols(widths = c(3,9),
+       filter_select("species", "Species",
+                     shared_filter0_cyclus,
+                     ~species,
+                     multiple = FALSE),
+       plot_ly(shared_filter0_cyclus,
+               x = ~cyclus,
+               y = ~n,
+               color = ~id_dataset) |> add_lines()
+)
 ```
 
 ### Filter 1
 ```{r}
-tar_read(trend_comp_1) |>
+trend_comp_1_cyclus <- tar_read(trend_comp_1) |>
   filter(id_spat_res == "1km",
-         time_period == "cyclus") |>
+         time_period == "cyclus") 
+
+trend_comp_1_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
+```
+
+```{r}
+datatable(trend_comp_1_cyclus)
+```
+
+```{r}
+shared_filter1_cyclus <- SharedData$new(
+  tar_read(filter1) |> 
+    filter(id_spat_res == "1km") |>
+    group_by(species, id_dataset, cyclus) |>
+    summarise(n = sum(n)))
+
+
+bscols(widths = c(3,9),
+       filter_select("species", "Species",
+                     shared_filter1_cyclus,
+                     ~species,
+                     multiple = FALSE),
+       plot_ly(shared_filter1_cyclus,
+               x = ~cyclus,
+               y = ~n,
+               color = ~id_dataset) |> add_lines()
+)
 ```
 
 ### Filter 2
 ```{r}
-tar_read(trend_comp_2) |>
+trend_comp_2_cyclus <- tar_read(trend_comp_2) |>
   filter(id_spat_res == "1km",
-         time_period == "cyclus") |>
+         time_period == "cyclus") 
+
+trend_comp_2_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
+```
+
+```{r}
+datatable(trend_comp_2_cyclus)
+```
+
+```{r}
+shared_filter2_cyclus <- SharedData$new(tar_read(filter2) |> 
+                                          filter(id_spat_res == "1km",
+                                                 id_filter_per == "cyclus"))
+
+
+bscols(widths = c(3,9),
+       filter_select("species", "Species",
+                     shared_filter2_cyclus,
+                     ~species,
+                     multiple = FALSE),
+       plot_ly(shared_filter2_cyclus,
+               x = ~cyclus,
+               y = ~n,
+               color = ~id_dataset) |> add_lines()
+)
 ```
 
 ### Filter 3
 ```{r}
-tar_read(trend_comp_3) |>
+trend_comp_3_cyclus <- tar_read(trend_comp_3) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
-         id_filter_per == "cyclus") |>
+         id_filter_per == "cyclus") 
+
+trend_comp_3_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
@@ -341,5 +492,65 @@ tar_read(trend_comp_3) |>
        y = "Number of species")
 ```
 
+```{r}
+datatable(trend_comp_3_cyclus)
+```
 
+```{r}
+shared_filter3_cyclus <- SharedData$new(tar_read(filter3) |> 
+                                          filter(id_spat_res == "1km",
+                                                 id_filter_per == "cyclus"))
+
+
+bscols(widths = c(3,9),
+       filter_select("species", "Species",
+                     shared_filter3_cyclus,
+                     ~species,
+                     multiple = FALSE),
+       plot_ly(shared_filter3_cyclus,
+               x = ~cyclus,
+               y = ~n,
+               color = ~id_dataset) |> add_lines()
+)
+```
+
+### Filter 4
+```{r}
+trend_comp_4_cyclus <- tar_read(trend_comp_4) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus",
+         id_filter_per == "cyclus",
+         id_filter_per2 == "cyclus")
+
+trend_comp_4_cyclus  |>
+  ggplot(aes(x = correlation, fill = category)) +
+  geom_histogram() +
+  xlim(-1, 1) +
+  fillScale +
+  labs(x = "Correlation",
+       y = "Number of species")
+```
+
+```{r}
+datatable(trend_comp_4_cyclus )
+```
+
+```{r}
+shared_filter4_cyclus <- SharedData$new(tar_read(filter4) |> 
+                                          filter(id_spat_res == "1km",
+                                                 id_filter_per == "cyclus",
+                                                 id_filter_per2 == "cyclus"))
+
+
+bscols(widths = c(3,9),
+       filter_select("species", "Species",
+                     shared_filter4_cyclus,
+                     ~species,
+                     multiple = FALSE),
+       plot_ly(shared_filter4_cyclus,
+               x = ~cyclus,
+               y = ~n,
+               color = ~id_dataset) |> add_lines()
+)
+```
 
