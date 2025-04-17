@@ -78,6 +78,11 @@ list(
     pattern = cross(data, time_period)
   ),
   tar_target(
+    filter4,
+    filter_3(filter2, time_period),
+    pattern = cross(filter2, time_period)
+  ),
+  tar_target(
     range_comp_0,
     range_comp(data)
   ),
@@ -107,6 +112,11 @@ list(
   tar_target(
     trend_comp_3,
     trend_comp(filter3, time_period),
+    pattern = map(time_period)
+  ),
+  tar_target(
+    trend_comp_4,
+    trend_comp(filter4, time_period),
     pattern = map(time_period)
   )
 )

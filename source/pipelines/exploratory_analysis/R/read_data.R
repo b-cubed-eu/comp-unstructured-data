@@ -81,8 +81,15 @@ filter_3 <- function(data, time_period = "year"){
     group_by(!!sym(time_period)) |>
     mutate(total_obs = sum(n)) |>
     ungroup() |>
-    mutate(n = n/total_obs)|>
-    mutate(id_filter_per = time_period)
+    mutate(n = n/total_obs)
+
+  if("id_filter_per" %in% colnames(data))
+  {
+    output$id_filter_per <- data$id_filter_per[1]
+    output$id_filter_per2 <- time_period
+  } else {
+    output$id_filter_per <- time_period
+  }
 
   return(output)
 }
