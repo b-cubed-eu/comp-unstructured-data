@@ -8,6 +8,8 @@ output:
     toc: true
     toc_float: true
     toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE}
@@ -238,7 +240,7 @@ Given the limitations of the ABV monitoring setup we can't compare exact pattern
 
 ### No filter
 ```{r}
-tar_read(trend_comp_0) |>
+p0 <- tar_read(trend_comp_0) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
@@ -247,22 +249,13 @@ tar_read(trend_comp_0) |>
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
 
-```{r}
-tar_read(data) |> 
-  filter(species == "Motacilla flava",
-         id_spat_res == "1km") |>
-  group_by(species, id_dataset, year) |>
-  summarise(n = sum(n)) |>
-  ggplot(aes(x = year, y = n, color = id_dataset)) +
-  geom_point() +
-  geom_line()
+p0
 ```
 
 ### Filter 1
 ```{r}
-tar_read(trend_comp_1) |>
+p1 <- tar_read(trend_comp_1) |>
  filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
@@ -271,22 +264,13 @@ tar_read(trend_comp_1) |>
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
 
-```{r}
-tar_read(filter1) |> 
-  filter(species == "Motacilla flava",
-         id_spat_res == "1km") |>
-  group_by(species, id_dataset, year) |>
-  summarise(n = sum(n)) |>
-  ggplot(aes(x = year, y = n, color = id_dataset)) +
-  geom_point() +
-  geom_line()
+p1
 ```
 
 ### Filter 2
 ```{r}
-tar_read(trend_comp_2) |>
+p2 <- tar_read(trend_comp_2) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
@@ -295,23 +279,13 @@ tar_read(trend_comp_2) |>
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
 
-```{r}
-tar_read(filter2) |> 
-  filter(species == "Motacilla flava",
-         id_spat_res == "1km",
-         id_filter_per == "year") |>
-  group_by(species, id_dataset, year) |>
-  summarise(n = sum(n)) |>
-  ggplot(aes(x = year, y = n, color = id_dataset)) +
-  geom_point() +
-  geom_line()
+p2
 ```
 
 ### Filter 3
 ```{r}
-tar_read(trend_comp_3) |>
+p3 <- tar_read(trend_comp_3) |>
   filter(id_spat_res == "1km",
          time_period == "year",
          id_filter_per == "year") |>
@@ -321,21 +295,11 @@ tar_read(trend_comp_3) |>
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
-
-```{r}
-tar_read(filter3) |> 
-  filter(species == "Motacilla flava",
-         id_spat_res == "1km",
-         id_filter_per == "year") |>
-  ggplot(aes(x = year, y = n, color = id_dataset)) +
-  geom_point() +
-  geom_line()
 ```
 
 ### Filter 4
 ```{r}
-tar_read(trend_comp_4) |>
+p4 <- tar_read(trend_comp_4) |>
   filter(id_spat_res == "1km",
          time_period == "year",
          id_filter_per == "year",
@@ -348,18 +312,41 @@ tar_read(trend_comp_4) |>
        y = "Number of species")
 ```
 
-```{r}
-tar_read(filter4) |> 
-  filter(species == "Motacilla flava",
-         id_spat_res == "1km",
-         id_filter_per == "year",
-         id_filter_per2 == "year") |>
-  ggplot(aes(x = year, y = n, color = id_dataset)) +
-  geom_point() +
-  geom_line()
+##
+
+```{r, include=FALSE}
+library(cowplot)
+
+middle_row <- plot_grid(p1 + theme(legend.position="none"),
+                        p2 + theme(legend.position="none"),
+                        labels = c('B', 'C'),
+                        label_size = 12)
+
+bottom_row <- plot_grid(p3 + theme(legend.position="none"),
+                        p4 + theme(legend.position="none"),
+                        labels = c('D', 'E'),
+                        label_size = 12)
+
+plot_grid(p0,
+          middle_row,
+          bottom_row,
+          nrow = 3,
+          labels = c('A', '', ''),
+          label_size = 12)
 ```
 
 ## Trend comparison with data aggregated per cyclus {.tabset}
+
+```{r}
+species_list_cor <- c("Motacilla flava", "Sylvia communis", "Motacilla alba",
+                      "Cyanistes caeruleus", "Passer domesticus", "Prunella modularis",
+                      "Parus montanus", "Chloris chloris", "Anthus trivialis")
+```
+
+We include the trends of nine species:
+ - Three have a strong positive correlation: **Parus montanus**, **Chloris chloris** and **Anthus trivialis**
+ - Three have a almost zero correlation: **Cyanistes caeruleus**, **Passer domesticus** and **Prunella modularis**
+ - Three have a strong negative correlation: **Motacilla flava**, **Sylvia communis** and **Motacilla alba**
 
 ### No filter
 ```{r}
@@ -367,23 +354,22 @@ trend_comp_0_cyclus <- tar_read(trend_comp_0) |>
  filter(id_spat_res == "1km",
          time_period == "cyclus")
 
-trend_comp_0_cyclus |>
+p0 <- trend_comp_0_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
 
-```{r}
-datatable(trend_comp_0_cyclus)
+p0
 ```
 
 ```{r}
 shared_filter0_cyclus <- SharedData$new(
   tar_read(data) |> 
-    filter(id_spat_res == "1km") |>
+    filter(species %in% species_list_cor,
+           id_spat_res == "1km") |>
     group_by(species, id_dataset, cyclus) |>
     summarise(n = sum(n)))
 
@@ -406,23 +392,22 @@ trend_comp_1_cyclus <- tar_read(trend_comp_1) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus") 
 
-trend_comp_1_cyclus |>
+p1 <- trend_comp_1_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
 
-```{r}
-datatable(trend_comp_1_cyclus)
+p1
 ```
 
 ```{r}
 shared_filter1_cyclus <- SharedData$new(
   tar_read(filter1) |> 
-    filter(id_spat_res == "1km") |>
+    filter(species %in% species_list_cor,
+           id_spat_res == "1km") |>
     group_by(species, id_dataset, cyclus) |>
     summarise(n = sum(n)))
 
@@ -445,23 +430,25 @@ trend_comp_2_cyclus <- tar_read(trend_comp_2) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus") 
 
-trend_comp_2_cyclus |>
+p2 <- trend_comp_2_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
+
+p2
 ```
 
 ```{r}
-datatable(trend_comp_2_cyclus)
-```
-
-```{r}
-shared_filter2_cyclus <- SharedData$new(tar_read(filter2) |> 
-                                          filter(id_spat_res == "1km",
-                                                 id_filter_per == "cyclus"))
+shared_filter2_cyclus <- SharedData$new(
+  tar_read(filter2) |> 
+    filter(species %in% species_list_cor,
+           id_spat_res == "1km",
+           id_filter_per == "cyclus") |>
+  group_by(species, id_dataset, cyclus) |>
+  summarise(n = sum(n)))
 
 
 bscols(widths = c(3,9),
@@ -483,22 +470,21 @@ trend_comp_3_cyclus <- tar_read(trend_comp_3) |>
          time_period == "cyclus",
          id_filter_per == "cyclus") 
 
-trend_comp_3_cyclus |>
+p3 <- trend_comp_3_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
 
-```{r}
-datatable(trend_comp_3_cyclus)
+p3
 ```
 
 ```{r}
 shared_filter3_cyclus <- SharedData$new(tar_read(filter3) |> 
-                                          filter(id_spat_res == "1km",
+                                          filter(species %in% species_list_cor,
+                                                 id_spat_res == "1km",
                                                  id_filter_per == "cyclus"))
 
 
@@ -522,22 +508,21 @@ trend_comp_4_cyclus <- tar_read(trend_comp_4) |>
          id_filter_per == "cyclus",
          id_filter_per2 == "cyclus")
 
-trend_comp_4_cyclus  |>
+p4 <- trend_comp_4_cyclus  |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
   fillScale +
   labs(x = "Correlation",
        y = "Number of species")
-```
 
-```{r}
-datatable(trend_comp_4_cyclus )
+p4
 ```
 
 ```{r}
 shared_filter4_cyclus <- SharedData$new(tar_read(filter4) |> 
-                                          filter(id_spat_res == "1km",
+                                          filter(species %in% species_list_cor,
+                                                 id_spat_res == "1km",
                                                  id_filter_per == "cyclus",
                                                  id_filter_per2 == "cyclus"))
 
@@ -552,5 +537,28 @@ bscols(widths = c(3,9),
                y = ~n,
                color = ~id_dataset) |> add_lines()
 )
+```
+
+##
+
+```{r, include=FALSE}
+library(cowplot)
+
+middle_row <- plot_grid(p1 + theme(legend.position="none"),
+                        p2 + theme(legend.position="none"),
+                        labels = c('B', 'C'),
+                        label_size = 12)
+
+bottom_row <- plot_grid(p3 + theme(legend.position="none"),
+                        p4 + theme(legend.position="none"),
+                        labels = c('D', 'E'),
+                        label_size = 12)
+
+plot_grid(p0,
+          middle_row,
+          bottom_row,
+          nrow = 3,
+          labels = c('A', '', ''),
+          label_size = 12)
 ```
 
