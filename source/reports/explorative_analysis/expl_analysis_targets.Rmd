@@ -545,13 +545,13 @@ bscols(widths = c(3,9),
 ```{r, include=FALSE}
 library(cowplot)
 
-middle_row <- plot_grid(p1 + theme(legend.position="none"),
-                        p2 + theme(legend.position="none"),
+middle_row <- plot_grid(p1 + theme(legend.position = "none"),
+                        p2 + theme(legend.position = "none"),
                         labels = c('B', 'C'),
                         label_size = 12)
 
-bottom_row <- plot_grid(p3 + theme(legend.position="none"),
-                        p4 + theme(legend.position="none"),
+bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
+                        p4 + theme(legend.position = "none"),
                         labels = c('D', 'E'),
                         label_size = 12)
 
