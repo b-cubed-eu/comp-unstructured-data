@@ -1,5 +1,5 @@
 ---
-title: "Explorative analysis from targets pipeline"
+title: "Exploratory analysis from targets pipeline"
 author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
 date: "`r Sys.Date()`" 
 output:
@@ -31,13 +31,13 @@ library(plotly)
 ```{r consistent colors}
 # Create a custom color scale
 library(RColorBrewer)
-myColors <- brewer.pal(5, "Dark2")
-names(myColors) <- c("Very rare", "Rare", "Common",
-                     "Very common", "Extremely common")
-colScale <- scale_color_manual(name = "Category",
-                               values = myColors)
-fillScale <- scale_fill_manual(name = "Category",
-                               values = myColors)
+my_colors <- brewer.pal(5, "Dark2")
+names(my_colors) <- c("Very rare", "Rare", "Common",
+                      "Very common", "Extremely common")
+col_scale <- scale_color_manual(name = "Category",
+                                values = my_colors)
+fill_scale <- scale_fill_manual(name = "Category",
+                                values = my_colors)
 ```
 
 In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar ranges and trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
@@ -182,7 +182,7 @@ tar_read(range_comp_0) |>
              y = percentage_birdflanders,
              color = category)) +
   geom_point() +
-  colScale +
+  col_scale +
   stat_cor(mapping = aes(color = NULL),
            label.x.npc = "centre",
            label.y.npc = "bottom",
@@ -201,7 +201,7 @@ tar_read(range_comp_1) |>
              y = percentage_birdflanders,
              color = category)) +
   geom_point() +
-  colScale +
+  col_scale +
   stat_cor(mapping = aes(color = NULL),
            label.x.npc = "centre",
            label.y.npc = "bottom",
@@ -221,7 +221,7 @@ tar_read(range_comp_2) |>
              y = percentage_birdflanders,
              color = category)) +
   geom_point() +
-  colScale +
+  col_scale +
   stat_cor(mapping = aes(color = NULL),
            label.x.npc = "centre",
            label.y.npc = "bottom",
@@ -245,7 +245,7 @@ p0 <- tar_read(trend_comp_0) |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -255,12 +255,12 @@ p0
 ### Filter 1
 ```{r}
 p1 <- tar_read(trend_comp_1) |>
- filter(id_spat_res == "1km",
+  filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -275,7 +275,7 @@ p2 <- tar_read(trend_comp_2) |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -291,7 +291,7 @@ p3 <- tar_read(trend_comp_3) |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 ```
@@ -306,7 +306,7 @@ p4 <- tar_read(trend_comp_4) |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 ```
@@ -316,30 +316,31 @@ p4 <- tar_read(trend_comp_4) |>
 ```{r, include=FALSE}
 library(cowplot)
 
-middle_row <- plot_grid(p1 + theme(legend.position="none"),
-                        p2 + theme(legend.position="none"),
-                        labels = c('B', 'C'),
+middle_row <- plot_grid(p1 + theme(legend.position = "none"),
+                        p2 + theme(legend.position = "none"),
+                        labels = c("B", "C"),
                         label_size = 12)
 
-bottom_row <- plot_grid(p3 + theme(legend.position="none"),
-                        p4 + theme(legend.position="none"),
-                        labels = c('D', 'E'),
+bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
+                        p4 + theme(legend.position = "none"),
+                        labels = c("D", "E"),
                         label_size = 12)
 
 plot_grid(p0,
           middle_row,
           bottom_row,
           nrow = 3,
-          labels = c('A', '', ''),
+          labels = c("A", "", ""),
           label_size = 12)
 ```
 
-## Trend comparison with data aggregated per cyclus {.tabset}
+## Trend comparison with data aggregated per cycle {.tabset}
 
 ```{r}
 species_list_cor <- c("Motacilla flava", "Sylvia communis", "Motacilla alba",
-                      "Cyanistes caeruleus", "Passer domesticus", "Prunella modularis",
-                      "Parus montanus", "Chloris chloris", "Anthus trivialis")
+                      "Cyanistes caeruleus", "Passer domesticus",
+                      "Prunella modularis", "Parus montanus", "Chloris chloris",
+                      "Anthus trivialis")
 ```
 
 We include the trends of nine species:
@@ -350,14 +351,14 @@ We include the trends of nine species:
 ### No filter
 ```{r}
 trend_comp_0_cyclus <- tar_read(trend_comp_0) |>
- filter(id_spat_res == "1km",
+  filter(id_spat_res == "1km",
          time_period == "cyclus")
 
 p0 <- trend_comp_0_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -366,22 +367,24 @@ p0
 
 ```{r}
 shared_filter0_cyclus <- SharedData$new(
-  tar_read(data) |> 
+  tar_read(data) |>
     filter(species %in% species_list_cor,
            id_spat_res == "1km") |>
     group_by(species, id_dataset, cyclus) |>
-    summarise(n = sum(n)))
+    summarise(n = sum(n))
+)
 
 
-bscols(widths = c(3,9),
-       filter_select("species", "Species",
-                     shared_filter0_cyclus,
-                     ~species,
-                     multiple = FALSE),
-       plot_ly(shared_filter0_cyclus,
-               x = ~cyclus,
-               y = ~n,
-               color = ~id_dataset) |> add_lines()
+bscols(
+  widths = c(3, 9),
+  filter_select("species", "Species",
+                shared_filter0_cyclus,
+                ~species,
+                multiple = FALSE),
+  plot_ly(shared_filter0_cyclus,
+          x = ~cyclus,
+          y = ~n,
+          color = ~id_dataset) |> add_lines()
 )
 ```
 
@@ -389,13 +392,13 @@ bscols(widths = c(3,9),
 ```{r}
 trend_comp_1_cyclus <- tar_read(trend_comp_1) |>
   filter(id_spat_res == "1km",
-         time_period == "cyclus") 
+         time_period == "cyclus")
 
 p1 <- trend_comp_1_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -404,22 +407,25 @@ p1
 
 ```{r}
 shared_filter1_cyclus <- SharedData$new(
-  tar_read(filter1) |> 
+  tar_read(filter1) |>
     filter(species %in% species_list_cor,
            id_spat_res == "1km") |>
     group_by(species, id_dataset, cyclus) |>
-    summarise(n = sum(n)))
+    summarise(n = sum(n))
+)
 
 
-bscols(widths = c(3,9),
-       filter_select("species", "Species",
-                     shared_filter1_cyclus,
-                     ~species,
-                     multiple = FALSE),
-       plot_ly(shared_filter1_cyclus,
-               x = ~cyclus,
-               y = ~n,
-               color = ~id_dataset) |> add_lines()
+bscols(
+  widths = c(3, 9),
+  filter_select("species", "Species",
+                shared_filter1_cyclus,
+                ~species,
+                multiple = FALSE),
+  plot_ly(shared_filter1_cyclus,
+          x = ~cyclus,
+          y = ~n,
+          color = ~id_dataset) |>
+    add_lines()
 )
 ```
 
@@ -427,13 +433,13 @@ bscols(widths = c(3,9),
 ```{r}
 trend_comp_2_cyclus <- tar_read(trend_comp_2) |>
   filter(id_spat_res == "1km",
-         time_period == "cyclus") 
+         time_period == "cyclus")
 
 p2 <- trend_comp_2_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -442,23 +448,25 @@ p2
 
 ```{r}
 shared_filter2_cyclus <- SharedData$new(
-  tar_read(filter2) |> 
+  tar_read(filter2) |>
     filter(species %in% species_list_cor,
            id_spat_res == "1km",
            id_filter_per == "cyclus") |>
-  group_by(species, id_dataset, cyclus) |>
-  summarise(n = sum(n)))
+    group_by(species, id_dataset, cyclus) |>
+    summarise(n = sum(n))
+)
 
 
-bscols(widths = c(3,9),
-       filter_select("species", "Species",
-                     shared_filter2_cyclus,
-                     ~species,
-                     multiple = FALSE),
-       plot_ly(shared_filter2_cyclus,
-               x = ~cyclus,
-               y = ~n,
-               color = ~id_dataset) |> add_lines()
+bscols(
+  widths = c(3, 9),
+  filter_select("species", "Species",
+                shared_filter2_cyclus,
+                ~species,
+                multiple = FALSE),
+  plot_ly(shared_filter2_cyclus,
+          x = ~cyclus,
+          y = ~n,
+          color = ~id_dataset) |> add_lines()
 )
 ```
 
@@ -467,13 +475,13 @@ bscols(widths = c(3,9),
 trend_comp_3_cyclus <- tar_read(trend_comp_3) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
-         id_filter_per == "cyclus") 
+         id_filter_per == "cyclus")
 
 p3 <- trend_comp_3_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -483,21 +491,22 @@ p3
 =======
 
 ```{r}
-shared_filter3_cyclus <- SharedData$new(tar_read(filter3) |> 
+shared_filter3_cyclus <- SharedData$new(tar_read(filter3) |>
                                           filter(species %in% species_list_cor,
                                                  id_spat_res == "1km",
                                                  id_filter_per == "cyclus"))
 
 
-bscols(widths = c(3,9),
-       filter_select("species", "Species",
-                     shared_filter3_cyclus,
-                     ~species,
-                     multiple = FALSE),
-       plot_ly(shared_filter3_cyclus,
-               x = ~cyclus,
-               y = ~n,
-               color = ~id_dataset) |> add_lines()
+bscols(
+  widths = c(3, 9),
+  filter_select("species", "Species",
+                shared_filter3_cyclus,
+                ~species,
+                multiple = FALSE),
+  plot_ly(shared_filter3_cyclus,
+          x = ~cyclus,
+          y = ~n,
+          color = ~id_dataset) |> add_lines()
 )
 ```
 
@@ -513,7 +522,7 @@ p4 <- trend_comp_4_cyclus  |>
   ggplot(aes(x = correlation, fill = category)) +
   geom_histogram() +
   xlim(-1, 1) +
-  fillScale +
+  fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
 
@@ -521,22 +530,23 @@ p4
 ```
 
 ```{r}
-shared_filter4_cyclus <- SharedData$new(tar_read(filter4) |> 
+shared_filter4_cyclus <- SharedData$new(tar_read(filter4) |>
                                           filter(species %in% species_list_cor,
                                                  id_spat_res == "1km",
                                                  id_filter_per == "cyclus",
                                                  id_filter_per2 == "cyclus"))
 
 
-bscols(widths = c(3,9),
-       filter_select("species", "Species",
-                     shared_filter4_cyclus,
-                     ~species,
-                     multiple = FALSE),
-       plot_ly(shared_filter4_cyclus,
-               x = ~cyclus,
-               y = ~n,
-               color = ~id_dataset) |> add_lines()
+bscols(
+  widths = c(3, 9),
+  filter_select("species", "Species",
+                shared_filter4_cyclus,
+                ~species,
+                multiple = FALSE),
+  plot_ly(shared_filter4_cyclus,
+          x = ~cyclus,
+          y = ~n,
+          color = ~id_dataset) |> add_lines()
 )
 ```
 
@@ -547,18 +557,18 @@ library(cowplot)
 
 middle_row <- plot_grid(p1 + theme(legend.position = "none"),
                         p2 + theme(legend.position = "none"),
-                        labels = c('B', 'C'),
+                        labels = c("B", "C"),
                         label_size = 12)
 
 bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
                         p4 + theme(legend.position = "none"),
-                        labels = c('D', 'E'),
+                        labels = c("D", "E"),
                         label_size = 12)
 
 plot_grid(p0,
           middle_row,
           bottom_row,
           nrow = 3,
-          labels = c('A', '', ''),
+          labels = c("A", "", ""),
           label_size = 12)
 ```

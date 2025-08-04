@@ -199,9 +199,9 @@ utm_grid %>%
               summarise(n_species = n_distinct(species), .groups = "drop"),
             by = join_by(mgrscode)) %>%
   ggplot() +
-    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
-    scale_fill_viridis_c(option = "inferno") +
-    ggtitle("ABV data")
+  geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
+  scale_fill_viridis_c(option = "inferno") +
+  ggtitle("ABV data")
 ```
 
 We select cube data from Flanders and add the geometry to the data layers by taking an inner join.
@@ -221,9 +221,9 @@ utm_grid %>%
               summarise(n_species = n_distinct(species), .groups = "drop"),
             by = join_by(mgrscode)) %>%
   ggplot() +
-    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
-    scale_fill_viridis_c(option = "inferno") +
-    ggtitle("Bird cube data from Flanders")
+  geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
+  scale_fill_viridis_c(option = "inferno") +
+  ggtitle("Bird cube data from Flanders")
 ```
 
 # Correction of species names
@@ -236,11 +236,13 @@ abv_data_total_sf <- abv_data_total_sf %>%
     species = case_when(
       species == "Dendrocopus major" ~ "Dendrocopos major",
       species == "Saxicola torquatus" ~ "Saxicola rubicola",
-      TRUE ~ species),
+      TRUE ~ species
+    ),
     specieskey = case_when(
       species == "Dendrocopos major" ~ 2477968,
       species == "Saxicola rubicola" ~ 4408759,
-      TRUE ~ specieskey)
+      TRUE ~ specieskey
+    )
   )
 ```
 
@@ -249,10 +251,12 @@ birdcube_data_total_sf <- birdcube_data_total_sf %>%
   mutate(
     species = case_when(
       species == "Poecile montanus" ~ "Parus montanus",
-      TRUE ~ species),
+      TRUE ~ species
+    ),
     specieskey = case_when(
       species == "Parus montanus" ~ 4409010,
-      TRUE ~ specieskey)
+      TRUE ~ specieskey
+    )
   )
 ```
 

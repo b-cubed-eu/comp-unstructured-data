@@ -12,7 +12,7 @@ output:
 
 # Introduction
 
-In this document we compare a selection of B-cubed biodiversity indicators between actual cube data and data from structured monitoring. For more information on both datasets check the *Explorative analysis from targets pipeline* html.
+In this document we compare a selection of B-cubed biodiversity indicators between actual cube data and data from structured monitoring. For more information on both datasets check the *Exploratory analysis from targets pipeline* html.
 
 ```{r setup, include = FALSE}
 library(knitr)

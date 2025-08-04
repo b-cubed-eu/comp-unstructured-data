@@ -1,9 +1,11 @@
 path_to_interim <- function(path_to_data, dataset, spat_res) {
-  file = paste0(dataset, "_cube_", spat_res, ".csv")
+  file <- paste0(dataset, "_cube_", spat_res, ".csv")
   file.path(path_to_data, "interim", file)
 }
 
-read_andid <- function(data_file, dataset, spat_res){
+read_andid <- function(data_file, dataset, spat_res) {
+  require("dplyr")
+
   data <- read.csv(data_file)
 
   output <- data |>
@@ -13,7 +15,9 @@ read_andid <- function(data_file, dataset, spat_res){
   return(output)
 }
 
-add_cyclus <- function(data){
+add_cyclus <- function(data) {
+  require("dplyr")
+
   output <- data |>
     mutate(cyclus = case_when(
       year >= 2007 & year <= 2009 ~ 1,
@@ -22,52 +26,64 @@ add_cyclus <- function(data){
       year >= 2016 & year <= 2018 ~ 4,
       year >= 2019 & year <= 2021 ~ 5,
       year >= 2022 & year <= 2024 ~ 6
-  ))
+    ))
 
   return(output)
 }
 
 
-filter_1 <- function(data){
+filter_1 <- function(data) {
+  require("dplyr")
+
   abv_birds <- read.csv("./data/interim/abv_birds.csv")
 
   output <- data |>
-    filter(species %in% abv_birds$species)
+    filter(.data$species %in% abv_birds$species)
+
+  return(output)
 }
 
 #' Rules (loosely based on ABV):
-#' 1) A square is only relevant is the species was observed in more than one time period
+#' 1) A square is only relevant is the species was observed in
+#' more than one time period
 #' 2) A minimum of three relevant squares to include the species
 #' 3) A minimum of a hundred observations to include the species
 
-filter_2 <- function(data, time_period = "year"){
+filter_2 <- function(data, time_period = "year") {
+  require("dplyr")
+
   output <- data |>
-    group_by(mgrscode, species) |>
+    group_by(.data$mgrscode, .data$species) |>
     mutate(periods = n_distinct(!!sym(time_period))) |>
     ungroup() |>
-    filter(periods > 1) |>
-    group_by(species) |>
-    mutate(squares = n_distinct(mgrscode)) |>
+    filter(.data$periods > 1) |>
+    group_by(.data$species) |>
+    mutate(squares = n_distinct(.data$mgrscode)) |>
     ungroup() |>
-    filter(squares > 2) |>
-    group_by(species) |>
+    filter(.data$squares > 2) |>
+    group_by(.data$species) |>
     mutate(obs = n()) |>
     ungroup() |>
-    filter(obs > 100) |>
+    filter(.data$obs > 100) |>
     mutate(id_filter_per = time_period)
 
   return(output)
 }
 
-filter_3 <- function(data, time_period = "year"){
+filter_3 <- function(data, time_period = "year") {
+  require("dplyr")
+
   output <- data |>
-    group_by(id_dataset, id_spat_res, species, !!sym(time_period)) |>
+    group_by(.data$id_dataset,
+             .data$id_spat_res,
+             .data$species,
+             !!sym(time_period)) |>
     summarise(n = sum(n)) |>
     ungroup() |>
     group_by(!!sym(time_period)) |>
     mutate(total_obs = sum(n)) |>
     ungroup() |>
-    mutate(n = n/total_obs)|>
+    mutate(n = .data$n / .data$total_obs) |>
     mutate(id_filter_per = time_period)
 
   return(output)

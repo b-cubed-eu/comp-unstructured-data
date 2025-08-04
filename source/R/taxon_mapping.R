@@ -85,7 +85,8 @@ match_vernacular_name <- function(
       c(list(vernacular_name),
         list(datasetKey = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c"),
         list(limit = limit),
-        dots))
+        dots)
+    )
 
     # Return taxon data frame if match found
     if (nrow(gbif_lookup$data) > 0) {
@@ -135,7 +136,7 @@ match_vernacular_name <- function(
     # Return NA if no good match found
     if (is.na(taxon_key)) {
       return(NA_character_)
-    # Return match with taxon key
+      # Return match with taxon key
     } else {
       out_data <- taxon_data[taxon_data$key == taxon_key, ]
       out_data <- out_data[, colSums(is.na(out_data)) < nrow(out_data)]
@@ -171,13 +172,16 @@ map_taxa_from_vernacular <- function(
     nest(match_df = all_of(c(vernacular_name_col, group_cols))) %>%
 
     # find scientific name for each (distinct) vernacular name
-    mutate(taxon_df = purrr::map(
-      .data$match_df,
-      match_vernacular_name,
-      filter_cols = filter_cols,
-      lang = lang,
-      increment = increment,
-      ...)) %>%
+    mutate(
+      taxon_df = purrr::map(
+        .data$match_df,
+        match_vernacular_name,
+        filter_cols = filter_cols,
+        lang = lang,
+        increment = increment,
+        ...
+      )
+    ) %>%
     unnest("match_df") %>%
 
     # Remove unneeded columns
@@ -200,9 +204,10 @@ map_taxa_from_vernacular <- function(
     ungroup() %>%
 
     # Add other columns from input df
-    right_join(vernacular_name_df,
-               by = c(vernacular_name_col, group_cols)
-               ) %>%
+    right_join(
+      vernacular_name_df,
+      by = c(vernacular_name_col, group_cols)
+    ) %>%
 
     # Set desired column(s) at the right side
     select(all_of(names(vernacular_name_df)), all_of(out_cols)) %>%

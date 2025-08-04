@@ -4,9 +4,7 @@ library(targets)
 
 # Set target options:
 tar_option_set(
-  packages = c(
-               "tidyverse"
-               ),
+  packages = c("tidyverse"),
   format = "qs" # Optionally set the default storage format. qs is fast.
 )
 
@@ -21,7 +19,8 @@ tar_config_set(
                     "_targets/"),
   config = "_targets.yaml",
   project = "exploratory_analysis",
-  use_crew = TRUE)
+  use_crew = TRUE
+)
 
 # Run the R scripts in the R/ folder with our custom functions:
 tar_source(file.path(targets_project_dir, "exploratory_analysis", "R"))
@@ -120,4 +119,3 @@ list(
     pattern = map(time_period)
   )
 )
-
