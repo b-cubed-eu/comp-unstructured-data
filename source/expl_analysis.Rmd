@@ -33,10 +33,10 @@ conflicted::conflicts_prefer(dplyr::filter)
 
 ```{r data, cache=TRUE}
 birdcubeflanders_year_sf <- read_sf(here::here("data", "interim",
-                                            "birdcubeflanders_year.gpkg"))
+                                               "birdcubeflanders_year.gpkg"))
 
 abv_data_total_sf <- read_sf(here::here("data", "interim",
-                                            "abv_data_total.gpkg"))
+                                        "abv_data_total.gpkg"))
 ```
 
 We noticed some problems with species names: *Poecile montanus* and *Parus montanus*, *Dendrocopus major* and *Dendrocopos major* both refer to the same species. Since both species names are accepted names in GBIF we need to manually correct this (an issue was made for this with GBIF). *Saxicola torquatus* is most likely a wrong name and needs to be replaced with *Saxicola rubicola* (an issue was also opened for this with the data publisher of the ABV data).
@@ -96,9 +96,9 @@ The ABV dataset, which stands for Algemene Broedvogelmonitoring Vlaanderen (Comm
 
 ```{r}
 summary(abv_data_total[, c("individualCount",
-                          "eventDate",
-                          "year",
-                          "month")])
+                           "eventDate",
+                           "year",
+                           "month")])
 ```
 
 ```{r}
@@ -250,9 +250,10 @@ range_comp <- function(period = 2007:2022,
 
   overlap_all_abv_cube <- length(
     which(set_cube$TAG %in% unique(abv_data_total$TAG))
-    )
+  )
   perc_overlap_all <- (
-    overlap_all_abv_cube / length(unique(dataset1$TAG))) * 100
+    overlap_all_abv_cube / length(unique(dataset1$TAG))
+  ) * 100
 
   total_overlap <- length(which(set_cube$TAG %in% set_abv$TAG))
   perc <- (total_overlap / total_abv) * 100
@@ -294,7 +295,7 @@ for (i in studied_spec){
 ```{r}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(studied_spec == species)) |>
+             by = join_by(studied_spec == species)) |>
   DT::datatable() |>
   DT::formatRound(columns = c("perc_abv_total_abv",
                               "perc_cube_total_cube",
@@ -309,7 +310,7 @@ Overall we see an overlap of `r round(mean(comp_range_data$percentage_birdcube_s
 ```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(studied_spec == species)) |>
+             by = join_by(studied_spec == species)) |>
   ggplot(aes(x = perc_abv_total_abv, y = perc_birdcube_total_abv,
              color = category)) +
   geom_point() +
@@ -326,7 +327,7 @@ If we look at the graph it appears that for the subset of ABV squares the number
 ```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(studied_spec == species)) |>
+             by = join_by(studied_spec == species)) |>
   ggplot(aes(x = perc_abv_total_abv, y = perc_cube_total_cube,
              color = category)) +
   geom_point() +
@@ -341,17 +342,19 @@ comp_range_data |>
 ```{r, message=FALSE}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(studied_spec == species)) |>
+             by = join_by(studied_spec == species)) |>
   plot_ly(x = ~perc_abv_total_abv,
           y = ~perc_cube_total_cube,
           color = ~category,
           text = ~studied_spec) |>
   plotly::layout(
     xaxis = list(
-      title = "Percentage of ABV squares occupied\nby species in ABV dataset"),
+      title = "Percentage of ABV squares occupied\nby species in ABV dataset"
+    ),
     yaxis = list(
-      title = "Percentage of cube squares occupied\nby species in cube dataset")
+      title = "Percentage of cube squares occupied\nby species in cube dataset"
     )
+  )
 ```
 
 If we look at the graph it appears that the number of squares in which a species is observed in the ABV is correlated to the number of squares in which a species is observed in the cube. The outliers appear to be either gulls or invasive species, seeming to indicate an effect of specific datasets.
@@ -359,7 +362,7 @@ If we look at the graph it appears that the number of squares in which a species
 ```{r}
 comp_range_data |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(studied_spec == species)) |>
+             by = join_by(studied_spec == species)) |>
   filter(category %in% c("Common", "Very common", "Extremely common")) |>
   ggplot(aes(x = perc_abv_total_abv, y = perc_cube_total_cube,
              color = category)) +
@@ -408,7 +411,7 @@ for (cycle_start in cycle_starts) {
 ```{r, message=FALSE}
 comp_range_data2 |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(studied_spec == species)) |>
+             by = join_by(studied_spec == species)) |>
   ggplot(aes(x = perc_abv_total_abv, y = perc_cube_total_cube,
              color = category)) +
   geom_point() +
@@ -510,7 +513,7 @@ time_series_cor <- time_series_1 %>%
 ```{r}
 time_series_cor |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(species == species)) |>
+             by = join_by(species == species)) |>
   DT::datatable() |>
   DT::formatRound(columns = "correlation", digits = 2)
 ```
@@ -518,7 +521,7 @@ time_series_cor |>
 ```{r}
 time_series_cor |>
   inner_join(abv_data_total |> distinct(species, category),
-            by = join_by(species == species)) |>
+             by = join_by(species == species)) |>
   summarize("mean correlation" = mean(correlation, na.rm = TRUE),
             .by = category) %>%
   knitr::kable(digits = 3)

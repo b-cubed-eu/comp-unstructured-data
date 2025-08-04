@@ -35,9 +35,9 @@ myColors <- brewer.pal(5, "Dark2")
 names(myColors) <- c("Very rare", "Rare", "Common",
                      "Very common", "Extremely common")
 colScale <- scale_color_manual(name = "Category",
-                                values = myColors)
+                               values = myColors)
 fillScale <- scale_fill_manual(name = "Category",
-                                values = myColors)
+                               values = myColors)
 ```
 
 In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar ranges and trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
@@ -101,8 +101,7 @@ This categorization is used throughout further analyses.
 ```{r}
 abv |>
   distinct(category, species) |>
-  group_by(category) |>
-  summarise(n())  |>
+  count(category) |>
   knitr::kable()
 ```
 
@@ -167,7 +166,7 @@ cube |>
        y = "Count") +
   facet_zoom(zoom.size = 0.5,
              ylim = c(0, 300),
-             xlim = c(10500,150000),
+             xlim = c(10500, 150000),
              horizontal = FALSE)
 ```
 
@@ -197,7 +196,7 @@ tar_read(range_comp_0) |>
 
 ```{r}
 tar_read(range_comp_1) |>
-filter(id_spat_res == "1km") |>
+  filter(id_spat_res == "1km") |>
   ggplot(aes(x = percentage_abv_data,
              y = percentage_birdflanders,
              color = category)) +
@@ -209,7 +208,7 @@ filter(id_spat_res == "1km") |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides( color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = "")))
 ```
 
 ### Filter 2
@@ -229,7 +228,7 @@ tar_read(range_comp_2) |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides( color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = "")))
 ```
 
 ##
@@ -480,6 +479,8 @@ p3 <- trend_comp_3_cyclus |>
 
 p3
 ```
+<<<<<<< HEAD
+=======
 
 ```{r}
 shared_filter3_cyclus <- SharedData$new(tar_read(filter3) |> 
@@ -544,13 +545,13 @@ bscols(widths = c(3,9),
 ```{r, include=FALSE}
 library(cowplot)
 
-middle_row <- plot_grid(p1 + theme(legend.position="none"),
-                        p2 + theme(legend.position="none"),
+middle_row <- plot_grid(p1 + theme(legend.position = "none"),
+                        p2 + theme(legend.position = "none"),
                         labels = c('B', 'C'),
                         label_size = 12)
 
-bottom_row <- plot_grid(p3 + theme(legend.position="none"),
-                        p4 + theme(legend.position="none"),
+bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
+                        p4 + theme(legend.position = "none"),
                         labels = c('D', 'E'),
                         label_size = 12)
 
@@ -561,4 +562,3 @@ plot_grid(p0,
           labels = c('A', '', ''),
           label_size = 12)
 ```
-

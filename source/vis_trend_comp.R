@@ -55,4 +55,3 @@ plot(data1_neg, data2_neg, pch = 19, col = "darkgreen",
      xlab = "Value in dataset 1", ylab = "Value in dataset 2",
      main = paste("R =", round(cor_neg, 2)))
 abline(lm(data2_neg ~ data1_neg), col = "black", lwd = 2, lty = 2)
-

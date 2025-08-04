@@ -245,7 +245,7 @@ p
 
 ```{r species occurrences map Common nightingale, fig.show="hold", out.width="50%"}
 spec_occ_map_abv <- tar_read(spec_occ_map_abv)
-p<- plot(spec_occ_map_abv, species = "Luscinia megarhynchos")
+p <- plot(spec_occ_map_abv, species = "Luscinia megarhynchos")
 p
 
 spec_occ_map_cube <- tar_read(spec_occ_map_cube)

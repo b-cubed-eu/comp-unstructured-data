@@ -14,10 +14,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r data, cache=TRUE}
 birdcubeflanders_year_sf <- read_sf(here::here("data", "interim",
-                                            "birdcubeflanders_year.gpkg"))
+                                               "birdcubeflanders_year.gpkg"))
 
 abv_data_total_sf <- read_sf(here::here("data", "interim",
-                                            "abv_data_total.gpkg"))
+                                        "abv_data_total.gpkg"))
 ```
 
 ```{r transform abv}
@@ -101,14 +101,16 @@ red_list_fl1 <- read_delim(
             "dwca-rl-flanders-validated-checklist-v1.7",
             "distribution.txt"),
   delim = "\t",
-  show_col_types = FALSE)
+  show_col_types = FALSE
+)
 
 red_list_fl2 <- read_delim(
   file.path(data_path,
             "dwca-rl-flanders-validated-checklist-v1.7",
             "taxon.txt"),
   delim = "\t",
-  show_col_types = FALSE)
+  show_col_types = FALSE
+)
 ```
 
 ```{r}
