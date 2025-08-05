@@ -163,7 +163,7 @@ We categorise the species according to rarity:
 
 ```{r, message=FALSE}
 abv_data_total_sf <- read_sf(
-  here::here("data", "interim", "abv_data_total.gpkg")
+  here::here("data", "interim", "abv_data_cube_1km.gpkg")
 )
 
 # Cut rarity
@@ -171,8 +171,7 @@ abv_data <- abv_data_total_sf %>%
   st_drop_geometry() %>%
   # Soepeend, Soepgans
   filter(!is.na(species)) %>%
-  mutate(mgrscode = paste0("31U", TAG)) %>%
-  dplyr::select("mgrscode", "year", "specieskey" = "speciesKey", "species") %>%
+  dplyr::select("mgrscode", "year", "specieskey", "species") %>%
   mutate(n_obs = n(),
          .by = "species") %>%
   mutate(
