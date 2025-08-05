@@ -33,10 +33,10 @@ conflicted::conflicts_prefer(dplyr::filter)
 
 ```{r data, cache=TRUE}
 birdcubeflanders_year_sf <- read_sf(here::here("data", "interim",
-                                               "birdcubeflanders_year.gpkg"))
+                                               "birdflanders_cube_1km.gpkg"))
 
 abv_data_total_sf <- read_sf(here::here("data", "interim",
-                                        "abv_data_total.gpkg"))
+                                        "abv_data_cube_1km.gpkg"))
 ```
 
 We noticed some problems with species names: *Poecile montanus* and *Parus montanus*, *Dendrocopus major* and *Dendrocopos major* both refer to the same species. Since both species names are accepted names in GBIF we need to manually correct this (an issue was made for this with GBIF). *Saxicola torquatus* is most likely a wrong name and needs to be replaced with *Saxicola rubicola* (an issue was also opened for this with the data publisher of the ABV data).
@@ -81,8 +81,8 @@ birdcubeflanders_year <- birdcubeflanders_year_sf |>
   ))
 
 abv_data_total_tf <- abv_data_total |>
-  group_by(species, year, TAG, category) |>
-  summarise(n = sum(individualCount)) |>
+  group_by(species, year, mgrscode, category) |>
+  summarise(n = sum(n)) |>
   ungroup()
 ```
 
@@ -95,21 +95,19 @@ To do: assess data quality across spatial, temporal, and taxonomical dimensions
 The ABV dataset, which stands for Algemene Broedvogelmonitoring Vlaanderen (Common Breeding Bird Survey Flanders), is a structured monitoring dataset that tracks a group of approximately 100 common breeding bird species in Flanders, Belgium. Monitoring began in 2007 and the protocol involves selecting a random sample of 1200 UTM 1x1 km grid cells, stratified by land use. These cells are divided into groups of 300, and 300 grid cells are visited each year on a three-year rotation. Each grid cell contains six monitoring locations where bird counts are conducted. The data collection is standardized, with each grid cell being visited three times a year at fixed intervals (at least two weeks apart).
 
 ```{r}
-summary(abv_data_total[, c("individualCount",
-                           "eventDate",
-                           "year",
-                           "month")])
+summary(abv_data_total[, c("n",
+                           "year")])
 ```
 
 ```{r}
 abv_data_total |>
-  group_by(TAG) |>
+  group_by(mgrscode) |>
   summarise(n_visits = n_distinct(year)) |>
   ggplot(aes(x = n_visits)) +
   geom_histogram()
 ```
 
-Out of the `r length(unique(abv_data_total$TAG))` visited km² over 150 were visited only once, while some were visited up to 13 times. This inconsistency in the number of visits is probably corrected for in the analysis of the ABV data, <span style="color: red;">should we do the same?</span>
+Out of the `r length(unique(abv_data_total$mgrscode))` visited km² over 150 were visited only once, while some were visited up to 13 times. This inconsistency in the number of visits is probably corrected for in the analysis of the ABV data, <span style="color: red;">should we do the same?</span>
 
 ```{r}
 abv_data_total |>
@@ -130,7 +128,7 @@ abv_data_total_tf |>
        y = "Number of species")
 ```
 
-There are 182 species present in the dataset. There are 32 species that were observed less than 10 times, 45 species that were observed more than 1000 times and 16 species that were observed more than 10 000 times. This dataset also contains absence data, which is not included/not present? in the cube.
+There are 180 species present in the dataset. There are 38 species that were observed less than 10 times, 69 species that were observed more than 100 times and 30 species that were observed more than 1000 times.
 
 ```{r}
 abv_data_total |>
@@ -141,7 +139,7 @@ abv_data_total |>
 
 ## The cube data
 
-The cube contains 2 011 808 observations. There are 666 species present in the data. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times. More information can be found [here]( https://docs.b-cubed.eu/occurrence-cube/specification/#dimensions).
+The cube contains 2 011 808 observations. There are 664 species present in the data. 358 of these were observed less than a 100 times, 197 were observed more than 1000 times. More information can be found [here]( https://docs.b-cubed.eu/occurrence-cube/specification/#dimensions).
 
 The cube is made up of several datasets:
 
@@ -191,12 +189,12 @@ birdcubeflanders_year |>
 ```{r}
 utm_year <- abv_data_total |>
   st_drop_geometry() |>
-  distinct(TAG, year)
+  distinct(mgrscode, year)
 ```
 
 ```{r}
 filt_birdcube <- utm_year |>
-  left_join(birdcubeflanders_year, by = c("TAG", "year"))
+  left_join(birdcubeflanders_year, by = c("mgrscode", "year"))
 ```
 
 ```{r}
@@ -226,36 +224,35 @@ range_comp <- function(period = 2007:2022,
                        sel_species = unique(dataset1$species)) {
 
   # We filter both datasets for the species and period of interest
-  # and group them by TAG (identifier of utm square)
+  # and group them by mgrscode (identifier of utm square)
   set_abv <- dataset1 |>
     st_drop_geometry() |>
     filter(.data$species %in% sel_species,
-           .data$year %in% period,
-           .data$individualCount > 0) |>
-    group_by(.data$TAG) |>
-    summarise(n = sum(.data$individualCount))
+           .data$year %in% period) |>
+    group_by(.data$mgrscode) |>
+    summarise(n = sum(.data$n))
 
   set_cube <- dataset2 |>
     st_drop_geometry() |>
     filter(.data$species %in% sel_species,
            .data$year %in% period) |>
-    group_by(.data$TAG) |>
+    group_by(.data$mgrscode) |>
     summarise(n = sum(.data$n))
 
-  total_abv <- length(set_abv$TAG)
-  perc_abv <- (total_abv / length(unique(dataset1$TAG))) * 100
+  total_abv <- length(set_abv$mgrscode)
+  perc_abv <- (total_abv / length(unique(dataset1$mgrscode))) * 100
 
-  total_cube <- length(set_cube$TAG)
-  perc_cube <- (total_cube / length(unique(dataset2$TAG))) * 100
+  total_cube <- length(set_cube$mgrscode)
+  perc_cube <- (total_cube / length(unique(dataset2$mgrscode))) * 100
 
   overlap_all_abv_cube <- length(
-    which(set_cube$TAG %in% unique(abv_data_total$TAG))
+    which(set_cube$mgrscode %in% unique(abv_data_total$mgrscode))
   )
   perc_overlap_all <- (
-    overlap_all_abv_cube / length(unique(dataset1$TAG))
+    overlap_all_abv_cube / length(unique(dataset1$mgrscode))
   ) * 100
 
-  total_overlap <- length(which(set_cube$TAG %in% set_abv$TAG))
+  total_overlap <- length(which(set_cube$mgrscode %in% set_abv$mgrscode))
   perc <- (total_overlap / total_abv) * 100
 
   list(total_abv, perc_abv,
@@ -278,7 +275,7 @@ comp_range_data$overlap_birdcube_spec_abv <- NA
 comp_range_data$percentage_birdcube_spec_abv <- NA
 
 for (i in studied_spec){
-  test <- range_comp(i, period = 2007:2018)
+  test <- range_comp(sel_species = i, period = 2007:2018)
 
   comp_range_data[comp_range_data$studied_spec == i, 2] <- test[1]
   comp_range_data[comp_range_data$studied_spec == i, 3] <- test[2]
@@ -395,7 +392,7 @@ for (cycle_start in cycle_starts) {
     comp_range_data2$cyclus[j] <- c
     comp_range_data2$studied_spec[j] <- i
 
-    test <- range_comp(i, period = cycle_start:(cycle_start + 2))
+    test <- range_comp(sel_species = i, period = cycle_start:(cycle_start + 2))
 
     comp_range_data2$abv_squares[j] <- test[[1]]
     comp_range_data2$perc_abv_total_abv[j] <- test[[2]]
@@ -434,7 +431,7 @@ This graph shows the same figure as above but split for each full cycle of ABV o
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, year) %>%
-  summarize(occurrence = sum(occurrenceStatus == "PRESENT"))
+  summarize(occurrence = n())
 
 time_series_2 <- birdcubeflanders_year |>
   st_drop_geometry()  |>
@@ -461,7 +458,7 @@ DT::datatable(time_series_cor) |>
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, cyclus) %>%
-  summarize(occurrence = sum(occurrenceStatus == "PRESENT")) |>
+  summarize(occurrence = n()) |>
   filter(cyclus < 5)
 
 time_series_2 <- birdcubeflanders_year |>
@@ -490,7 +487,7 @@ DT::datatable(time_series_cor) |>
 time_series_1 <- abv_data_total |>
   st_drop_geometry() %>%
   group_by(species, cyclus) %>%
-  summarize(abundance = sum(individualCount)) |>
+  summarize(abundance = sum(n)) |>
   filter(cyclus < 5)
 
 time_series_2 <- birdcubeflanders_year |>
@@ -533,7 +530,7 @@ time_series_cor |>
 ```{r, message=FALSE}
 abv_dif <- abv_data_total |>
   group_by(cyclus, species) |>
-  summarise(total = sum(individualCount)) |>
+  summarise(total = sum(n)) |>
   pivot_wider(names_from = cyclus,
               names_prefix = "abv_",
               values_from = total,
@@ -592,7 +589,7 @@ Value of k | Strength of agreement
 abv_dif <- abv_data_total |>
   filter(category %in% c("Rare")) |>
   group_by(cyclus, species) |>
-  summarise(total = sum(individualCount)) |>
+  summarise(total = sum(n)) |>
   pivot_wider(names_from = cyclus,
               names_prefix = "abv_",
               values_from = total,
@@ -649,8 +646,8 @@ Kappa is not a good measure for comparing two discrete continuous variables, bet
 
 ```{r, message=FALSE}
 occupancy_1 <- abv_data_total %>%
-  group_by(species, TAG) %>%
-  summarize(occupancy_rate_1 = mean(occurrenceStatus == "PRESENT"))
+  group_by(species, mgrscode) %>%
+  summarize(occupancy_rate_1 = mean(n()))
 
 occupancy_2 <- birdcubeflanders_year %>%
   group_by(species) %>%
@@ -664,11 +661,11 @@ occupancy_2 <- birdcubeflanders_year %>%
 ```{r}
 # Species richness per dataset
 richness_1 <- abv_data_total |>
-  group_by(TAG) |>
+  group_by(mgrscode) |>
   summarize(richness = n_distinct(species))
 
 richness_2 <- birdcubeflanders_year  |>
-  group_by(TAG) |>
+  group_by(mgrscode) |>
   summarize(richness = n_distinct(species))
 
 # Bray-Curtis dissimilarity
@@ -686,7 +683,9 @@ species_composition_2 <- birdcubeflanders_year |>
               values_from = n,
               values_fill = 0)
 
-bray_curtis <- vegdist(rbind(species_composition_1[-1],
-                             species_composition_2[-1]), method = "bray")
+bray_curtis <- vegdist(bind_rows(species_composition_1[-1],
+                                 species_composition_2[-1]),
+                       method = "bray",
+                       na.rm = TRUE)
 bray_curtis
 ```
