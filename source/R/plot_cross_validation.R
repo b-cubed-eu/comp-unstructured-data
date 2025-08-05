@@ -22,7 +22,7 @@ plot_cross_validation <- function(
                          paste0(.data$species, "\n(value: ",
                                 round(.data[[measure]], 3), ")"),
                          NA)
-          ),
+      ),
       size = 2.5, max.overlaps = max.overlaps
     ) +
     labs(x = "Proportion of occupied grid cells\nin ABV dataset",
