@@ -85,17 +85,18 @@ query <- "SELECT
 download_occ_cube(
   sql_query = query,
   file = "birdcubeflanders_dataset.csv",
+  path = here::here("data", "raw"),
   overwrite = FALSE
 )
 ```
 
-> GBIF.org (04 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.kmzpht
+> GBIF.org (05 August 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.48vfzy
 
 We read in the data cube and add dataset names.
 
 ```{r}
 birdcubeflanders_dataset_raw <- read_csv(
-  here::here("data", "interim", "birdcubeflanders_dataset.csv"),
+  here::here("data", "raw", "birdcubeflanders_dataset.csv"),
   show_col_types = FALSE)
 
 # Add dataset names
