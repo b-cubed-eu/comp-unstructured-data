@@ -32,6 +32,8 @@ This code is developed in context of **T4.5** of the [B-Cubed project](https://b
 ### Analyses workflow
 To download the latest version of each of the data sets run `prepare_abv_data.Rmd` and `Prepare_data_10km.Rmd`.
 Alternatively, you can download the exact same data we used by following the GBIF links in these same Rmd's.
+These data sets are saved under `data/raw`, the Rmd's further clean the data and add geometric properties.
+The cleaned data is stored in both `.csv` and `.gpkg` format under `data/interim`.
 
 To get the list of ABV birds used to filter the data in both pipelines run the `get_abv_species.R` after sourcing the functions in `taxon_mapping.R`.
 
