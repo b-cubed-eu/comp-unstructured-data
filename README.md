@@ -23,19 +23,29 @@ European Union's Horizon Europe Research and Innovation Programme (ID No 1010595
 <!-- community: b3 -->
 <!-- community: inbo -->
 
-### Description
-
 <!-- description: start -->
 Scripts to explore the conditions that determine the reliability of models, trends and status by comparing aggregated cubes with structured monitoring schemes.
 <!-- description: end -->
 
 This code is developed in context of **T4.5** of the [B-Cubed project](https://b-cubed.eu/).
 
+### Analyses workflow
+To download the latest version of each of the data sets run `prepare_abv_data.Rmd` and `Prepare_data_10km.Rmd`.
+Alternatively, you can download the exact same data we used by following the GBIF links in these same Rmd's.
+
+To get the list of ABV birds used to filter the data in both pipelines run the `get_abv_species.R` after sourcing the functions in `taxon_mapping.R`.
+
+To run the targets pipelines, run `run_pipeline.R` in the folder of the pipeline you want to run.
+Afterwards, you can run the associated Rmd found under `reports`.
+
+
 ### Repo structure
 
 ```
-├── source                         ├ R markdown files
-│   └── R                          ├ R scripts
+├── source                         ├ 
+│   ├── pipelines                  ├ target pipelines
+│   ├── R                          ├ R scripts and R markdown files
+│   └── reports                    ├ reports based on output from target pipelines
 ├── data
 │   ├── raw                        ├ create this folder and store raw data, see prepare_abv_data.Rmd
 │   ├── intermediate               ├ store intermediate data
