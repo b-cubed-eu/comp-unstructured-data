@@ -1,3 +1,5 @@
+# Make figure to illustrate the principle of comparing trends
+
 set.seed(123)
 
 # Generate three types of relationships
