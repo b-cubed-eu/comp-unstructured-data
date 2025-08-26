@@ -269,7 +269,7 @@ prevalence_df %>%
   theme_minimal()
 ```
 
-We calculate error measures for the indicator based on leave-one-dataset-out cross-validation (use `remotes::install_github("b-cubed-eu/dubicube#25")`).
+We calculate error measures for the indicator based on leave-one-dataset-out cross-validation.
 We use a constant total of grid cells (`r length(unique(birdcube_dataset_filtered$mgrscode))`) such that this is independent from the datasets left out.
 
 ```{r, message=FALSE}
@@ -279,7 +279,8 @@ prevalence_cv <- cross_validate_cube(
   total_grid_cells = length(unique(birdcube_dataset_filtered$mgrscode)),
   grouping_var = c("species", "rarity"),
   out_var = "datasetkey",
-  progress = TRUE
+  progress = TRUE,
+  processed_cube = FALSE
 )
 ```
 
