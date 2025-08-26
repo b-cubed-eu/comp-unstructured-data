@@ -3,7 +3,7 @@ library(targets)
 
 # Set target options:
 tar_option_set(
-  packages = c("b3gbi"),
+  packages = c("b3gbi", "tidyverse"),
   format = "qs" # Optionally set the default storage format. qs is fast.
 )
 
@@ -21,121 +21,111 @@ tar_config_set(
                     "_targets/"),
   config = "_targets.yaml",
   project = "biodiversity_indicators",
-  use_crew = TRUE)
+  use_crew = TRUE
+)
 
-# Run the R scripts in the R/ folder with your custom functions:
+# Run the R scripts in the R/ folder with our custom functions:
 tar_source(file.path(targets_project_dir, "biodiversity_indicators", "R"))
 
-# Replace the target list below with your own:
+# The target list:
 list(
+  tar_target(
+    time_period,
+    c("year", "cyclus")
+  ),
+  tar_target(
+    spat_res,
+    c("1km", "10km")
+  ),
+  tar_target(
+    dataset,
+    c("abv_data", "birdflanders")
+  ),
   tarchetypes::tar_file(
-    abv_data_file,
-    path_to_interim(path_to_data = path_to_data, file = "abv_data.csv")
+    data_file,
+    path_to_interim(path_to_data = path_to_data,
+                    dataset = dataset,
+                    spat_res = spat_res),
+    pattern = cross(dataset, spat_res)
   ),
   tar_target(
-    abv_data,
-    read.csv(abv_data_file)
+    data_int1,
+    read_andid(data_file, dataset, spat_res),
+    pattern = map(data_file, cross(dataset, spat_res))
   ),
   tar_target(
-    abv,
-    process_cube(abv_data,
-                 cols_occurrences = "n")
-  ),
-  tarchetypes::tar_file(
-    birdcube_data_file,
-    path_to_interim(path_to_data = path_to_data, file = "birdcubeflanders.csv")
+    data,
+    add_cyclus(data_int1),
+    pattern = map(data_int1)
   ),
   tar_target(
-    birdcube_data,
-    read.csv(birdcube_data_file)
+    filter1,
+    filter_1(data),
+    pattern = map(data)
   ),
   tar_target(
-    birdcube,
-    process_cube(birdcube_data,
-                 cols_occurrences = "n")
+    filter2,
+    filter_2(data, time_period),
+    pattern = cross(data, time_period)
   ),
   tar_target(
-    obs_richness_map_abv_1,
-    obs_richness_map(abv, cell_size = 1)
+    filter3,
+    filter_3(data, time_period),
+    pattern = cross(data, time_period)
   ),
   tar_target(
-    obs_richness_map_cube_1,
-    obs_richness_map(birdcube, cell_size = 1)
+    data_cubes,
+    process_cube(data,
+                 cols_occurrences = "n"),
+    pattern = map(data)
   ),
   tar_target(
-    obs_richness_map_abv_10,
-    obs_richness_map(abv, cell_size = 10)
+    obs_richness_map,
+    obs_richness_map(data, cell_size = 10),
+    pattern = map(data)
   ),
   tar_target(
-    obs_richness_map_cube_10,
-    obs_richness_map(birdcube, cell_size = 10)
+    obs_richness_ts,
+    obs_richness_ts(data),
+    pattern = map(data)
   ),
   tar_target(
-    obs_richness_ts_abv,
-    obs_richness_ts(abv)
+    total_occ_map,
+    total_occ_map(data, cell_size = 10),
+    pattern = map(data)
   ),
   tar_target(
-    obs_richness_ts_cube,
-    obs_richness_ts(birdcube)
+    total_occ_ts,
+    total_occ_ts(data),
+    pattern = map(data)
   ),
   tar_target(
-    total_occ_map_abv,
-    total_occ_map(abv, cell_size = 10)
+    pielou_evenness_map,
+    pielou_evenness_map(data, cell_size = 10),
+    pattern = map(data)
   ),
   tar_target(
-    total_occ_map_cube,
-    total_occ_map(birdcube, cell_size = 10)
+    pielou_evenness_ts,
+    pielou_evenness_ts(data),
+    pattern = map(data)
   ),
   tar_target(
-    total_occ_ts_abv,
-    total_occ_ts(abv)
+    spec_occ_map,
+    spec_occ_map(data),
+    pattern = map(data)
   ),
   tar_target(
-    total_occ_ts_cube,
-    total_occ_ts(birdcube)
+    spec_occ_ts,
+    spec_occ_ts(data),
+    pattern = map(data)
   ),
   tar_target(
-    pielou_evenness_map_abv,
-    pielou_evenness_map(abv, cell_size = 10)
+    spec_range_map,
+    spec_range_map(data)
   ),
   tar_target(
-    pielou_evenness_map_cube,
-    pielou_evenness_map(birdcube, cell_size = 10)
-  ),
-  tar_target(
-    pielou_evenness_ts_cube,
-    pielou_evenness_ts(birdcube)
-  ),
-  tar_target(
-    spec_occ_map_abv,
-    spec_occ_map(abv)
-  ),
-  tar_target(
-    spec_occ_map_cube,
-    spec_occ_map(birdcube)
-  ),
-  tar_target(
-    spec_occ_ts_abv,
-    spec_occ_ts(abv)
-  ),
-  tar_target(
-    spec_occ_ts_cube,
-    spec_occ_ts(birdcube)
-  ),
-  tar_target(
-    spec_range_map_abv,
-    spec_range_map(abv)
-  ),
-  tar_target(
-    spec_range_map_cube,
-    spec_range_map(birdcube)
-  ),
-  tar_target(
-    spec_range_ts_abv,
-    spec_range_ts(abv)
-  ),
-  tar_target(
-    spec_range_ts_cube,
-    spec_range_ts(birdcube)
+    spec_range_ts,
+    spec_range_ts(data),
+    pattern = map(data)
   )
 )
