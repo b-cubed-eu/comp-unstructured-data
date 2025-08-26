@@ -45,7 +45,8 @@ dir.create(data_path, showWarnings = FALSE, recursive = TRUE)
 # Download data from zenodo if necessary
 file_sampling_framework <- file.path(
   data_path,
-  "steekproefkader.csv")
+  "steekproefkader.csv"
+)
 
 if (file.exists(file_sampling_framework)) {
   sampling_framework_abv <- read_csv(file_sampling_framework,
@@ -54,7 +55,8 @@ if (file.exists(file_sampling_framework)) {
   download_zenodo(
     doi = "10.5281/zenodo.10103472",
     path = data_path,
-    files = list("steekproefkader.csv"))
+    files = list("steekproefkader.csv")
+  )
 
   sampling_framework_abv <- read_csv(file_sampling_framework,
                                      show_col_types = FALSE)
@@ -70,27 +72,27 @@ head(sampling_framework_abv)
 
 ## Occurrence data
 
-The ABV data is downloaded as a cube from GBIF.org.
+The ABV data is downloaded as a cube from GBIF.org. We set the randomization to zero, since the monitoring takes place in specific squares.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.qqzgt3
+> GBIF.org (15 April 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.ddzhrc
 
 ```{r}
 # nolint start: line_length_linter.
 query_abv <- "SELECT
   \"year\",
-  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
-  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude, 0) AS mgrsCode,
   speciesKey,
   species,
   family,
   COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 0)) AS minCoordinateUncertaintyInMeters,
   IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
   FROM
   occurrence
   WHERE
   occurrenceStatus = 'PRESENT'
+  AND NOT occurrence.basisofrecord IN ('FOSSIL_SPECIMEN', 'LIVING_SPECIMEN')
   AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')
@@ -132,10 +134,10 @@ glimpse(abv_data_total)
 
 # Unstructured data
 
-The ABV data is downloaded as a cube from GBIF.org.
+The cube data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (10 March 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.eusvcc
+> GBIF.org (15 April 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.mn4ybb
 
 ```{r}
 # nolint start: line_length_linter.
@@ -153,6 +155,7 @@ query_birdcube <- "SELECT
   occurrence
   WHERE
   occurrenceStatus = 'PRESENT'
+  AND NOT occurrence.basisofrecord IN ('FOSSIL_SPECIMEN', 'LIVING_SPECIMEN')
   AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')
@@ -233,9 +236,9 @@ utm_grid %>%
   left_join(sampling_framework_abv, by = join_by(mgrscode)) %>%
   st_sf(sf_column_name = "geometry") %>%
   ggplot() +
-    geom_sf(aes(fill = Stratum),
-            col = alpha("white", 0)) +
-    ggtitle("Sampling framework ABV")
+  geom_sf(aes(fill = Stratum),
+          col = alpha("white", 0)) +
+  ggtitle("Sampling framework ABV")
 ```
 
 ```{r}
@@ -252,8 +255,8 @@ utm_grid %>%
             by = join_by(mgrscode)) %>%
   mutate(sample = ifelse(is.na(presence), "no", "yes")) %>%
   ggplot() +
-    geom_sf(aes(fill = sample), col = alpha("white", 0)) +
-    ggtitle("ABV sampling locations")
+  geom_sf(aes(fill = sample), col = alpha("white", 0)) +
+  ggtitle("ABV sampling locations")
 ```
 
 We select cube data from Flanders and add the geometry to the data layers by taking an inner join.
@@ -273,12 +276,12 @@ utm_grid %>%
               summarise(n_species = n_distinct(species), .groups = "drop"),
             by = join_by(mgrscode)) %>%
   ggplot() +
-    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
-    scale_fill_viridis_c(option = "inferno") +
-    ggtitle("Bird cube data from Flanders")
+  geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
+  scale_fill_viridis_c(option = "inferno") +
+  ggtitle("Bird cube data from Flanders")
 ```
 
-We see a striped pattern because of large uncertainty.
+We see a dotted pattern because of large uncertainty.
 We filter `minCoordinateUncertaintyInMeters` smaller or equal to 1000 meters:
 
 ```{r}
@@ -290,9 +293,9 @@ utm_grid %>%
               summarise(n_species = n_distinct(species), .groups = "drop"),
             by = join_by(mgrscode)) %>%
   ggplot() +
-    geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
-    scale_fill_viridis_c(option = "inferno") +
-    ggtitle("Bird cube data from Flanders")
+  geom_sf(aes(fill = n_species), col = alpha("white", 0)) +
+  scale_fill_viridis_c(option = "inferno") +
+  ggtitle("Bird cube data from Flanders")
 ```
 
 # Correction of species names
@@ -305,11 +308,13 @@ abv_data_total_sf <- abv_data_total_sf %>%
     species = case_when(
       species == "Dendrocopus major" ~ "Dendrocopos major",
       species == "Saxicola torquatus" ~ "Saxicola rubicola",
-      TRUE ~ species),
+      TRUE ~ species
+    ),
     specieskey = case_when(
       species == "Dendrocopos major" ~ 2477968,
       species == "Saxicola rubicola" ~ 4408759,
-      TRUE ~ specieskey)
+      TRUE ~ specieskey
+    )
   )
 ```
 
@@ -318,10 +323,12 @@ birdcube_data_total_sf <- birdcube_data_total_sf %>%
   mutate(
     species = case_when(
       species == "Poecile montanus" ~ "Parus montanus",
-      TRUE ~ species),
+      TRUE ~ species
+    ),
     specieskey = case_when(
       species == "Parus montanus" ~ 4409010,
-      TRUE ~ specieskey)
+      TRUE ~ specieskey
+    )
   )
 ```
 
@@ -335,8 +342,9 @@ abv_data_out_sf <- abv_data_total_sf %>%
          "mincoordinateuncertaintyinmeters", "familycount", "geometry")
 abv_data_out <- st_drop_geometry(abv_data_out_sf)
 
-colnames(sampling_framework_abv_sf) <- tolower(colnames(
-  sampling_framework_abv_sf))
+colnames(sampling_framework_abv_sf) <- tolower(
+  colnames(sampling_framework_abv_sf)
+)
 sampling_framework_out_sf <- sampling_framework_abv_sf %>%
   select("mgrscode", "stratum", "oppervlakte", "landbouw", "urbaan", "bos",
          "suburbaan", "heideduin", "moeraswater", "geometry")
@@ -357,22 +365,22 @@ dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
 # Structured data
 ## CSV
 write_csv(abv_data_out,
-          file.path(out_path, "abv_data_cube.csv"))
+          file.path(out_path, "abv_data_cube_1km.csv"))
 write_csv(sampling_framework_out,
           file.path(out_path, "sampling_framework_abv.csv"))
 
 ## Spatial object
 write_sf(abv_data_out_sf,
-         file.path(out_path, "abv_data_cube.gpkg"))
+         file.path(out_path, "abv_data_cube_1km.gpkg"))
 write_sf(sampling_framework_out_sf,
          file.path(out_path, "sampling_framework_abv.gpkg"))
 
 # Unstructured data
 ## CSV
 write_csv(birdcube_data_out,
-          file.path(out_path, "birdcubeflanders.csv"))
+          file.path(out_path, "birdflanders_cube_1km.csv"))
 
 ## Spatial object
 write_sf(birdcube_data_out_sf,
-         file.path(out_path, "birdcubeflanders.gpkg"))
+         file.path(out_path, "birdflanders_cube_1km.gpkg"))
 ```

@@ -7,7 +7,7 @@ download_occ_cube <- function(sql_query, file, path, overwrite = FALSE) {
   file_path <- file.path(path, file)
   if (file.exists(file_path) && !overwrite) {
     message(paste("File already exists. Reading existing file.",
-            "Set `overwrite = TRUE` to overwrite file.", sep = "\n"))
+                  "Set `overwrite = TRUE` to overwrite file.", sep = "\n"))
 
     occ_cube <- readr::read_csv(file = file_path, show_col_types = FALSE)
 
@@ -34,7 +34,8 @@ download_occ_cube <- function(sql_query, file, path, overwrite = FALSE) {
   readr::write_csv(
     x = occ_cube,
     file = file_path,
-    append = FALSE)
+    append = FALSE
+  )
 
   # Return tibble
   return(occ_cube)
