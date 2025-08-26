@@ -22,6 +22,9 @@ library(tidyverse) # Data wrangling and visualisation
 library(dubicube)  # Cross-validation
 library(sf)        # Spatial objects
 
+library(targets)
+Sys.setenv(TAR_PROJECT = "exploratory_analysis")
+
 # Source functions
 source(here::here("source", "R", "download_occ_cube.R"))
 source(here::here("source", "R", "get_dataset_names.R"))
@@ -162,33 +165,13 @@ We categorise the species according to rarity:
 | [10.000, +Inf)  | extremely common |
 
 ```{r, message=FALSE}
-abv_data_total_sf <- read_sf(
-  here::here("data", "interim", "abv_data_cube_1km.gpkg")
-)
+abv_data_total <- targets::tar_read(data)
 
 # Cut rarity
-abv_data <- abv_data_total_sf %>%
-  st_drop_geometry() %>%
-  # Soepeend, Soepgans
-  filter(!is.na(species)) %>%
-  dplyr::select("mgrscode", "year", "specieskey", "species") %>%
-  mutate(n_obs = n(),
-         .by = "species") %>%
-  mutate(
-    rarity = cut(
-      n_obs,
-      breaks = c(0, 10, 100, 1000, 10000, +Inf),
-      labels = c("Very rare", "Rare", "Common",
-                 "Very common", "Extremely common"),
-      right = FALSE
-    ),
-    species = case_when(
-      species == "Parus montanus" ~ "Poecile montanus",
-      species == "Dendrocopus major" ~ "Dendrocopos major",
-      species == "Saxicola torquatus" ~ "Saxicola rubicola",
-      TRUE ~ species
-    )
-  ) %>%
+abv_data <- abv_data_total %>%
+  filter(id_dataset == "abv_data",
+         id_spat_res == "1km") %>%
+  rename("rarity" = "category") %>%
   arrange(year, mgrscode, species)
 
 glimpse(abv_data)
