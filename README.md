@@ -45,7 +45,7 @@ Afterwards, you can run the associated Rmd found under `reports`.
 
 ```
 ├── source                         ├ 
-│   ├── pipelines                  ├ target pipelines
+│   ├── pipelines                  ├ target pipelines https://books.ropensci.org/targets/
 │   ├── R                          ├ R scripts and R markdown files
 │   └── reports                    ├ reports based on output from target pipelines
 ├── data
