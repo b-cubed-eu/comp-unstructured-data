@@ -43,7 +43,7 @@ Load and save unstructured data at 10km² grid.
 The ABV data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (15 April 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.hdwm9t
+> GBIF.org (01 September 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.97pdjf
 
 ```{r}
 # nolint start: line_length_linter.
@@ -53,10 +53,14 @@ query_abv <- "SELECT
   COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
   speciesKey,
   species,
+  \"order\",
   family,
+  genus,
   COUNT(*) AS n,
   MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
-  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\")) AS orderCount,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount,
+  IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus)) AS genusCount
   FROM
   occurrence
   WHERE
@@ -78,7 +82,9 @@ query_abv <- "SELECT
   \"year\",
   mgrsCode,
   speciesKey,
+  \"order\",
   family,
+  genus,
   species
   ORDER BY
   \"year\" ASC,
@@ -106,7 +112,7 @@ glimpse(abv_data_total)
 The cube data is downloaded from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (15 April 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.75hgxm
+> GBIF.org (01 September 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.5grehw
 
 ```{r}
 # nolint start: line_length_linter.
@@ -116,10 +122,14 @@ query_birdcube <- "SELECT
   COALESCE(coordinateUncertaintyInMeters, 10000)) AS mgrsCode,
   speciesKey,
   species,
+  \"order\",
   family,
+  genus,
   COUNT(*) AS n,
   MIN(COALESCE(coordinateUncertaintyInMeters, 10000)) AS minCoordinateUncertaintyInMeters,
-  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\")) AS orderCount,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount,
+  IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus)) AS genusCount
   FROM
   occurrence
   WHERE
@@ -141,7 +151,9 @@ query_birdcube <- "SELECT
   \"year\",
   mgrsCode,
   speciesKey,
+  \"order\",
   family,
+  genus,
   species
   ORDER BY
   \"year\" ASC,
@@ -266,13 +278,15 @@ We select the columns we want in a logical order:
 
 ```{r}
 abv_data_out_sf <- abv_data_total_sf %>%
-  select("mgrscode", "year", "specieskey", "species", "family", "n",
-         "mincoordinateuncertaintyinmeters", "familycount", "geometry")
+  select("mgrscode", "year", "specieskey", "species", "order", "family",
+         "genus", "n", "mincoordinateuncertaintyinmeters",
+         "ordercount", "familycount", "genuscount", "geometry")
 abv_data_out <- st_drop_geometry(abv_data_out_sf)
 
 birdcube_data_out_sf <- birdcube_data_total_sf %>%
-  select("mgrscode", "year", "specieskey", "species", "family", "n",
-         "mincoordinateuncertaintyinmeters", "familycount", "geometry")
+  select("mgrscode", "year", "specieskey", "species", "order", "family",
+         "genus", "n", "mincoordinateuncertaintyinmeters",
+         "ordercount", "familycount", "genuscount", "geometry")
 birdcube_data_out <- st_drop_geometry(birdcube_data_out_sf)
 ```
 
