@@ -294,6 +294,8 @@ p3 <- tar_read(trend_comp_3) |>
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
+
+p3
 ```
 
 ### Filter 4
@@ -309,6 +311,8 @@ p4 <- tar_read(trend_comp_4) |>
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species")
+
+p4
 ```
 
 ##
@@ -487,8 +491,6 @@ p3 <- trend_comp_3_cyclus |>
 
 p3
 ```
-<<<<<<< HEAD
-=======
 
 ```{r}
 shared_filter3_cyclus <- SharedData$new(tar_read(filter3) |>
