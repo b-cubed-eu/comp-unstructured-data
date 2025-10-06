@@ -35,7 +35,7 @@ add_category <- function(data) {
   require("dplyr")
 
   output <- data |>
-    group_by(.data$species) |>
+    group_by(species) |>
     mutate(n_obs = sum(.data$n)) |>
     ungroup() |>
     mutate(category = cut(.data$n_obs,
@@ -79,7 +79,7 @@ filter_2 <- function(data, time_period = "year") {
     mutate(obs = n()) |>
     ungroup() |>
     filter(.data$obs > 100) |>
-    mutate(id_filter_per = .data$time_period)
+    mutate(id_filter_per = time_period)
 
   return(output)
 }
@@ -95,7 +95,9 @@ filter_3 <- function(data, time_period = "year") {
              !!sym(time_period)) |>
     summarise(n = sum(.data$n)) |>
     ungroup() |>
-    group_by(!!sym(time_period)) |>
+    group_by(.data$id_dataset,
+             .data$id_spat_res,
+             !!sym(time_period)) |>
     mutate(total_obs = sum(.data$n)) |>
     ungroup() |>
     mutate(n = .data$n / .data$total_obs)
