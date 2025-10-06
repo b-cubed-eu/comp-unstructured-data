@@ -1,3 +1,5 @@
+# Pipeline to run the exploratory analysis
+
 # Load packages required to define the pipeline:
 library(targets)
 
@@ -8,11 +10,14 @@ tar_option_set(
   format = "qs" # Optionally set the default storage format. qs is fast.
 )
 
+# Set project directory and data path:
 targets_project_dir <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("source/pipelines/")
 path_to_data <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("data")
 
+#' Write custom settings for the current project to
+#' YAML configuration file
 tar_config_set(
   script = file.path(targets_project_dir, "exploratory_analysis", "_targets.R"),
   store = file.path(targets_project_dir, "exploratory_analysis",
@@ -27,6 +32,7 @@ tar_source(file.path(targets_project_dir, "exploratory_analysis", "R"))
 
 # List of targets:
 list(
+  #' Define parameters:
   tar_target(
     time_period,
     c("year", "cyclus")
@@ -39,6 +45,7 @@ list(
     dataset,
     c("abv_data", "birdflanders")
   ),
+  #' Define the data file target:
   tarchetypes::tar_file(
     data_file,
     path_to_interim(path_to_data = path_to_data,
@@ -46,41 +53,50 @@ list(
                     spat_res = spat_res),
     pattern = cross(dataset, spat_res)
   ),
+  #' Read abv_1km, abv_10km, birdflanders_1km and birdflanders_10km:
   tar_target(
     data_int1,
     read_andid(data_file, dataset, spat_res),
     pattern = map(data_file, cross(dataset, spat_res))
   ),
+  #' Add cyclus to datasets:
   tar_target(
     data_int2,
     add_cyclus(data_int1),
     pattern = map(data_int1)
   ),
+  #' Add category based on total number of observations per species:
   tar_target(
     data,
     add_category(data_int2),
     pattern = map(data_int2)
   ),
+  #' Filter for species interpreted under ABV scheme:
   tar_target(
     filter1,
     filter_1(data),
     pattern = map(data)
   ),
+  #' Filter based on set of rules:
   tar_target(
     filter2,
     filter_2(data, time_period),
     pattern = cross(data, time_period)
   ),
+  #' Convert to relative abundance per time period:
   tar_target(
     filter3,
     filter_3(data, time_period),
     pattern = cross(data, time_period)
   ),
+  #' Apply filter 2 and convert to relative abundance per time period:
   tar_target(
     filter4,
     filter_3(filter2, time_period),
     pattern = cross(filter2, time_period)
   ),
+  #' Compare the range per species in structured and unstructured data
+  #' after applying different filters:
   tar_target(
     range_comp_0,
     range_comp(data)
@@ -93,6 +109,8 @@ list(
     range_comp_2,
     range_comp(filter2)
   ),
+  #' Compare the trend per species in structured and unstructured data
+  #' after applying different filters:
   tar_target(
     trend_comp_0,
     trend_comp(data, time_period),
