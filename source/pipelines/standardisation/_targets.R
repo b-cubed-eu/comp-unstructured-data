@@ -1,3 +1,8 @@
+## -----------------------------------------------------------------------------
+## Targets pipeline to attempt standardizing GBIF data
+## Emma Cartuyvels
+## -----------------------------------------------------------------------------
+
 # Load packages required to define the pipeline:
 library(targets)
 
@@ -8,6 +13,7 @@ tar_option_set(
   format = "qs" # Optionally set the default storage format. qs is fast.
 )
 
+# Set project directory (so we can find it for the report part)
 targets_project_dir <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("source/pipelines/")
 path_to_data <- rprojroot::find_root(rprojroot::is_git_root) |>
@@ -26,6 +32,7 @@ tar_config_set(
 tar_source(file.path(targets_project_dir, "exploratory_analysis", "R"))
 
 # List of targets:
+# Give the names for time periods, spatial resolutions and datasets
 list(
   tar_target(
     time_period,
