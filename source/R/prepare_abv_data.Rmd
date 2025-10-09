@@ -103,7 +103,7 @@ query_abv <- "SELECT
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
   AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
-  AND \"year\" <= 2018
+  AND \"year\" <= 2022
   AND speciesKey IS NOT NULL
   AND decimalLatitude IS NOT NULL
   AND decimalLongitude IS NOT NULL
@@ -127,7 +127,7 @@ abv_data_total <- download_occ_cube(
   sql_query = query_abv,
   file = "abv_data.csv",
   path = data_path,
-  overwrite = FALSE
+  overwrite = TRUE
 )
 ```
 
@@ -171,7 +171,7 @@ query_birdcube <- "SELECT
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
   AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
-  AND \"year\" <= 2018
+  AND \"year\" <= 2022
   AND speciesKey IS NOT NULL
   AND decimalLatitude IS NOT NULL
   AND decimalLongitude IS NOT NULL
@@ -195,7 +195,7 @@ birdcube_data_total <- download_occ_cube(
   sql_query = query_birdcube,
   file = "birdcube_data.csv",
   path = data_path,
-  overwrite = FALSE
+  overwrite = TRUE
 )
 ```
 
