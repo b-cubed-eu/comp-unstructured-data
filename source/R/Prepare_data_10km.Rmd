@@ -49,15 +49,14 @@ The zip file is stored under *./data/raw*.
 # nolint start: line_length_linter.
 query_abv <- "SELECT
   \"year\",
-  GBIF_MGRSCode(10000, decimalLatitude, decimalLongitude,
-  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  GBIF_MGRSCode(10000, decimalLatitude, decimalLongitude, 0) AS mgrsCode,
   speciesKey,
   species,
   \"order\",
   family,
   genus,
   COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 10000)) AS minCoordinateUncertaintyInMeters,
   IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\")) AS orderCount,
   IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount,
   IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus)) AS genusCount
@@ -118,8 +117,7 @@ The zip file is stored under *./data/raw*.
 # nolint start: line_length_linter.
 query_birdcube <- "SELECT
   \"year\",
-  GBIF_MGRSCode(10000, decimalLatitude, decimalLongitude,
-  COALESCE(coordinateUncertaintyInMeters, 10000)) AS mgrsCode,
+  GBIF_MGRSCode(10000, decimalLatitude, decimalLongitude, 0) AS mgrsCode,
   speciesKey,
   species,
   \"order\",
@@ -299,18 +297,18 @@ dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
 # Structured data
 ## CSV
 write_csv(abv_data_out,
-          file.path(out_path, "abv_data_cube_10km.csv"))
+          file.path(out_path, "abv_data_cube_10km_temp.csv"))
 
 ## Spatial object
 write_sf(abv_data_out_sf,
-         file.path(out_path, "abv_data_cube_10km.gpkg"))
+         file.path(out_path, "abv_data_cube_10km_temp.gpkg"))
 
 # Unstructured data
 ## CSV
 write_csv(birdcube_data_out,
-          file.path(out_path, "birdflanders_cube_10km.csv"))
+          file.path(out_path, "birdflanders_cube_10km_temp.csv"))
 
 ## Spatial object
 write_sf(birdcube_data_out_sf,
-         file.path(out_path, "birdflanders_cube_10km.gpkg"))
+         file.path(out_path, "birdflanders_cube_10km_temp.gpkg"))
 ```
