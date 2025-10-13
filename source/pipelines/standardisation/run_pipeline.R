@@ -1,6 +1,6 @@
 # run the pipeline
 library(targets)
-Sys.setenv(TAR_PROJECT = "exploratory_analysis")
+Sys.setenv(TAR_PROJECT = "standardisation")
 
 tar_make()
 
@@ -28,7 +28,7 @@ rstudioapi::restartSession()
 tar_load_globals()
 
 # Load the data that the target depends on.
-tar_load(dataset1)
+tar_load(data)
 
 # Run the command of the errored target.
 analyze_data(dataset1)
