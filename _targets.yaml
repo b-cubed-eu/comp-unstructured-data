@@ -6,3 +6,7 @@ exploratory_analysis:
   script: C:/R/git_repositories/comp-unstructured-data/source/pipelines/exploratory_analysis/_targets.R
   store: C:/R/git_repositories/comp-unstructured-data/source/pipelines/exploratory_analysis/_targets
   use_crew: yes
+standardisation:
+  script: C:/R/git_repositories/comp-unstructured-data/source/pipelines/standardisation/_targets.R
+  store: C:/R/git_repositories/comp-unstructured-data/source/pipelines/standardisation/_targets
+  use_crew: yes
