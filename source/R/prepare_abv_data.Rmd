@@ -89,9 +89,9 @@ query_abv <- "SELECT
   genus,
   COUNT(*) AS n,
   MIN(COALESCE(coordinateUncertaintyInMeters, 0)) AS minCoordinateUncertaintyInMeters,
-  IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\")) AS orderCount,
-  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount,
-  IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus)) AS genusCount
+  IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\", \"year\")) AS orderCount,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family, \"year\")) AS familyCount,
+  IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus, \"year\")) AS genusCount
   FROM
   occurrence
   WHERE
@@ -103,7 +103,7 @@ query_abv <- "SELECT
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
   AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
-  AND \"year\" <= 2022
+  AND \"year\" <= 2023
   AND speciesKey IS NOT NULL
   AND decimalLatitude IS NOT NULL
   AND decimalLongitude IS NOT NULL
@@ -157,9 +157,9 @@ query_birdcube <- "SELECT
   genus,
   COUNT(*) AS n,
   MIN(COALESCE(coordinateUncertaintyInMeters, 0)) AS minCoordinateUncertaintyInMeters,
-  IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\")) AS orderCount,
-  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount,
-  IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus)) AS genusCount
+  IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\", \"year\")) AS orderCount,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family, \"year\")) AS familyCount,
+  IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus, \"year\")) AS genusCount
   FROM
   occurrence
   WHERE
@@ -171,7 +171,7 @@ query_birdcube <- "SELECT
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
   AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
-  AND \"year\" <= 2022
+  AND \"year\" <= 2023
   AND speciesKey IS NOT NULL
   AND decimalLatitude IS NOT NULL
   AND decimalLongitude IS NOT NULL

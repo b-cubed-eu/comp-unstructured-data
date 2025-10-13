@@ -56,7 +56,7 @@ query_abv <- "SELECT
   family,
   genus,
   COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 10000)) AS minCoordinateUncertaintyInMeters,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 0)) AS minCoordinateUncertaintyInMeters,
   IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\")) AS orderCount,
   IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount,
   IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus)) AS genusCount
@@ -71,7 +71,7 @@ query_abv <- "SELECT
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
   AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
-  AND \"year\" <= 2022
+  AND \"year\" <= 2023
   AND speciesKey IS NOT NULL
   AND decimalLatitude IS NOT NULL
   AND decimalLongitude IS NOT NULL
@@ -95,7 +95,7 @@ abv_data_total <- download_occ_cube(
   sql_query = query_abv,
   file = "abv_data_10km.csv",
   path = data_path,
-  overwrite = FALSE
+  overwrite = TRUE
 )
 ```
 
@@ -124,7 +124,7 @@ query_birdcube <- "SELECT
   family,
   genus,
   COUNT(*) AS n,
-  MIN(COALESCE(coordinateUncertaintyInMeters, 10000)) AS minCoordinateUncertaintyInMeters,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 0)) AS minCoordinateUncertaintyInMeters,
   IF(ISNULL(\"order\"), NULL, SUM(COUNT(*)) OVER (PARTITION BY \"order\")) AS orderCount,
   IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount,
   IF(ISNULL(genus), NULL, SUM(COUNT(*)) OVER (PARTITION BY genus)) AS genusCount
@@ -139,7 +139,7 @@ query_birdcube <- "SELECT
   AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
   AND level1gid = 'BEL.2_1'
   AND \"year\" >= 2007
-  AND \"year\" <= 2022
+  AND \"year\" <= 2023
   AND speciesKey IS NOT NULL
   AND decimalLatitude IS NOT NULL
   AND decimalLongitude IS NOT NULL
@@ -163,7 +163,7 @@ birdcube_data_total <- download_occ_cube(
   sql_query = query_birdcube,
   file = "birdcube_10km.csv",
   path = data_path,
-  overwrite = FALSE
+  overwrite = TRUE
 )
 ```
 
