@@ -1,8 +1,12 @@
+# Functions for reading and filtering data
+
+# Create path to specific dataset in interim data folder
 path_to_interim <- function(path_to_data, dataset, spat_res) {
-  file <- paste0(dataset, "_cube_", spat_res, ".csv")
+  file <- paste0(dataset, "_cube_", spat_res, "_temp.csv")
   file.path(path_to_data, "interim", file)
 }
 
+# Add dataset id and spatial resolution as column to dataset
 read_andid <- function(data_file, dataset, spat_res) {
   require("dplyr")
 
@@ -15,6 +19,7 @@ read_andid <- function(data_file, dataset, spat_res) {
   return(output)
 }
 
+# Add ABV cycle based on year
 add_cyclus <- function(data) {
   require("dplyr")
 
@@ -31,11 +36,12 @@ add_cyclus <- function(data) {
   return(output)
 }
 
+# Add rareness categories to dataset based on the number of observations
 add_category <- function(data) {
   require("dplyr")
 
   output <- data |>
-    group_by(.data$species) |>
+    group_by(species) |>
     mutate(n_obs = sum(.data$n)) |>
     ungroup() |>
     mutate(category = cut(.data$n_obs,
@@ -47,7 +53,7 @@ add_category <- function(data) {
   return(output)
 }
 
-
+# Filter data for only species analysed under ABV
 filter_1 <- function(data) {
   abv_birds <- read.csv("./data/interim/abv_birds.csv")
 
@@ -57,7 +63,7 @@ filter_1 <- function(data) {
   return(output)
 }
 
-#' Rules (loosely based on ABV):
+#' Filter dataset based on these rules (loosely based on ABV):
 #' 1) A square is only relevant is the species was observed in
 #' more than one time period
 #' 2) A minimum of three relevant squares to include the species
@@ -79,12 +85,14 @@ filter_2 <- function(data, time_period = "year") {
     mutate(obs = n()) |>
     ungroup() |>
     filter(.data$obs > 100) |>
-    mutate(id_filter_per = .data$time_period)
+    mutate(id_filter_per = time_period)
 
   return(output)
 }
 
-filter_3 <- function(data, time_period = "year") {
+#' Standardize data by dividing by the total number of observations
+#' per time period or grid cell
+filter_3 <- function(data, divide_by) {
   require("dplyr")
 
   output <- data |>
@@ -92,13 +100,38 @@ filter_3 <- function(data, time_period = "year") {
              .data$id_spat_res,
              .data$species,
              .data$category,
-             !!sym(time_period)) |>
+             !!sym(divide_by)) |>
     summarise(n = sum(.data$n)) |>
     ungroup() |>
-    group_by(!!sym(time_period)) |>
+    group_by(.data$id_dataset,
+             .data$id_spat_res,
+             !!sym(divide_by)) |>
     mutate(total_obs = sum(.data$n)) |>
     ungroup() |>
     mutate(n = .data$n / .data$total_obs)
+
+  if ("id_filter_per" %in% colnames(data)) {
+    output$id_filter_per <- data$id_filter_per[1]
+    output$id_filter_per2 <- divide_by
+  } else {
+    output$id_filter_per <- divide_by
+  }
+
+  return(output)
+}
+
+# Standardize data based on total observations per family or order
+stand_class_level <- function(data, stand_by, time_period){
+  output <- data |>
+    group_by(.data$id_dataset,
+             .data$id_spat_res,
+             .data$species,
+             .data$category,
+             !!sym(time_period)) |>
+    summarise(n = sum(.data$n),
+              total = sum(!!sym(stand_by))) |>
+    ungroup() |>
+    mutate(n = .data$n / total)
 
   if ("id_filter_per" %in% colnames(data)) {
     output$id_filter_per <- data$id_filter_per[1]
@@ -109,3 +142,5 @@ filter_3 <- function(data, time_period = "year") {
 
   return(output)
 }
+
+
