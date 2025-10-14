@@ -96,11 +96,17 @@ filter_3 <- function(data, divide_by) {
   require("dplyr")
 
   output <- data |>
-    group_by(.data$id_dataset,
-             .data$id_spat_res,
-             .data$species,
-             .data$category,
-             !!sym(divide_by)) |>
+    group_by(
+      across(
+        any_of(
+          c("id_dataset",
+            "id_spat_res",
+            "species",
+            "category",
+            divide_by)
+          )
+        )
+      ) |>
     summarise(n = sum(.data$n)) |>
     ungroup() |>
     group_by(.data$id_dataset,
@@ -123,11 +129,14 @@ filter_3 <- function(data, divide_by) {
 # Standardize data based on total observations per family or order
 stand_class_level <- function(data, stand_by, time_period){
   output <- data |>
-    group_by(.data$id_dataset,
-             .data$id_spat_res,
-             .data$species,
-             .data$category,
-             !!sym(time_period)) |>
+    group_by(
+      across(
+        any_of(
+          c("id_dataset",
+            "id_spat_res",
+            "species",
+            "category",
+            time_period)))) |>
     summarise(n = sum(.data$n),
               total = sum(!!sym(stand_by))) |>
     ungroup() |>

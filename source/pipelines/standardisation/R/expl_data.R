@@ -4,65 +4,87 @@ my_group_by <- function(data, cols) {
   group_by(data, pick({{ cols }}))
 }
 
-range_comp <- function(data) {
+#' Compare if species have a comparable percentage of occupied grid cells
+#' in both datasets
+range_comp <- function(dataset1, dataset2) {
   require("dplyr")
   require("tidyr")
 
-  dataset_least_species <- data |>
-    group_by(id_dataset) |>
-    summarize(n_species = n_distinct(species)) |>
-    filter(n_species == min(n_species)) |>
-    pull(id_dataset)
-
-  species_list <- data |>
-    filter(id_dataset == dataset_least_species) |>
+  species_list <- dataset1 |>
     select("species") |>
     distinct() |>
     pull()
 
-  comp_range_data <- data |>
-    filter(species %in% species_list) |>
+  comp_range_data1 <- dataset1 |>
     group_by(pick(matches("^id_"))) |>
-    mutate(tot_n_dist_gridcells = n_distinct("mgrscode")) |>
+    mutate(tot_n_dist_gridcells = n_distinct(mgrscode)) |>
     ungroup() |>
-    my_group_by(c(c(species,
-                    tot_n_dist_gridcells),
-                  matches("^id_"))) |>
-    summarise(n_dist_gridcells = n_distinct("mgrscode")) |>
+    group_by(species,
+             tot_n_dist_gridcells,
+             category,
+             pick(matches("^id_"))) |>
+    summarise(n_dist_gridcells = n_distinct(mgrscode)) |>
+    ungroup() |>
+    mutate(percentage = n_dist_gridcells / tot_n_dist_gridcells) |>
+    pivot_wider(id_cols = c("id_spat_res",
+                            "species",
+                            "category",
+                            matches("^id_filter")),
+                names_from = "id_dataset",
+                values_from = c("n_dist_gridcells", "percentage"))
+
+  comp_range_data2 <- dataset2 |>
+    group_by(pick(matches("^id_"))) |>
+    mutate(tot_n_dist_gridcells = n_distinct(mgrscode)) |>
+    ungroup() |>
+    group_by(species,
+             tot_n_dist_gridcells,
+             pick(matches("^id_"))) |>
+    summarise(n_dist_gridcells = n_distinct(mgrscode)) |>
     ungroup() |>
     mutate(percentage = n_dist_gridcells / tot_n_dist_gridcells) |>
     pivot_wider(id_cols = c("id_spat_res",
                             "species",
                             matches("^id_filter")),
                 names_from = "id_dataset",
-                values_from = c("n_dist_gridcells", "percentage")) |>
-    left_join(data |>
-                filter(id_dataset == "abv_data") |>
-                distinct(species, category),
-              by = join_by(species))
+                values_from = c("n_dist_gridcells", "percentage"))
+
+  comp_range_data <- comp_range_data1 |>
+    left_join(comp_range_data2,
+              by = join_by(species, id_spat_res))
 
   return(comp_range_data)
 }
 
-trend_comp <- function(data, time_period) {
+trend_comp <- function(dataset1, dataset2, time_period) {
   require("dplyr")
   require("tidyr")
 
-  dataset_least_species <- data |>
-    group_by(id_dataset) |>
-    summarize(n_species = n_distinct(species)) |>
-    filter(n_species == min(n_species)) |>
-    pull(id_dataset)
-
-  species_list <- data |>
-    filter(id_dataset == dataset_least_species) |>
-    select(species) |>
+  species_list <- dataset1 |>
+    select("species") |>
     distinct() |>
     pull()
 
-  trend_range_data <- data |>
+  trend_range_data1 <- dataset1 |>
+    group_by(species,
+             category,
+             !!sym(time_period),
+             pick(matches("^id_"))) |>
+    summarize(occurrence = sum(n)) |>
+    ungroup() |>
+    pivot_wider(id_cols = c(id_spat_res,
+                            species,
+                            category,
+                            !!sym(time_period),
+                            matches("^id_filter")),
+                names_from = id_dataset,
+                values_from = occurrence)
+
+  trend_range_data2 <- dataset2 |>
     filter(species %in% species_list) |>
-    my_group_by(c(c(species, !!sym(time_period)), matches("^id_"))) |>
+    group_by(species,
+             !!sym(time_period),
+             pick(matches("^id_"))) |>
     summarize(occurrence = sum(n)) |>
     ungroup() |>
     pivot_wider(id_cols = c(id_spat_res,
@@ -70,18 +92,18 @@ trend_comp <- function(data, time_period) {
                             !!sym(time_period),
                             matches("^id_filter")),
                 names_from = id_dataset,
-                values_from = occurrence) |>
+                values_from = occurrence)
+
+  trend_range_data <- trend_range_data1 |>
+    left_join(trend_range_data2,
+              by = id_spat_res, species, !!sym(time_period)) |>
     drop_na() |>
-    my_group_by(c(c(species, id_spat_res),
-                  matches("^id_filter"))) |>
+    group_by(species,
+             id_spat_res,
+             pick(matches("^id_filter"))) |>
     summarise(correlation = cor(abv_data,
                                 birdflanders,
                                 method = "pearson")) |>
-    ungroup() |>
-    left_join(data |>
-                filter(id_dataset == "abv_data") |>
-                distinct(species, category),
-              by = join_by(species)) |>
     mutate(time_period = time_period)
 
   return(trend_range_data)
