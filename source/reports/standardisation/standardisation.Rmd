@@ -52,7 +52,7 @@ tar_read(trend_comp_0) |>
                                    "yes", "no")) |> 
   filter(id_spat_res == "1km",
          time_period == "cyclus") |>
-  ggplot(aes(x = correlation, fill = category)) +
+  ggplot(aes(x = correlation, fill = category, alpha = selected_species)) +
   geom_histogram() +
   xlim(-1, 1) +
   fill_scale +
