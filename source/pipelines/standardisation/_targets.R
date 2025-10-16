@@ -190,6 +190,13 @@ list(
     pattern = map(time_period)
   ),
   tar_target(
+    trend_comp_0_cutoff,
+    trend_comp(data_abv |> filter(year < 2019),
+               data_cube |> filter(year < 2019),
+               time_period),
+    pattern = map(time_period)
+  ),
+  tar_target(
     trend_comp_1,
     trend_comp(data_abv, filter1_cube, time_period),
     pattern = map(time_period)
@@ -205,6 +212,13 @@ list(
     pattern = map(time_period)
   ),
   tar_target(
+    trend_comp_3_cutoff,
+    trend_comp(data_abv |> filter(year < 2019),
+               filter3_cube |> filter(year < 2019),
+               time_period),
+    pattern = map(time_period)
+  ),
+  tar_target(
     trend_comp_4,
     trend_comp(data_abv, filter4_cube, time_period),
     pattern = map(time_period)
@@ -215,13 +229,34 @@ list(
     pattern = map(time_period)
   ),
   tar_target(
+    trend_comp_order_cutoff,
+    trend_comp(data_abv |> filter(year < 2019),
+               stand_order_cube|> filter(year < 2019),
+               time_period),
+    pattern = map(time_period)
+  ),
+  tar_target(
     trend_comp_family,
     trend_comp(data_abv, stand_family_cube, time_period),
     pattern = map(time_period)
   ),
   tar_target(
+    trend_comp_family_cutoff,
+    trend_comp(data_abv |> filter(year < 2019),
+               stand_family_cube |> filter(year < 2019),
+               time_period),
+    pattern = map(time_period)
+  ),
+  tar_target(
     trend_comp_genus,
     trend_comp(data_abv, stand_genus_cube, time_period),
+    pattern = map(time_period)
+  ),
+  tar_target(
+    trend_comp_genus_cutoff,
+    trend_comp(data_abv |> filter(year < 2019),
+               stand_genus_cube |> filter(year < 2019),
+               time_period),
     pattern = map(time_period)
   )
 )
