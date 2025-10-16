@@ -1,9 +1,3 @@
-my_group_by <- function(data, cols) {
-  require("dplyr")
-
-  group_by(data, pick({{ cols }}))
-}
-
 #' Compare if species have a comparable percentage of occupied grid cells
 #' in both datasets
 range_comp <- function(dataset1, dataset2) {
@@ -96,9 +90,10 @@ trend_comp <- function(dataset1, dataset2, time_period) {
 
   trend_range_data <- trend_range_data1 |>
     left_join(trend_range_data2,
-              by = id_spat_res, species, !!sym(time_period)) |>
+              by = c("id_spat_res", "species", time_period)) |>
     drop_na() |>
     group_by(species,
+             category,
              id_spat_res,
              pick(matches("^id_filter"))) |>
     summarise(correlation = cor(abv_data,
