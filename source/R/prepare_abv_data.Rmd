@@ -127,7 +127,7 @@ abv_data_total <- download_occ_cube(
   sql_query = query_abv,
   file = "abv_data.csv",
   path = data_path,
-  overwrite = TRUE
+  overwrite = FALSE
 )
 ```
 
@@ -143,7 +143,7 @@ glimpse(abv_data_total)
 The cube data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (01 September 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.vvqewm
+> GBIF.org (01 September 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.vvqewm
 
 ```{r}
 # nolint start: line_length_linter.
@@ -195,7 +195,7 @@ birdcube_data_total <- download_occ_cube(
   sql_query = query_birdcube,
   file = "birdcube_data.csv",
   path = data_path,
-  overwrite = TRUE
+  overwrite = FALSE
 )
 ```
 

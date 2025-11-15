@@ -43,7 +43,7 @@ Load and save unstructured data at 10km² grid.
 The ABV data is downloaded as a cube from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (01 September 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.97pdjf
+> GBIF.org (01 September 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.97pdjf
 
 ```{r}
 # nolint start: line_length_linter.
@@ -95,7 +95,7 @@ abv_data_total <- download_occ_cube(
   sql_query = query_abv,
   file = "abv_data_10km.csv",
   path = data_path,
-  overwrite = TRUE
+  overwrite = FALSE
 )
 ```
 
@@ -111,7 +111,7 @@ glimpse(abv_data_total)
 The cube data is downloaded from GBIF.org.
 The zip file is stored under *./data/raw*.
 
-> GBIF.org (01 September 2025) GBIF Occurrence Download  https://doi.org/10.15468/dl.5grehw
+> GBIF.org (01 September 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.5grehw
 
 ```{r}
 # nolint start: line_length_linter.
@@ -163,7 +163,7 @@ birdcube_data_total <- download_occ_cube(
   sql_query = query_birdcube,
   file = "birdcube_10km.csv",
   path = data_path,
-  overwrite = TRUE
+  overwrite = FALSE
 )
 ```
 
