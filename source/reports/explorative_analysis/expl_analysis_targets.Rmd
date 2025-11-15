@@ -18,6 +18,8 @@ opts_chunk$set(collapse = TRUE, comment = "#>")
 
 library(targets)
 Sys.setenv(TAR_PROJECT = "exploratory_analysis")
+store <- file.path(here::here(),
+                   "/source/pipelines/exploratory_analysis/_targets")
 
 library(ggplot2)
 library(ggpubr)
@@ -55,10 +57,10 @@ The following filters are used:
 ## Data exploration
 
 ```{r}
-abv <- tar_read(data) |>
+abv <- tar_read(data, store = store) |>
   filter(id_dataset == "abv_data",
          id_spat_res == "1km")
-cube <- tar_read(data) |>
+cube <- tar_read(data, store = store) |>
   filter(id_dataset == "birdflanders",
          id_spat_res == "1km")
 ```
@@ -176,7 +178,7 @@ cube |>
 ### No filter
 
 ```{r}
-tar_read(range_comp_0) |>
+tar_read(range_comp_0, store = store) |>
   filter(id_spat_res == "1km") |>
   ggplot(aes(x = percentage_abv_data,
              y = percentage_birdflanders,
@@ -195,7 +197,7 @@ tar_read(range_comp_0) |>
 ### Filter 1
 
 ```{r}
-tar_read(range_comp_1) |>
+tar_read(range_comp_1, store = store) |>
   filter(id_spat_res == "1km") |>
   ggplot(aes(x = percentage_abv_data,
              y = percentage_birdflanders,
@@ -214,7 +216,7 @@ tar_read(range_comp_1) |>
 ### Filter 2
 
 ```{r}
-tar_read(range_comp_2) |>
+tar_read(range_comp_2, store = store) |>
   filter(id_spat_res == "1km") |>
   filter(id_filter_per == "year") |>
   ggplot(aes(x = percentage_abv_data,
@@ -239,7 +241,7 @@ Given the limitations of the ABV monitoring setup we can't compare exact pattern
 
 ### No filter
 ```{r}
-p0 <- tar_read(trend_comp_0) |>
+p0 <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
@@ -254,7 +256,7 @@ p0
 
 ### Filter 1
 ```{r}
-p1 <- tar_read(trend_comp_1) |>
+p1 <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
@@ -269,7 +271,7 @@ p1
 
 ### Filter 2
 ```{r}
-p2 <- tar_read(trend_comp_2) |>
+p2 <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
@@ -284,7 +286,7 @@ p2
 
 ### Filter 3
 ```{r}
-p3 <- tar_read(trend_comp_3) |>
+p3 <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year",
          id_filter_per == "year") |>
@@ -300,7 +302,7 @@ p3
 
 ### Filter 4
 ```{r}
-p4 <- tar_read(trend_comp_4) |>
+p4 <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year",
          id_filter_per == "year",
@@ -354,7 +356,7 @@ We include the trends of nine species:
 
 ### No filter
 ```{r}
-trend_comp_0_cyclus <- tar_read(trend_comp_0) |>
+trend_comp_0_cyclus <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
 
@@ -371,7 +373,7 @@ p0
 
 ```{r}
 shared_filter0_cyclus <- SharedData$new(
-  tar_read(data) |>
+  tar_read(data, store = store) |>
     filter(species %in% species_list_cor,
            id_spat_res == "1km") |>
     group_by(species, id_dataset, cyclus) |>
@@ -394,7 +396,7 @@ bscols(
 
 ### Filter 1
 ```{r}
-trend_comp_1_cyclus <- tar_read(trend_comp_1) |>
+trend_comp_1_cyclus <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
 
@@ -411,7 +413,7 @@ p1
 
 ```{r}
 shared_filter1_cyclus <- SharedData$new(
-  tar_read(filter1) |>
+  tar_read(filter1, store = store) |>
     filter(species %in% species_list_cor,
            id_spat_res == "1km") |>
     group_by(species, id_dataset, cyclus) |>
@@ -435,7 +437,7 @@ bscols(
 
 ### Filter 2
 ```{r}
-trend_comp_2_cyclus <- tar_read(trend_comp_2) |>
+trend_comp_2_cyclus <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
 
@@ -452,7 +454,7 @@ p2
 
 ```{r}
 shared_filter2_cyclus <- SharedData$new(
-  tar_read(filter2) |>
+  tar_read(filter2, store = store) |>
     filter(species %in% species_list_cor,
            id_spat_res == "1km",
            id_filter_per == "cyclus") |>
@@ -476,7 +478,7 @@ bscols(
 
 ### Filter 3
 ```{r}
-trend_comp_3_cyclus <- tar_read(trend_comp_3) |>
+trend_comp_3_cyclus <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
          id_filter_per == "cyclus")
@@ -493,7 +495,7 @@ p3
 ```
 
 ```{r}
-shared_filter3_cyclus <- SharedData$new(tar_read(filter3) |>
+shared_filter3_cyclus <- SharedData$new(tar_read(filter3, store = store) |>
                                           filter(species %in% species_list_cor,
                                                  id_spat_res == "1km",
                                                  id_filter_per == "cyclus"))
@@ -514,7 +516,7 @@ bscols(
 
 ### Filter 4
 ```{r}
-trend_comp_4_cyclus <- tar_read(trend_comp_4) |>
+trend_comp_4_cyclus <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
          id_filter_per == "cyclus",
@@ -532,7 +534,7 @@ p4
 ```
 
 ```{r}
-shared_filter4_cyclus <- SharedData$new(tar_read(filter4) |>
+shared_filter4_cyclus <- SharedData$new(tar_read(filter4, store = store) |>
                                           filter(species %in% species_list_cor,
                                                  id_spat_res == "1km",
                                                  id_filter_per == "cyclus",

@@ -20,6 +20,8 @@ opts_chunk$set(collapse = TRUE, comment = "#>")
 
 library(targets)
 Sys.setenv(TAR_PROJECT = "biodiversity_indicators")
+store <- file.path(here::here(),
+                   "source/pipelines/biodiversity_indicators/_targets")
 
 library(b3gbi)
 library(ggplot2)
@@ -32,11 +34,11 @@ library(ggplot2)
 ### Map
 
 ```{r total occurrences map, fig.show="hold", out.width="50%"}
-total_occ_map_abv <- tar_read(total_occ_map_abv)
+total_occ_map_abv <- tar_read(total_occ_map_abv, store = store)
 p <- plot(total_occ_map_abv)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-total_occ_map_birdcube <- tar_read(total_occ_map_cube)
+total_occ_map_birdcube <- tar_read(total_occ_map_cube, store = store)
 p <- plot(total_occ_map_birdcube)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
@@ -46,11 +48,11 @@ What's interesting is that there are clearly certain areas in the cube that have
 ### Time series
 
 ```{r total occurrences time series, fig.show="hold", out.width="50%"}
-total_occ_ts_abv <- tar_read(total_occ_ts_abv)
+total_occ_ts_abv <- tar_read(total_occ_ts_abv, store = store)
 p <- plot(total_occ_ts_abv)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-total_occ_ts_birdcube <- tar_read(total_occ_ts_cube)
+total_occ_ts_birdcube <- tar_read(total_occ_ts_cube, store = store)
 p <- plot(total_occ_ts_birdcube)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
@@ -62,11 +64,11 @@ Both data sets show big differences in the number of observations over the years
 ### Map 1 km²
 
 ```{robserved richness map 1km, fig.show="hold", out.width="50%"}
-obs_richness_map_abv_1 <- tar_read(obs_richness_map_abv_1)
+obs_richness_map_abv_1 <- tar_read(obs_richness_map_abv_1, store = store)
 p <- plot(obs_richness_map_abv_1)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-obs_richness_map_cube_1 <- tar_read(obs_richness_map_cube_1)
+obs_richness_map_cube_1 <- tar_read(obs_richness_map_cube_1, store = store)
 p <- plot(obs_richness_map_cube_1)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
@@ -74,11 +76,11 @@ p + labs(title = paste0(p$labels$title, " - Cube"))
 ### Map 10 km²
 
 ```{r observed richness map, fig.show="hold", out.width="50%"}
-obs_richness_map_abv_10 <- tar_read(obs_richness_map_abv_10)
+obs_richness_map_abv_10 <- tar_read(obs_richness_map_abv_10, store = store)
 p <- plot(obs_richness_map_abv_10)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-obs_richness_map_cube_10 <- tar_read(obs_richness_map_cube_10)
+obs_richness_map_cube_10 <- tar_read(obs_richness_map_cube_10, store = store)
 p <- plot(obs_richness_map_cube_10)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
@@ -86,11 +88,11 @@ p + labs(title = paste0(p$labels$title, " - Cube"))
 ### Time series
 
 ```{r observed richness time series, fig.show="hold", out.width="50%"}
-obs_richness_ts_abv <- tar_read(obs_richness_ts_abv)
+obs_richness_ts_abv <- tar_read(obs_richness_ts_abv, store = store)
 p <- plot(obs_richness_ts_abv)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-obs_richness_ts_cube <- tar_read(obs_richness_ts_cube)
+obs_richness_ts_cube <- tar_read(obs_richness_ts_cube, store = store)
 p <- plot(obs_richness_ts_cube)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
@@ -100,11 +102,11 @@ p + labs(title = paste0(p$labels$title, " - Cube"))
 ### Map
 
 ```{r pielou evenness map, fig.show="hold", out.width="50%"}
-pielou_evenness_map_abv <- tar_read(pielou_evenness_map_abv)
+pielou_evenness_map_abv <- tar_read(pielou_evenness_map_abv, store = store)
 p <- plot(pielou_evenness_map_abv)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-pielou_evenness_map_cube <- tar_read(pielou_evenness_map_cube)
+pielou_evenness_map_cube <- tar_read(pielou_evenness_map_cube, store = store)
 p <- plot(pielou_evenness_map_cube)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
@@ -112,11 +114,11 @@ p + labs(title = paste0(p$labels$title, " - Cube"))
 ### Time series
 
 ```{r pielou evenness time series, fig.show="hold", out.width="50%"}
-pielou_evenness_ts_abv <- tar_read(pielou_evenness_ts_abv)
+pielou_evenness_ts_abv <- tar_read(pielou_evenness_ts_abv, store = store)
 p <- plot(pielou_evenness_ts_abv)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-pielou_evenness_ts_cube <- tar_read(pielou_evenness_ts_cube)
+pielou_evenness_ts_cube <- tar_read(pielou_evenness_ts_cube, store = store)
 p <- plot(pielou_evenness_ts_cube)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
@@ -136,11 +138,11 @@ We chose three species to compare the indicators between the two data sets:
 #### Map
 
 ```{r species occurrences map cettis warbler, fig.show="hold", out.width="50%"}
-spec_occ_map_abv <- tar_read(spec_occ_map_abv)
+spec_occ_map_abv <- tar_read(spec_occ_map_abv, store = store)
 p <- plot(spec_occ_map_abv, species = "Cettia cetti")
 p
 
-spec_occ_map_cube <- tar_read(spec_occ_map_cube)
+spec_occ_map_cube <- tar_read(spec_occ_map_cube, store = store)
 p <- plot(spec_occ_map_cube, species = "Cettia cetti")
 p
 ```
@@ -148,11 +150,11 @@ p
 #### Time series
 
 ```{r species occurrences time series cettis warbler, fig.show="hold", out.width="50%"}
-spec_occ_ts_abv <- tar_read(spec_occ_ts_abv)
+spec_occ_ts_abv <- tar_read(spec_occ_ts_abv, store = store)
 p <- plot(spec_occ_ts_abv, species = "Cettia cetti")
 p
 
-spec_occ_ts_cube <- tar_read(spec_occ_ts_cube)
+spec_occ_ts_cube <- tar_read(spec_occ_ts_cube, store = store)
 p <- plot(spec_occ_ts_cube, species = "Cettia cetti")
 p
 ```
@@ -162,11 +164,11 @@ p
 #### Map
 
 ```{r species range map cettis warbler, fig.show="hold", out.width="50%"}
-spec_range_map_abv <- tar_read(spec_range_map_abv)
+spec_range_map_abv <- tar_read(spec_range_map_abv, store = store)
 p <- plot(spec_range_map_abv, species = "Cettia cetti")
 p
 
-spec_range_map_cube <- tar_read(spec_range_map_cube)
+spec_range_map_cube <- tar_read(spec_range_map_cube, store = store)
 p <- plot(spec_range_map_cube, species = "Cettia cetti")
 p
 ```
@@ -174,11 +176,11 @@ p
 #### Time series
 
 ```{r species range time series cettis warbler, fig.show="hold", out.width="50%"}
-spec_range_ts_abv <- tar_read(spec_range_ts_abv)
+spec_range_ts_abv <- tar_read(spec_range_ts_abv, store = store)
 p <- plot(spec_range_ts_abv, species = "Cettia cetti")
 p
 
-spec_range_ts_cube <- tar_read(spec_range_ts_cube)
+spec_range_ts_cube <- tar_read(spec_range_ts_cube, store = store)
 p <- plot(spec_range_ts_cube, species = "Cettia cetti")
 p
 ```
@@ -190,11 +192,11 @@ p
 #### Map
 
 ```{r species occurrences map Eurasian tree sparrow, fig.show="hold", out.width="50%"}
-spec_occ_map_abv <- tar_read(spec_occ_map_abv)
+spec_occ_map_abv <- tar_read(spec_occ_map_abv, store = store)
 p <- plot(spec_occ_map_abv, species = "Passer montanus")
 p
 
-spec_occ_map_cube <- tar_read(spec_occ_map_cube)
+spec_occ_map_cube <- tar_read(spec_occ_map_cube, store = store)
 p <- plot(spec_occ_map_cube, species = "Passer montanus")
 p
 ```
@@ -202,11 +204,11 @@ p
 #### Time series
 
 ```{r species occurrences time series Eurasian tree sparrow, fig.show="hold", out.width="50%"}
-spec_occ_ts_abv <- tar_read(spec_occ_ts_abv)
+spec_occ_ts_abv <- tar_read(spec_occ_ts_abv, store = store)
 p <- plot(spec_occ_ts_abv, species = "Passer montanus")
 p
 
-spec_occ_ts_cube <- tar_read(spec_occ_ts_cube)
+spec_occ_ts_cube <- tar_read(spec_occ_ts_cube, store = store)
 p <- plot(spec_occ_ts_cube, species = "Passer montanus")
 p
 ```
@@ -216,11 +218,11 @@ p
 #### Map
 
 ```{r species range map Eurasian tree sparrow, fig.show="hold", out.width="50%"}
-spec_range_map_abv <- tar_read(spec_range_map_abv)
+spec_range_map_abv <- tar_read(spec_range_map_abv, store = store)
 p <- plot(spec_range_map_abv, species = "Passer montanus")
 p
 
-spec_range_map_cube <- tar_read(spec_range_map_cube)
+spec_range_map_cube <- tar_read(spec_range_map_cube, store = store)
 p <- plot(spec_range_map_cube, species = "Passer montanus")
 p
 ```
@@ -228,11 +230,11 @@ p
 #### Time series
 
 ```{r species range time series Eurasian tree sparrow, fig.show="hold", out.width="50%"}
-spec_range_ts_abv <- tar_read(spec_range_ts_abv)
+spec_range_ts_abv <- tar_read(spec_range_ts_abv, store = store)
 p <- plot(spec_range_ts_abv, species = "Passer montanus")
 p
 
-spec_range_ts_cube <- tar_read(spec_range_ts_cube)
+spec_range_ts_cube <- tar_read(spec_range_ts_cube, store = store)
 p <- plot(spec_range_ts_cube, species = "Passer montanus")
 p
 ```
@@ -244,11 +246,11 @@ p
 #### Map
 
 ```{r species occurrences map Common nightingale, fig.show="hold", out.width="50%"}
-spec_occ_map_abv <- tar_read(spec_occ_map_abv)
+spec_occ_map_abv <- tar_read(spec_occ_map_abv, store = store)
 p <- plot(spec_occ_map_abv, species = "Luscinia megarhynchos")
 p
 
-spec_occ_map_cube <- tar_read(spec_occ_map_cube)
+spec_occ_map_cube <- tar_read(spec_occ_map_cube, store = store)
 p <- plot(spec_occ_map_cube, species = "Luscinia megarhynchos")
 p
 ```
@@ -256,11 +258,11 @@ p
 #### Time series
 
 ```{r species occurrences time series Common nightingale, fig.show="hold", out.width="50%"}
-spec_occ_ts_abv <- tar_read(spec_occ_ts_abv)
+spec_occ_ts_abv <- tar_read(spec_occ_ts_abv, store = store)
 p <- plot(spec_occ_ts_abv, species = "Luscinia megarhynchos")
 p
 
-spec_occ_ts_cube <- tar_read(spec_occ_ts_cube)
+spec_occ_ts_cube <- tar_read(spec_occ_ts_cube, store = store)
 p <- plot(spec_occ_ts_cube, species = "Luscinia megarhynchos")
 p
 ```
@@ -270,11 +272,11 @@ p
 #### Map
 
 ```{r species range map Common nightingale, fig.show="hold", out.width="50%"}
-spec_range_map_abv <- tar_read(spec_range_map_abv)
+spec_range_map_abv <- tar_read(spec_range_map_abv, store = store)
 p <- plot(spec_range_map_abv, species = "Luscinia megarhynchos")
 p
 
-spec_range_map_cube <- tar_read(spec_range_map_cube)
+spec_range_map_cube <- tar_read(spec_range_map_cube, store = store)
 p <- plot(spec_range_map_cube, species = "Luscinia megarhynchos")
 p
 ```
@@ -282,12 +284,11 @@ p
 #### Time series
 
 ```{r species range time series Common nightingale, fig.show="hold", out.width="50%"}
-spec_range_ts_abv <- tar_read(spec_range_ts_abv)
+spec_range_ts_abv <- tar_read(spec_range_ts_abv, store = store)
 p <- plot(spec_range_ts_abv, species = "Luscinia megarhynchos")
 p
 
-spec_range_ts_cube <- tar_read(spec_range_ts_cube)
+spec_range_ts_cube <- tar_read(spec_range_ts_cube, store = store)
 p <- plot(spec_range_ts_cube, species = "Luscinia megarhynchos")
 p
 ```
-
