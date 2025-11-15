@@ -77,7 +77,8 @@ list(
     data_cubes,
     process_cube(data,
                  cols_occurrences = "n"),
-    pattern = map(data)
+    pattern = map(data),
+    iteration = "list"
   ),
   tar_target(
     obs_richness_map,
