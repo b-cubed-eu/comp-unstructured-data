@@ -470,7 +470,7 @@ prevalence_cv %>%
   theme_bw(base_size = 12)
 ```
 
-We look at the `r (1 - quantile) * 100` % species with the highest maximum relative error.
+We look at the `r (1 - quantile) * 100` % species with the highest mean relative error (MRE).
 
 ```{r}
 top_spec_mre_df <- prevalence_cv %>%
@@ -492,6 +492,40 @@ birdcube_dataset_filtered %>%
   count(species, datasetname) %>%
   left_join(top_spec_mre_df, by = join_by(species)) %>%
   mutate(species = reorder(species, mre, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  labs(x = "", y = "Number of observations (count)") +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  theme_bw(base_size = 12) +
+  coord_flip() +
+  facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+We look at the `r (1 - quantile) * 100` % species with the lowest MRE.
+
+```{r}
+top_spec_mre_df <- prevalence_cv %>%
+  distinct(species, rarity, mre) %>%
+  slice_min(mre, prop = 1 - quantile) %>%
+  arrange(mre)
+
+top_spec_mre_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_mre_specs <- top_spec_mre_df %>%
+  slice_min(mre, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_mre_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_mre_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, mre, decreasing = FALSE)) %>%
   mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
   ggplot(aes(x = datasetname, y = n)) +
   geom_bar(stat = "identity") +
