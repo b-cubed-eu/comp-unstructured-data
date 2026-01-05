@@ -77,23 +77,99 @@ Issues were opened respectively trough GBIF and with the ABV data publisher. Spe
 The ABV dataset, which stands for Algemene Broedvogelmonitoring Vlaanderen (Common Breeding Bird Survey Flanders), is a structured monitoring dataset that tracks a group of approximately 100 common breeding bird species in Flanders, Belgium. Monitoring began in 2007 and the protocol involves selecting a random sample of 1200 UTM 1x1 km grid cells, stratified by land use. These cells are divided into groups of 300, and 300 grid cells are visited each year on a three-year rotation. Each grid cell contains six monitoring locations where bird counts are conducted. The data collection is standardized, with each grid cell being visited three times a year at fixed intervals (at least two weeks apart).
 
 ```{r}
-abv |>
+fig_year <- abv |>
   ggplot(aes(x = year, y = n)) +
   geom_bar(stat = "identity",
            fill = "#1B9E77") +
-  scale_x_continuous(breaks = sort(unique(abv$year)))
+  scale_x_continuous(breaks = sort(unique(abv$year))) +
+  labs(x = "",
+       y = "Number of observations") +
+  theme_bw(base_size = 12)
+fig_year
 ```
 
 The ABV data ranges from over 40.000 observations in 2007 to just over 20.000 observations in 2022.
 
 ```{r}
-abv |>
+figa <- abv |>
   group_by(species) |>
   summarise(n_obs = sum(n)) |>
   ggplot(aes(x = n_obs)) +
-  geom_histogram(fill = "#D95F02", color = "black") +
+  geom_histogram(fill = "#1B9E77", color = "black") +
   labs(x = "Number of observations",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
+figa
+```
+
+```{r}
+library(scales)
+
+# Define rarity thresholds and labels
+rarity_breaks <- c(0, 10, 100, 1000, 10000, Inf)
+rarity_labels <- c("Very rare\n(<10)",
+                   "Rare\n(10-100)",
+                   "Common\n(100-1 000)",
+                   "Very common\n(1 000-10 000)",
+                   "Extremely common\n(>10 000)")
+
+# Compute midpoints in log10 space for proper centering
+log10_mid <- function(lower, upper) 10^((log10(lower) + log10(upper))/2)
+
+rarity_mid <- c(
+  log10_mid(1, 10),       # use 1 instead of 0 because log10(0) is undefined
+  log10_mid(10, 100),
+  log10_mid(100, 1000),
+  log10_mid(1000, 10000),
+  log10_mid(10000, 120000) # approximate upper for last category
+)
+
+figb <- abv |>
+  group_by(species) |>
+  summarise(n_obs = sum(n)) |>
+  ggplot(aes(x = n_obs)) +
+  geom_histogram(fill = "#1B9E77", color = "black", bins = 30) +
+  # Vertical lines for category boundaries
+  geom_vline(xintercept = c(10, 100, 1000, 10000), linetype = "dashed",
+             color = "red") +
+  # Horizontal labels, centered between thresholds
+  annotate("label", x = rarity_mid, y = 13, label = rarity_labels, hjust = 0.5,
+           size = 3) +
+  # Log10 x-axis, pretty numbers
+  scale_x_continuous(trans = "log10",
+                     breaks = c(1, 10, 100, 1000, 10000, 100000),
+                     labels = label_number(big.mark = " ")) +
+  # Expand x-axis to include last label
+  coord_cartesian(xlim = c(NA, 80000)) +
+  labs(x = "Number of observations (log10 scale)",
+       y = "Number of species") +
+  theme_bw(base_size = 12)
+figb
+```
+
+```{r}
+library(cowplot)
+# ----- Combine species-level plots side by side -----
+bottom_row <- plot_grid(
+  figa, figb,
+  labels = c("B.", "C."),
+  label_size = 20,
+  ncol = 2,
+  rel_widths = c(0.8, 1.2)
+)
+
+# ----- Combine top + bottom -----
+final_plot <- plot_grid(
+  fig_year, bottom_row,
+  labels = "A.",
+  label_size = 20,
+  ncol = 1,
+  rel_heights = c(1, 1)  # top vs bottom height ratio
+)
+
+# ----- Save to file -----
+ggsave(here::here("output", "data_exploration", "abv_three_panel.png"), final_plot,
+       width = 12, height = 10, dpi = 300)
 ```
 
 180 bird species were recorded, of which 34 were recorded < 10 times (very rare), 29 were recorded between 10 and 100 times (rare), 59 were recorded between 100 and 1000 times (common), 43 were recorded between 1000 and 10000 times (very common) and 15 were recorded more than 10 000 times (extremely common).
@@ -128,22 +204,84 @@ The cube is made up of several datasets:
 With the first dataset (waarnemingen.be) containing most of the observations (67%). For further analyses it is important to know that waarnemingen.be data was last published in 2019 and currently runs only to 31-12-2018.
 
 ```{r}
-cube |>
+fig_year <- cube |>
   ggplot(aes(x = year, y = n)) +
   geom_bar(stat = "identity",
-           fill = "#7570B3") +
-  scale_x_continuous(breaks = sort(unique(cube$year)))
+           fill = "#1B9E77") +
+  scale_x_continuous(breaks = sort(unique(abv$year))) +
+  labs(x = "",
+       y = "Number of observations") +
+  theme_bw(base_size = 12)
+fig_year
 ```
 
 ```{r}
-cube |>
+figa <- cube |>
   group_by(species) |>
   summarise(n_obs = sum(n)) |>
   ggplot(aes(x = n_obs)) +
-  geom_histogram(fill = "#E7298A", color = "black") +
+  geom_histogram(fill = "#1B9E77", color = "black") +
   labs(x = "Number of observations",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
+figa
 ```
+
+```{r}
+rarity_mid <- c(
+  log10_mid(1, 10),       # use 1 instead of 0 because log10(0) is undefined
+  log10_mid(10, 100),
+  log10_mid(100, 1000),
+  log10_mid(1000, 10000),
+  log10_mid(100000, 200000) # approximate upper for last category
+)
+
+figb <- cube |>
+  group_by(species) |>
+  summarise(n_obs = sum(n)) |>
+  ggplot(aes(x = n_obs)) +
+  geom_histogram(fill = "#1B9E77", color = "black", bins = 30) +
+  # Vertical lines for category boundaries
+  geom_vline(xintercept = c(10, 100, 1000, 10000), linetype = "dashed",
+             color = "red") +
+  # Horizontal labels, centered between thresholds
+  annotate("label", x = rarity_mid, y = 40, label = rarity_labels, hjust = 0.5,
+           size = 3) +
+  # Log10 x-axis, pretty numbers
+  scale_x_continuous(trans = "log10",
+                     breaks = c(1, 10, 100, 1000, 10000, 100000),
+                     labels = label_number(big.mark = " ")) +
+  labs(x = "Number of observations (log10 scale)",
+       y = "Number of species") +
+  theme_bw(base_size = 12)
+figb
+```
+
+```{r}
+# ----- Combine species-level plots side by side -----
+bottom_row <- plot_grid(
+  figa, figb,
+  labels = c("B.", "C."),
+  label_size = 20,
+  ncol = 2,
+  rel_widths = c(0.8, 1.2)
+)
+
+# ----- Combine top + bottom -----
+final_plot <- plot_grid(
+  fig_year, bottom_row,
+  labels = "A.",
+  label_size = 20,
+  ncol = 1,
+  rel_heights = c(1, 1)  # top vs bottom height ratio
+)
+
+# ----- Save to file -----
+ggsave(here::here("output", "data_exploration", "cube_three_panel.png"),
+       final_plot,
+       width = 12, height = 10, dpi = 300)
+```
+
 
 ```{r}
 cube |>
@@ -156,21 +294,30 @@ cube |>
   knitr::kable()
 ```
 
-
-The cube contains information on 663 species. 25 of these are hybrids. 355 of these were observed less than a 100 times, 197 were observed more than 1000 times.
+The cube contains information on 665 species, of which 158 were recorded less than 10 times (very rare), 125 were recorded between 10 and 100 times (rare), 135 were recorded between 100 and 1000 times (common), 84 were recorded between 1000 and 10000 times (very common) and 163 were recorded more than 10,000 times (extremely common).
 
 ```{r}
-cube |>
+coord_uncertainty <- cube |>
   ggplot(aes(x = mincoordinateuncertaintyinmeters)) +
-  geom_histogram(fill = "#66A61E", color = "black",
+  geom_histogram(fill = "#1B9E77", color = "black",
                  bins = 100) +
   labs(x = "Minimum coordinate uncertainty in meters",
-       y = "Count") +
+       y = "Number of observations") +
+  theme_bw(base_size = 12) +
   facet_zoom(zoom.size = 0.5,
              ylim = c(0, 300),
              xlim = c(10500, 150000),
              horizontal = FALSE)
+coord_uncertainty
 ```
+
+```{r}
+# ----- Save to file -----
+ggsave(here::here("output", "data_exploration", "cube_coord_uncertainty.png"),
+       coord_uncertainty,
+       width = 8, height = 6, dpi = 300)
+```
+
 
 
 ## Occupancy comparison {.tabset}
@@ -191,7 +338,8 @@ tar_read(range_comp_0, store = store) |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  theme_bw(base_size = 12)
 ```
 
 ### Filter 1
@@ -210,7 +358,8 @@ tar_read(range_comp_1, store = store) |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  theme_bw(base_size = 12)
 ```
 
 ### Filter 2
@@ -230,7 +379,8 @@ tar_read(range_comp_2, store = store) |>
            method = "pearson") +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = "")))
+  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  theme_bw(base_size = 12)
 ```
 
 ##
@@ -249,7 +399,8 @@ p0 <- tar_read(trend_comp_0, store = store) |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p0
 ```
@@ -264,7 +415,8 @@ p1 <- tar_read(trend_comp_1, store = store) |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p1
 ```
@@ -279,7 +431,8 @@ p2 <- tar_read(trend_comp_2, store = store) |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p2
 ```
@@ -295,7 +448,8 @@ p3 <- tar_read(trend_comp_3, store = store) |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p3
 ```
@@ -312,7 +466,8 @@ p4 <- tar_read(trend_comp_4, store = store) |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p4
 ```
@@ -366,7 +521,8 @@ p0 <- trend_comp_0_cyclus |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p0
 ```
@@ -406,7 +562,8 @@ p1 <- trend_comp_1_cyclus |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p1
 ```
@@ -447,7 +604,8 @@ p2 <- trend_comp_2_cyclus |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p2
 ```
@@ -489,7 +647,8 @@ p3 <- trend_comp_3_cyclus |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p3
 ```
@@ -528,7 +687,8 @@ p4 <- trend_comp_4_cyclus  |>
   xlim(-1, 1) +
   fill_scale +
   labs(x = "Correlation",
-       y = "Number of species")
+       y = "Number of species") +
+  theme_bw(base_size = 12)
 
 p4
 ```
