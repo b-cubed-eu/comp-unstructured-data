@@ -303,7 +303,7 @@ prevalence_df <- bind_rows(birdcube_prevalence, abv_prevalence) %>%
 Rare species are more prevalent in the cube dataset while more common species are more prevalent in the ABV dataset.
 
 ```{r}
-prevalence_df %>%
+p_prevalence <- prevalence_df %>%
   ggplot(aes(x = abv, y = birdcube)) +
   geom_abline(slope = 1, intercept = 0, colour = "firebrick",
               linewidth = 1) +
@@ -320,6 +320,13 @@ prevalence_df %>%
        y = "Proportion of occupied grid cells\nin cube dataset",
        shape = "Rarity") +
   theme_bw(base_size = 12)
+p_prevalence
+```
+
+```{r}
+ggsave(file.path(out_path, "prevalence.png"),
+       p_prevalence,
+       width = 8, height = 6, dpi = 300)
 ```
 
 We calculate error measures for the indicator based on leave-one-dataset-out cross-validation.
@@ -459,7 +466,8 @@ plot_cross_validation(
 prevalence_cv %>%
   distinct(species, rarity, mre) %>%
   ggplot() +
-  geom_histogram(aes(x = mre, fill = rarity))
+  geom_histogram(aes(x = mre, fill = rarity)) +
+  theme_bw(base_size = 12)
 ```
 
 We look at the `r (1 - quantile) * 100` % species with the highest maximum relative error.
@@ -512,7 +520,8 @@ plot_cross_validation(
 prevalence_cv %>%
   distinct(species, rarity, rmse) %>%
   ggplot() +
-  geom_histogram(aes(x = rmse, fill = rarity))
+  geom_histogram(aes(x = rmse, fill = rarity)) +
+  theme_bw(base_size = 12)
 ```
 
 We look at the `r (1 - quantile) * 100` % species with the highest RMSE.
@@ -597,7 +606,8 @@ We look at trends in CV error measures related to:
 ```{r}
 prevalence_cv %>%
   ggplot(aes(x = rarity, y = rmse, colour = rarity)) +
-  geom_boxplot()
+  geom_boxplot() +
+  theme_bw(base_size = 12)
 ```
 
 ### Number of datasets
@@ -626,7 +636,8 @@ Does RMSE change with number of datasets?
 trend_dataset %>%
   ggplot(aes(x = n_datasets, y = rmse, colour = rarity)) +
   geom_point() +
-  geom_smooth(method = "lm",  formula = "y ~ x")
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  theme_bw(base_size = 12)
 ```
 
 ### Effective number of datasets
@@ -646,7 +657,8 @@ where $D_j$ the total number of datasets where species $j$ is present, and $p_i$
 trend_dataset %>%
   ggplot(aes(x = neff_datasets, y = rmse, colour = rarity)) +
   geom_point() +
-  geom_smooth(method = "lm",  formula = "y ~ x")
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  theme_bw(base_size = 12)
 ```
 
 ### Dataset evenness
@@ -664,7 +676,8 @@ $$
 trend_dataset %>%
   ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
   geom_point() +
-  geom_smooth(method = "lm",  formula = "y ~ x")
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  theme_bw(base_size = 12)
 ```
 
 # Species specific indicators
