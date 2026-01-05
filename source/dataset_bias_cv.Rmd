@@ -32,6 +32,7 @@ dir.create(out_path, recursive = TRUE, showWarnings = FALSE)
 source(here::here("source", "R", "download_occ_cube.R"))
 source(here::here("source", "R", "get_dataset_names.R"))
 source(here::here("source", "R", "plot_cross_validation.R"))
+source(here::here("source", "R", "grouped_lm.R"))
 ```
 
 # Goal
@@ -626,7 +627,7 @@ birdcube_dataset_filtered %>%
   facet_wrap(~species, ncol = 1, scales = "free")
 ```
 
-## Trends in error
+## Trends in error: RMSE
 
 We look at trends in CV error measures related to:
 
@@ -674,6 +675,15 @@ trend_dataset %>%
   theme_bw(base_size = 12)
 ```
 
+```{r}
+grouped_lm(
+  data = trend_dataset,
+  group_var = "rarity",
+  x_var = "n_datasets",
+  y_var = "rmse"
+)
+```
+
 ### Effective number of datasets
 
 The effective number of datasets takes into account the proportion of observations per dataset.
@@ -695,6 +705,15 @@ trend_dataset %>%
   theme_bw(base_size = 12)
 ```
 
+```{r}
+grouped_lm(
+  data = trend_dataset,
+  group_var = "rarity",
+  x_var = "neff_datasets",
+  y_var = "rmse"
+)
+```
+
 ### Dataset evenness
 
 Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
@@ -714,6 +733,126 @@ trend_dataset %>%
   theme_bw(base_size = 12)
 ```
 
-# Species specific indicators
+```{r}
+grouped_lm(
+  data = trend_dataset,
+  group_var = "rarity",
+  x_var = "evenness",
+  y_var = "rmse"
+)
+```
 
-- LOO CV on species specific indicators
+## Trends in error: MRE
+
+We look at trends in CV error measures related to:
+
+1  differences in rarity
+2. number of datasets
+3. effective number of datasets
+4. dataset evenness
+
+### Differences in rarity
+
+```{r}
+prevalence_cv %>%
+  ggplot(aes(x = rarity, y = mre, colour = rarity)) +
+  geom_boxplot() +
+  theme_bw(base_size = 12)
+```
+
+### Number of datasets
+
+```{r}
+trend_dataset <- birdcube_dataset_filtered %>%
+  left_join(prevalence_cv %>% distinct(species, rarity, mre),
+            by = join_by(species, rarity)) %>%
+  select(mgrscode, year, species, datasetname, rarity, mre) %>%
+  count(species, rarity, mre, datasetname) %>%
+  group_by(species, rarity, mre) %>%
+  mutate(tot = sum(n),
+         p = n / tot) %>%
+  summarise(
+    n_datasets = n_distinct(datasetname),
+    shannon = -sum(p * log(p)),
+    neff_datasets = exp(shannon),
+    evenness = shannon / log(n_datasets),
+    .groups = "drop"
+  )
+```
+
+Does MRE change with number of datasets?
+
+```{r}
+trend_dataset %>%
+  ggplot(aes(x = n_datasets, y = mre, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset,
+  group_var = "rarity",
+  x_var = "n_datasets",
+  y_var = "mre"
+)
+```
+
+### Effective number of datasets
+
+The effective number of datasets takes into account the proportion of observations per dataset.
+It is calculated per species $j$ as the exponent of the Shannon Entropy:
+
+<!-- spell-check: ignore:start -->
+$$
+N_{E,j} = \exp(- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))
+$$
+<!-- spell-check: ignore:end -->
+
+where $D_j$ the total number of datasets where species $j$ is present, and $p_i$ the proportion of entries (rows) of species $j$ in dataset $i$. 
+
+```{r}
+trend_dataset %>%
+  ggplot(aes(x = neff_datasets, y = mre, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset,
+  group_var = "rarity",
+  x_var = "neff_datasets",
+  y_var = "mre"
+)
+```
+
+### Dataset evenness
+
+Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
+Pielou’s Evenness index $J$ is calculated as the normalised Shannon Entropy:
+
+<!-- spell-check: ignore:start -->
+$$
+J_{j} = \frac{- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))}{\ln(D_j)}
+$$
+<!-- spell-check: ignore:end -->
+
+```{r}
+trend_dataset %>%
+  ggplot(aes(x = evenness, y = mre, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset,
+  group_var = "rarity",
+  x_var = "evenness",
+  y_var = "mre"
+)
+```
