@@ -1075,7 +1075,7 @@ improvement_df %>%
   ) %>%
   ungroup() %>%
   filter(abs(median_rel_improvement) > 0.5) %>%
-  arrange(desc(abs(median_rel_improvement)))
+  arrange(desc(abs(median_rel_improvement))) %>%
   left_join(birdcube_dataset_filtered %>%
       distinct(species, datasetkey_out = datasetkey, datasetname),
     by = join_by(species, datasetkey_out)) %>%
