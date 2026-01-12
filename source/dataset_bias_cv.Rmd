@@ -858,33 +858,8 @@ grouped_lm(
 )
 ```
 
-## Datasets
-
-```{r}
-dataset_richness <- birdcubeflanders_dataset %>%
-  summarise(n_obs = sum(n),
-            n_spec = n_distinct(species),
-            .by = "datasetkey")
-
-test <- prevalence_cv %>%
-  left_join(dataset_richness, by = join_by("datasetkey_out" == "datasetkey"))
-```
-
-```{r}
-ggplot(test, aes(x = as.factor(n_obs), y = error)) +
-  geom_boxplot()
-```
-
-```{r}
-ggplot(test, aes(x = as.factor(n_spec), y = perc_error)) +
-  geom_boxplot()
-```
-
-## Error compared to ABV
-
-Calculate the CV error compared to ABV prevalence.
-A smaller error means the prevalence comes closer to the "true" prevalence (ABV).
-MRE, MSE and RMSE per dataset left out.
+## Error of prevalence estimates relative to ABV reference values
+Calculate the CV error compared to ABV prevalence (= "true" prevalence).
 
 Let
 
@@ -1036,8 +1011,7 @@ ggplot(improvement_df, aes(rarity, rel_improvement)) +
   theme_bw(base_size = 12)
 ```
 
-### Species-level sensitivity (aggregated)
-
+### Aggregated species-level sensitivity patterns
 #### Distribution of species-level median improvements
 At the species level, median improvement scores were centred close to zero, indicating that for most species the omission of individual datasets had limited influence on prevalence estimates. A smaller number of species exhibited consistently positive or negative median improvements, suggesting higher sensitivity to data composition. Overall, cross-validation tends to move prevalence estimates closer to the true value.
 
@@ -1089,7 +1063,7 @@ ggplot(species_summary, aes(rarity, median_rel_improvement)) +
 
 There is apparently one very common species that is also highly influenced by one dataset.
 
-#### Identifying *outlying* species (diagnostic, not reported)
+#### Identifying outlying species (diagnostic, not reported)
 One species showed unusually large relative deteriorations when datasets were omitted. This species can be treated as a diagnostic case which serves to identify potential data or modelling issues.
 It concerns *Streptopelia decaocto* (EN: Eurasian collared dove, NL: Turkse tortel).
 
@@ -1113,57 +1087,130 @@ improvement_df %>%
 Without the *waarnemingen.be* dataset, the estimate is much lower.
 
 ### Influence of individual component datasets
-
-The influence of component datasets varied substantially. A small number of datasets consistently yielded positive improvements when omitted, indicating a disproportionate influence on prevalence estimates. Other datasets had neutral or stabilising effects across most species.
+The *waarnemingen.be* dataset(s) show the largest influences (in both directions). For rare species, we see improvements, for common, we see deterioration.
 
 ```{r}
-tab_dataset <- improvement_df %>%
-  group_by(datasetkey_out) %>%
-  summarise(
-    mean_improvement = mean(improvement),
-    median_improvement = median(improvement),
-    prop_improved = mean(improved),
-    .groups = "drop"
-  ) %>%
-  arrange(desc(mean_improvement))
-
-tab_dataset
+datasets_df <- birdcubeflanders_dataset %>%
+  group_by(datasetname, datasetkey) %>%
+  summarise(n_obs = sum(n),
+            n_spec = n_distinct(species)) %>%
+  ungroup() %>%
+  mutate(datasetname = reorder(datasetname, n_obs)) %>%
+  rename(datasetkey_out = datasetkey)
 ```
-
 
 ```{r}
 improvement_df %>%
-  mutate(
-    datasetkey_out = forcats::fct_reorder(datasetkey_out, improvement, median)
-  ) %>%
-  ggplot(aes(datasetkey_out, species, fill = improvement)) +
+  left_join(datasets_df, by = join_by(datasetkey_out)) %>%
+  select("datasetname", "species", "rarity", "improvement") %>%
+  ggplot(aes(x = species, y = datasetname, fill = improvement)) +
   geom_tile() +
   scale_fill_gradient2(midpoint = 0) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 20)) +
+  scale_y_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  facet_wrap(~rarity, scales = "free_x") +
   labs(
-    x = "Dataset omitted",
-    y = "Species",
+    x = "",
+    y = "Dataset omitted",
     fill = "Improvement"
   ) +
   theme_bw(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
-### Synthesis using a mixed-effects model
+We remove the *waarnemingen.be* datasets. Still, the largest datasets show strongest impacts, often positive.
 
 ```{r}
-library(lme4)
-
-m <- lmer(
-improvement ~ rarity + (1 | species) + (1 | datasetkey_out),
-data = improvement_df
-)
-
-summary(m)
+improvement_df %>%
+  left_join(datasets_df, by = join_by(datasetkey_out)) %>%
+  select("datasetname", "species", "rarity", "improvement") %>%
+  # Now we filter out the dataset
+  filter(!grepl("^Waarnemingen.be", datasetname)) %>%
+  ggplot(aes(x = species, y = datasetname, fill = improvement)) +
+  geom_tile() +
+  scale_fill_gradient2(midpoint = 0) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 20)) +
+  scale_y_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  facet_wrap(~rarity, scales = "free_x") +
+  labs(
+    x = "",
+    y = "Dataset omitted",
+    fill = "Improvement"
+  ) +
+  theme_bw(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
+## Species-level robustness of prevalence estimates
 
-**Results text (draft)**
+We summarised dataset-removal sensitivity at the species level by collapsing relative improvement scores into a single robustness metric.
+For each species, we define robustness as:
 
-> Mixed-effects modelling confirmed systematic differences in sensitivity across rarity classes, while accounting for species- and dataset-specific variability. Random effects indicated that both species identity and dataset identity contribute to variability in improvement scores, highlighting heterogeneous data influence within the monitoring network.
+$$
+\text{Robustness}_s = 1 - \min\left(1,; \left|\widetilde{RI}_s\right|\right)
+$$
 
+where $\widetilde{RI}_s$ is the median relative improvement across all leave-one-dataset-out cross-validation runs for species $s$.
 
+This metric is bounded between 0 (low robustness) and 1 (high robustness).
+
+* **Robustness ≈ 1**
+  Prevalence estimates are largely insensitive to the omission of individual datasets.
+
+* **Robustness ≈ 0.5**
+  Dataset removal typically changes error magnitude by ~50%.
+
+* **Robustness ≈ 0**
+  Prevalence estimates are highly dependent on individual datasets.
+
+Using the median ensures robustness against outlying datasets and prevents single influential components from dominating the score.
+
+### Robustness by species
+Species-level robustness scores were generally high, with most species exhibiting values close to one, indicating limited sensitivity to the omission of individual datasets. A smaller subset of species showed lower robustness scores, reflecting stronger dependence on specific data components.
+
+```{r}
+species_summary <- improvement_df %>%
+  group_by(species, rarity) %>%
+  summarise(
+    median_improvement = median(improvement),
+    median_rel_improvement = median(rel_improvement, na.rm = TRUE),
+    prop_improved = mean(improved),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    robustness = 1 - pmin(1, abs(median_rel_improvement))
+  )
+```
+
+```{r}
+ggplot(species_summary, aes(x = robustness)) +
+  geom_histogram(bins = 30) +
+  labs(
+    x = "Species robustness score",
+    y = "Number of species"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+### Robustness by rarity class
+Robustness scores do not differ that much between rarity classes.
+
+```{r}
+ggplot(species_summary, aes(rarity, robustness)) +
+  geom_boxplot(outlier.alpha = 0.4) +
+  labs(
+    x = "Rarity class",
+    y = "Species robustness score"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+### Conclusions and discussion
+
+Using leave-one-dataset-out cross-validation, we assessed the sensitivity of prevalence estimates derived from the bird data cube to the composition of the underlying datasets, using ABV prevalence as a reference benchmark. Overall, omission of individual component datasets more often reduced than increased the deviation from the reference prevalence, although the magnitude of these improvements was typically small. This indicates that the prevalence indicator is generally robust to changes in dataset composition.
+
+Sensitivity patterns differed systematically across rarity classes. Rare species showed larger relative improvements and greater variability in error reduction than common species, reflecting their stronger dependence on individual datasets. In contrast, prevalence estimates for common species were more stable, but occasionally deteriorated substantially when influential datasets were removed. These differences largely arise from the mathematical properties of the indicator and the contrasting prevalence distributions between structured and opportunistic data sources, rather than from data quality issues alone. In particular, high-prevalence species have limited scope for improvement through dataset removal, whereas rare species can show appreciable gains.
+
+Aggregating results at the species level confirmed that most species exhibit limited sensitivity to dataset removal, while a small number act as diagnostic cases with pronounced dependence on specific datasets. Analysis at the dataset level showed that large datasets exert the strongest influence on prevalence estimates. The *waarnemingen.be* datasets, in particular, had a substantial impact, improving estimates for rare species while worsening them for common species. This dual effect highlights the central role of large opportunistic datasets in shaping prevalence indicators.
+
+To summarise sensitivity in a compact and interpretable way, we introduced a species-level robustness metric based on the median relative improvement in error across cross-validation runs. Most species exhibited high robustness scores, indicating stable prevalence estimates, while lower scores identified species for which estimates are more dependent on data composition. This metric provides a practical tool for summarising robustness in species-rich indicator systems and for identifying cases that may warrant closer scrutiny.
