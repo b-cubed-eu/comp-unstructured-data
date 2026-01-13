@@ -1199,7 +1199,7 @@ improvement_df %>%
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
-## Species-level robustness of prevalence estimates
+### Species-level robustness of prevalence estimates
 
 We summarised dataset-removal sensitivity at the species level by collapsing relative improvement scores into a single robustness metric.
 For each species, we define robustness as:
@@ -1223,7 +1223,7 @@ This metric is bounded between 0 (low robustness) and 1 (high robustness).
 
 Using the median ensures robustness against outlying datasets and prevents single influential components from dominating the score.
 
-### Robustness by species
+#### Robustness by species
 Species-level robustness scores were generally high, with most species exhibiting values close to one, indicating limited sensitivity to the omission of individual datasets. A smaller subset of species showed lower robustness scores, reflecting stronger dependence on specific data components.
 
 ```{r}
@@ -1250,7 +1250,7 @@ ggplot(species_summary, aes(x = robustness)) +
   theme_bw(base_size = 12)
 ```
 
-### Robustness by rarity class
+#### Robustness by rarity class
 Robustness scores do not differ that much between rarity classes.
 
 ```{r}
