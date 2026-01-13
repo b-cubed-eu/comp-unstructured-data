@@ -25,9 +25,11 @@ plot_cross_validation <- function(
       ),
       size = 2.5, max.overlaps = max.overlaps
     ) +
+    coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
     labs(x = "Proportion of occupied grid cells\nin ABV dataset",
          y = "Proportion of occupied grid cells\nin cube dataset",
-         shape = "Rarity") +
+         shape = "Rarity",
+         colour = toupper(measure)) +
     scale_colour_viridis_c(option = "turbo") +
     theme_minimal()
 }

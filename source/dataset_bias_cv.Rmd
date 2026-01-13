@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, warning=FALSE, message=FALSE}
 # Load packages
 library(tidyverse) # Data wrangling and visualisation
+library(cowplot)   # Nice figures
 library(dubicube)  # Cross-validation
 library(sf)        # Spatial objects
 library(targets)
@@ -369,15 +370,16 @@ p_prevalence <- prevalence_df %>%
   ggplot(aes(x = abv, y = birdcube)) +
   geom_abline(slope = 1, intercept = 0, colour = "firebrick",
               linewidth = 1) +
-  annotate("label", x = 0.8, y = 0.6, size = 3,
+  annotate("label", x = 0.8, y = 0.1, size = 4,
            label = "Higher prevalence in ABV",
            color = "black") +
-  annotate("label", x = 0.4, y = 0.6, size = 3,
+  annotate("label", x = 0.2, y = 0.95, size = 4,
            label = "Higher prevalence in cube",
            color = "black") +
   geom_smooth(method = "loess", formula = "y ~ x",
               colour = "darkgrey", linetype = "dashed") +
   geom_point(aes(shape = rarity), size = 2) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
   labs(x = "Proportion of occupied grid cells\nin ABV dataset",
        y = "Proportion of occupied grid cells\nin cube dataset",
        shape = "Rarity") +
@@ -423,7 +425,8 @@ prevalence_cv %>%
     prevalence_df,
     measure = "max_error",
     quant = quantile
-  )
+  ) +
+  theme_bw(base_size = 12)
 ```
 
 We look at the `r (1 - quantile) * 100` % species with the highest maximum absolute error.
@@ -473,7 +476,8 @@ prevalence_cv %>%
     prevalence_df,
     measure = "max_rel_error",
     quant = quantile
-  )
+  ) +
+  theme_bw(base_size = 12)
 ```
 
 We look at the `r (1 - quantile) * 100` % species with the highest maximum relative error.
@@ -516,12 +520,14 @@ birdcube_dataset_filtered %>%
 
 ```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Mean relative error
-plot_cross_validation(
+p_mre <- plot_cross_validation(
   prevalence_cv,
   prevalence_df,
   measure = "mre",
   quant = quantile
-)
+) +
+  theme_bw(base_size = 12)
+p_mre
 ```
 
 ```{r}
@@ -604,12 +610,14 @@ birdcube_dataset_filtered %>%
 
 ```{r, warning=FALSE, out.width="90%", message=FALSE}
 # Root mean squared error
-plot_cross_validation(
+p_rmse <- plot_cross_validation(
   prevalence_cv,
   prevalence_df,
   measure = "rmse",
   quant = quantile
-)
+) +
+  theme_bw(base_size = 12)
+p_rmse
 ```
 
 ```{r}
@@ -688,6 +696,40 @@ birdcube_dataset_filtered %>%
   facet_wrap(~species, ncol = 1, scales = "free")
 ```
 
+```{r, echo=FALSE}
+# ----- Combine plots side by side -----
+bottom_row <- plot_grid(
+  p_rmse +
+    theme(plot.margin = margin(t = 12, r = -5, b = 5, l = 10)) +
+    guides(shape = "none"),
+  p_mre +
+    theme(axis.title.y = element_blank(),
+          plot.margin = margin(t = 12, r = 5, b = 5, l = 40)) +
+    guides(shape = "none"),
+  labels = c("B.", "C."),
+  label_size = 20,
+  ncol = 2,
+  rel_widths = c(1, 1)
+)
+
+# ----- Combine top + bottom -----
+final_plot <- plot_grid(
+  p_prevalence +
+    theme(axis.title.x = element_blank(),
+          plot.margin = margin(t = 10, r = 60, b = 10, l = 80)),
+  bottom_row,
+  labels = "A.",
+  label_size = 20,
+  ncol = 1,
+  rel_heights = c(1.2, 1)  # top vs bottom height ratio
+)
+
+# ----- Save to file -----
+ggsave(file.path(out_path, "prevalence_panels.png"),
+       final_plot,
+       width = 12, height = 10, dpi = 300)
+```
+
 ## Trends in error: RMSE
 
 We look at trends in CV error measures related to:
@@ -700,16 +742,26 @@ We look at trends in CV error measures related to:
 ### Differences in rarity
 
 ```{r}
-prevalence_cv %>%
-  ggplot(aes(x = rarity, y = rmse, colour = rarity)) +
+p_rmse_rarity <- prevalence_cv %>%
+  mutate(
+    rarity = fct_recode(
+      rarity,
+      "Extremely\ncommon" = "Extremely common"
+    )
+  ) %>%
+  ggplot(aes(x = rarity, y = rmse)) +
   geom_boxplot() +
+  labs(x = "Rarity", y = "RMSE") +
   theme_bw(base_size = 12)
+p_rmse_rarity
 ```
 
 ### Number of datasets
 
+We cannot compute the evenness for species only found in a single dataset.
+
 ```{r}
-trend_dataset <- birdcube_dataset_filtered %>%
+trend_dataset_rmse <- birdcube_dataset_filtered %>%
   left_join(prevalence_cv %>% distinct(species, rarity, rmse),
             by = join_by(species, rarity)) %>%
   select(mgrscode, year, species, datasetname, rarity, rmse) %>%
@@ -729,7 +781,7 @@ trend_dataset <- birdcube_dataset_filtered %>%
 Does RMSE change with number of datasets?
 
 ```{r}
-trend_dataset %>%
+trend_dataset_rmse %>%
   ggplot(aes(x = n_datasets, y = rmse, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
@@ -738,7 +790,7 @@ trend_dataset %>%
 
 ```{r}
 grouped_lm(
-  data = trend_dataset,
+  data = trend_dataset_rmse,
   group_var = "rarity",
   x_var = "n_datasets",
   y_var = "rmse"
@@ -759,7 +811,7 @@ $$
 where $D_j$ the total number of datasets where species $j$ is present, and $p_i$ the proportion of entries (rows) of species $j$ in dataset $i$. 
 
 ```{r}
-trend_dataset %>%
+trend_dataset_rmse %>%
   ggplot(aes(x = neff_datasets, y = rmse, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
@@ -768,7 +820,7 @@ trend_dataset %>%
 
 ```{r}
 grouped_lm(
-  data = trend_dataset,
+  data = trend_dataset_rmse,
   group_var = "rarity",
   x_var = "neff_datasets",
   y_var = "rmse"
@@ -786,17 +838,36 @@ J_{j} = \frac{- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))}{\ln(D_j)}
 $$
 <!-- spell-check: ignore:end -->
 
+
 ```{r}
-trend_dataset %>%
+trend_dataset_rmse %>%
   ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  labs(x = "Dataset evenness", y = "RMSE", colour = "Rarity") +
   theme_bw(base_size = 12)
+```
+
+```{r, echo=FALSE}
+p_rmse_evenness <- trend_dataset_rmse %>%
+  ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  labs(x = "Dataset evenness", y = "RMSE", colour = "Rarity") +
+  theme_bw(base_size = 12) +
+  theme(
+    legend.position = c(0.05, 0.05),        # bottom-left inside
+    legend.justification = c(0, 0),         # anchor legend at bottom-left
+    legend.background = element_rect(
+      fill = "white", colour = "black", linewidth = 0.3
+    ),
+    legend.key = element_blank()
+  )
 ```
 
 ```{r}
 grouped_lm(
-  data = trend_dataset,
+  data = trend_dataset_rmse,
   group_var = "rarity",
   x_var = "evenness",
   y_var = "rmse"
@@ -815,16 +886,24 @@ We look at trends in CV error measures related to:
 ### Differences in rarity
 
 ```{r}
-prevalence_cv %>%
-  ggplot(aes(x = rarity, y = mre, colour = rarity)) +
+p_mre_rarity <- prevalence_cv %>%
+  mutate(
+    rarity = fct_recode(
+      rarity,
+      "Extremely\ncommon" = "Extremely common"
+    )
+  ) %>%
+  ggplot(aes(x = rarity, y = mre)) +
   geom_boxplot() +
+  labs(x = "Rarity", y = "MRE") +
   theme_bw(base_size = 12)
+p_mre_rarity
 ```
 
 ### Number of datasets
 
 ```{r}
-trend_dataset <- birdcube_dataset_filtered %>%
+trend_dataset_mre <- birdcube_dataset_filtered %>%
   left_join(prevalence_cv %>% distinct(species, rarity, mre),
             by = join_by(species, rarity)) %>%
   select(mgrscode, year, species, datasetname, rarity, mre) %>%
@@ -844,7 +923,7 @@ trend_dataset <- birdcube_dataset_filtered %>%
 Does MRE change with number of datasets?
 
 ```{r}
-trend_dataset %>%
+trend_dataset_mre %>%
   ggplot(aes(x = n_datasets, y = mre, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
@@ -853,7 +932,7 @@ trend_dataset %>%
 
 ```{r}
 grouped_lm(
-  data = trend_dataset,
+  data = trend_dataset_mre,
   group_var = "rarity",
   x_var = "n_datasets",
   y_var = "mre"
@@ -874,7 +953,7 @@ $$
 where $D_j$ the total number of datasets where species $j$ is present, and $p_i$ the proportion of entries (rows) of species $j$ in dataset $i$. 
 
 ```{r}
-trend_dataset %>%
+trend_dataset_mre %>%
   ggplot(aes(x = neff_datasets, y = mre, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
@@ -883,7 +962,7 @@ trend_dataset %>%
 
 ```{r}
 grouped_lm(
-  data = trend_dataset,
+  data = trend_dataset_mre,
   group_var = "rarity",
   x_var = "neff_datasets",
   y_var = "mre"
@@ -902,21 +981,80 @@ $$
 <!-- spell-check: ignore:end -->
 
 ```{r}
-trend_dataset %>%
+p_mre_evenness <- trend_dataset_mre %>%
   ggplot(aes(x = evenness, y = mre, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
-  theme_bw(base_size = 12)
+  labs(x = "Dataset evenness", y = "MRE", colour = "Rarity") +
+  theme_bw(base_size = 12) +
+  theme(
+    legend.position = c(0.05, 0.05),        # bottom-left inside
+    legend.justification = c(0, 0),         # anchor legend at bottom-left
+    legend.background = element_rect(
+      fill = "white", colour = "black", linewidth = 0.3
+    ),
+    legend.key = element_blank()
+  )
+p_mre_evenness
 ```
 
 ```{r}
 grouped_lm(
-  data = trend_dataset,
+  data = trend_dataset_mre,
   group_var = "rarity",
   x_var = "evenness",
   y_var = "mre"
 )
 ```
+
+```{r, echo=FALSE}
+col_rmse <- plot_grid(
+  p_rmse_rarity +
+    coord_cartesian(ylim = c(0, 0.12)) +
+    theme(
+      plot.margin = margin(t = 10, r = 5, b = 5, l = 20),
+      axis.title.x = element_blank(),
+      plot.title = element_text(hjust = 0.5)
+    ),
+  p_rmse_evenness +
+    coord_cartesian(ylim = c(0, 0.12)) +
+    theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 20)) +
+    guides(colour = "none"),
+  labels = c("A.", "C."),
+  label_size = 20,
+  ncol = 1
+)
+
+col_mre <- plot_grid(
+  p_mre_rarity +
+    coord_cartesian(ylim = c(0, 0.027)) +
+    theme(
+      plot.margin = margin(t = 10, r = 5, b = 5, l = 20),
+      axis.title.x = element_blank(),
+      plot.title = element_text(hjust = 0.5)
+    ),
+  p_mre_evenness +
+    coord_cartesian(ylim = c(0, 0.027)) +
+    theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5)),
+  labels = c("B.", "D."),
+  label_size = 20,
+  ncol = 1
+)
+
+p_error_trends <- plot_grid(
+  ggdraw() + draw_label("RMSE", fontface = "bold", size = 16),
+  ggdraw() + draw_label("MRE",  fontface = "bold", size = 16),
+  col_rmse,
+  col_mre,
+  ncol = 2,
+  rel_heights = c(0.08, 1)
+)
+
+ggsave(file.path(out_path, "error_trends.png"),
+       p_error_trends,
+       width = 10, height = 10, dpi = 300)
+```
+
 
 ## Error of prevalence estimates relative to ABV reference values
 Calculate the CV error compared to ABV prevalence (= "true" prevalence).
