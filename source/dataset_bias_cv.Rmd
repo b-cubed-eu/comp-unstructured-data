@@ -154,7 +154,7 @@ birdcubeflanders_dataset %>%
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.2))) +
   labs(x = "", y = "Number of observations") +
   theme_bw(base_size = 12) +
-  theme(plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), 'cm')) +
+  theme(plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) +
   coord_flip()
 ```
 
@@ -164,19 +164,19 @@ Over time, we see strong influences of component datasets. The two largest datas
 p_dataset_year <- birdcubeflanders_dataset %>%
   group_by(datasetname, year) %>%
   summarise(n_obs = sum(n), .groups = "drop") %>%
-  
+
   # total per dataset (this is what you intended)
   group_by(datasetname) %>%
   mutate(order = sum(n_obs)) %>%
   ungroup() %>%
-  
+
   # reorder ONCE by total
   mutate(datasetname = reorder(datasetname, order, decreasing = TRUE)) %>%
   arrange(datasetname) %>%
-  
+
   # numeric rank AFTER stable ordering
   mutate(data_id = as.integer(datasetname)) %>%
-  
+
   # KEEP factor, do NOT use ifelse()
   mutate(
     datasetname = if_else(
@@ -185,16 +185,16 @@ p_dataset_year <- birdcubeflanders_dataset %>%
       datasetname
     )
   ) %>%
-  
+
   # recompute after collapsing
   group_by(datasetname, year) %>%
   summarise(n_obs = sum(n_obs), .groups = "drop") %>%
-  
+
   # optional: re-order final result
   group_by(datasetname) %>%
   mutate(order = sum(n_obs)) %>%
   ungroup() %>%
-  
+
   # visualisation
   ggplot(aes(x = factor(year), y = n_obs, fill = datasetname)) +
   geom_bar(stat = "identity", colour = "black", linewidth = 0.2) +
@@ -205,7 +205,7 @@ p_dataset_year <- birdcubeflanders_dataset %>%
   theme_bw(base_size = 12) +
   theme(legend.position = "bottom",
         legend.margin = margin(t = 0, r = 0, b = 5, l = -70),
-        legend.key.size = unit(0.5, 'cm'), #change legend key size
+        legend.key.size = unit(0.5, "cm"), #change legend key size
         legend.text = element_text(size = 7.5)) #change legend text font size
 p_dataset_year
 ```
@@ -241,7 +241,7 @@ birdcubeflanders_dataset %>%
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.2))) +
   labs(x = "", y = "Number of species") +
   theme_bw(base_size = 12) +
-  theme(plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), 'cm')) +
+  theme(plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) +
   coord_flip()
 ```
 
@@ -267,9 +267,11 @@ p_dataset <- birdcubeflanders_dataset %>%
   facet_wrap(~cat, ncol = 2, scales = "free_x",
              labeller = labeller(cat = cat_labs)) +
   theme_bw(base_size = 12) +
-  theme(axis.title.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
   coord_flip()
 p_dataset
 ```
@@ -970,13 +972,14 @@ Interpretation:
 ```{r}
 # Get which species occurr in which datasets
 spec_dataset <- birdcube_dataset_filtered %>%
-    distinct(species, datasetkey_out = datasetkey) %>%
-    arrange(species, datasetkey_out)
+  distinct(species, datasetkey_out = datasetkey) %>%
+  arrange(species, datasetkey_out)
 
 # Calculate improvement values
 improvement_df <- prevalence_cv %>%
   inner_join(spec_dataset, by = join_by(species, datasetkey_out)) %>%
-  select("id_cv", "species", "rarity", "datasetkey_out", "rep_cv", "est_original") %>%
+  select("id_cv", "species", "rarity", "datasetkey_out", "rep_cv",
+         "est_original") %>%
   left_join(abv_prevalence, by = join_by(species, rarity)) %>%
   select(-"data") %>%
   mutate(e_est = abs(est_original - diversity_val)) %>%
@@ -1063,8 +1066,8 @@ ggplot(improvement_df, aes(rarity, rel_improvement)) +
   geom_hline(yintercept = 0, linetype = 2, colour = "firebrick") +
   geom_boxplot(outlier.alpha = 0.4) +
   labs(
-  y = "Relative improvement in error",
-  x = "Rarity class"
+    y = "Relative improvement in error",
+    x = "Rarity class"
   ) +
   theme_bw(base_size = 12)
 ```
@@ -1134,9 +1137,11 @@ improvement_df %>%
   ungroup() %>%
   filter(abs(median_rel_improvement) > 0.5) %>%
   arrange(desc(abs(median_rel_improvement))) %>%
-  left_join(birdcube_dataset_filtered %>%
+  left_join(
+    birdcube_dataset_filtered %>%
       distinct(species, datasetkey_out = datasetkey, datasetname),
-    by = join_by(species, datasetkey_out)) %>%
+    by = join_by(species, datasetkey_out)
+  ) %>%
   select(species, datasetname, rep_cv, est_original, diversity_val, improvement,
          rel_improvement) %>%
   knitr::kable()
