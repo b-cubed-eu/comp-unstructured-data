@@ -931,6 +931,8 @@ Let
 
 Compute absolute errors to the truth:
 
+<!-- spell-check: ignore:start -->
+
 $$
 e_{\text{est}} = |p_{\text{est}} - p_{\text{true}}|
 $$
@@ -938,11 +940,17 @@ $$
 e_{\text{cv}} = |p_{\text{cv}} - p_{\text{true}}|
 $$
 
+<!-- spell-check: ignore:end -->
+
 Then define an **improvement score**:
+
+<!-- spell-check: ignore:start -->
 
 $$
 \Delta e = e_{\text{est}} - e_{\text{cv}}
 $$
+
+<!-- spell-check: ignore:end -->
 
 Interpretation:
 
@@ -956,11 +964,15 @@ This is usually the cleanest answer.
 
 If prevalence values vary in scale across cases, use a relative measure:
 
+<!-- spell-check: ignore:start -->
+
 $$
 \text{Relative improvement} =
 \frac{|p_{\text{est}} - p_{\text{true}}| - |p_{\text{cv}} - p_{\text{true}}|}
 {|p_{\text{est}} - p_{\text{true}}|}
 $$
+
+<!-- spell-check: ignore:end -->
 
 Interpretation:
 
@@ -1126,7 +1138,7 @@ There is apparently one very common species that is also highly influenced by on
 
 #### Identifying outlying species (diagnostic, not reported)
 One species showed unusually large relative deteriorations when datasets were omitted. This species can be treated as a diagnostic case which serves to identify potential data or modelling issues.
-It concerns *Streptopelia decaocto* (EN: Eurasian collared dove, NL: Turkse tortel).
+It concerns *Streptopelia decaocto* (EN: Eurasian collared dove, NL: Turkse tortel). <!-- spell-check: ignore -->
 
 ```{r}
 improvement_df %>%
@@ -1255,9 +1267,13 @@ improvement_df %>%
 We summarised dataset-removal sensitivity at the species level by collapsing relative improvement scores into a single robustness metric.
 For each species, we define robustness as:
 
+<!-- spell-check: ignore:start -->
+
 $$
 \text{Robustness}_s = 1 - \min\left(1,; \left|\widetilde{RI}_s\right|\right)
 $$
+
+<!-- spell-check: ignore:end -->
 
 where $\widetilde{RI}_s$ is the median relative improvement across all leave-one-dataset-out cross-validation runs for species $s$.
 

@@ -1,13 +1,13 @@
 #' Fit group-wise linear models and extract slope statistics
 #'
-#' Fits a simple linear regression \code{y ~ x} separately for each group in a
+#' Fits a simple linear regression `y ~ x` separately for each group in a
 #' data frame and returns per-group slope statistics.
 #'
 #' Groups are processed in the order of factor levels if the grouping variable
 #' is a factor; otherwise, groups are processed in the order of appearance in
 #' the data.
 #'
-#' Optionally, the fitted \code{lm} objects can be returned and a transformation
+#' Optionally, the fitted `lm` objects can be returned and a transformation
 #' can be applied to the response variable before model fitting.
 #'
 #' @param data A data frame containing the variables used in the analysis.
@@ -15,17 +15,17 @@
 #' @param x_var Character string giving the name of the predictor variable.
 #' @param y_var Character string giving the name of the response variable.
 #' @param conf_level Confidence level for the slope confidence interval.
-#'   Defaults to \code{0.95}.
+#'   Defaults to `0.95`.
 #' @param y_transform Optional function applied to the response variable
-#'   before fitting the model (e.g. \code{log}, \code{sqrt},
-#'   \code{function(y) log(y + 1)}). Defaults to \code{NULL}.
-#' @param return_lm Logical; if \code{TRUE}, the fitted \code{lm} objects are
-#'   returned in addition to the summary statistics. Defaults to \code{FALSE}.
+#'   before fitting the model (e.g. `log`, `sqrt`,
+#'   `function(y) log(y + 1)`). Defaults to `NULL`.
+#' @param return_lm Logical; if `TRUE`, the fitted `lm` objects are
+#'   returned in addition to the summary statistics. Defaults to `FALSE`.
 #'
 #' @return
-#' If \code{return_lm = FALSE}, a data frame with one row per group.
-#' If \code{return_lm = TRUE}, a list with components \code{coefficients}
-#' and \code{models}.
+#' If `return_lm = FALSE`, a data frame with one row per group.
+#' If `return_lm = TRUE`, a list with components `coefficients`
+#' and `models`.
 grouped_lm <- function(data,
                        group_var,
                        x_var,
