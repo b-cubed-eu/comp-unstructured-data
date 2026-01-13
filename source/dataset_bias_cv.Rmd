@@ -158,6 +158,64 @@ birdcubeflanders_dataset %>%
   coord_flip()
 ```
 
+Over time, we see strong influences of component datasets. The two largest datasets are not covering the full temporal range of the cube. With an extreme drop-off of the largest dataset after 2018.
+
+```{r}
+p_dataset_year <- birdcubeflanders_dataset %>%
+  group_by(datasetname, year) %>%
+  summarise(n_obs = sum(n), .groups = "drop") %>%
+  
+  # total per dataset (this is what you intended)
+  group_by(datasetname) %>%
+  mutate(order = sum(n_obs)) %>%
+  ungroup() %>%
+  
+  # reorder ONCE by total
+  mutate(datasetname = reorder(datasetname, order, decreasing = TRUE)) %>%
+  arrange(datasetname) %>%
+  
+  # numeric rank AFTER stable ordering
+  mutate(data_id = as.integer(datasetname)) %>%
+  
+  # KEEP factor, do NOT use ifelse()
+  mutate(
+    datasetname = if_else(
+      data_id > 6,
+      factor("Other", levels = c(levels(datasetname), "Other")),
+      datasetname
+    )
+  ) %>%
+  
+  # recompute after collapsing
+  group_by(datasetname, year) %>%
+  summarise(n_obs = sum(n_obs), .groups = "drop") %>%
+  
+  # optional: re-order final result
+  group_by(datasetname) %>%
+  mutate(order = sum(n_obs)) %>%
+  ungroup() %>%
+  
+  # visualisation
+  ggplot(aes(x = factor(year), y = n_obs, fill = datasetname)) +
+  geom_bar(stat = "identity", colour = "black", linewidth = 0.2) +
+  labs(x = "",  y = "Number of observations", fill = "") +
+  scale_fill_discrete(
+    labels = function(x) str_trunc(x, 40)
+  ) +
+  theme_bw(base_size = 12) +
+  theme(legend.position = "bottom",
+        legend.margin = margin(t = 0, r = 0, b = 5, l = -70),
+        legend.key.size = unit(0.5, 'cm'), #change legend key size
+        legend.text = element_text(size = 7.5)) #change legend text font size
+p_dataset_year
+```
+
+```{r}
+ggsave(file.path(out_path, "component_datasets_year.png"),
+       p_dataset_year,
+       width = 8, height = 6, dpi = 300)
+```
+
 We look at the number and proportion of species per dataset in the cube.
 
 ```{r}
