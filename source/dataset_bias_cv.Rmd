@@ -41,7 +41,7 @@ source(here::here("source", "R", "grouped_lm.R"))
 Investigate bias in indicators caused by the over/under representation of certain datasets in the occurrence cube.
 
 # Load data
-
+## Download occurrence cube
 We download the occurrence cube.
 This cube is four dimensional, where the fourth dimension is the dataset.
 
@@ -100,6 +100,7 @@ download_occ_cube(
 
 > GBIF.org (05 August 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.48vfzy
 
+## Read and preprocess cube
 We read in the data cube and add dataset names.
 
 ```{r}
@@ -128,6 +129,9 @@ n_distinct <- birdcubeflanders_dataset %>%
 
 nrow(birdcubeflanders_dataset) == n_distinct
 ```
+
+## Overview of component datasets
+### Number and proportion of observations per dataset
 
 In total, there are `r n_distinct(birdcubeflanders_dataset$datasetname)` component datasets. We look at the number and proportion of observations per dataset in the cube.
 
@@ -217,6 +221,8 @@ ggsave(file.path(out_path, "component_datasets_year.png"),
        width = 8, height = 6, dpi = 300)
 ```
 
+### Number and proportion of species per dataset
+
 We look at the number and proportion of species per dataset in the cube.
 
 ```{r}
@@ -246,6 +252,7 @@ birdcubeflanders_dataset %>%
   coord_flip()
 ```
 
+### Combined visualisation of observations and species
 We see a large number of observations in a small number of component datasets. Some datasets are specialised in specific species, others are general.
 
 ```{r}
@@ -284,8 +291,7 @@ ggsave(file.path(out_path, "component_datasets.png"),
 ```
 
 # Comparing species prevalence
-## Load and process data
-
+## Load and process ABV reference data
 We load the ABV data (structured monitoring data).
 We categorise the species according to rarity:
 
@@ -333,7 +339,6 @@ birdcube_filtered <- birdcube_dataset_filtered %>%
 ```
 
 ## Indicator calculation
-
 We calculate species prevalence.
 For each dataset we calculate the proportion of occupied grid cells by each species.
 
@@ -393,6 +398,7 @@ ggsave(file.path(out_path, "prevalence.png"),
        width = 8, height = 6, dpi = 300)
 ```
 
+## Cross-validation of prevalence estimates
 We calculate error measures for the indicator based on leave-one-dataset-out cross-validation.
 We use a constant total of grid cells (`r length(unique(birdcube_dataset_filtered$mgrscode))`) such that this is independent from the datasets left out.
 
@@ -748,8 +754,7 @@ ggsave(file.path(out_path, "prevalence_panels.png"),
        width = 12, height = 10, dpi = 300)
 ```
 
-## Trends in error: RMSE
-
+## Trends in error measures
 We look at trends in CV error measures related to:
 
 1  differences in rarity
@@ -757,7 +762,8 @@ We look at trends in CV error measures related to:
 3. effective number of datasets
 4. dataset evenness
 
-### Differences in rarity
+### RMSE trends
+#### Differences in rarity
 
 ```{r}
 p_rmse_rarity <- prevalence_cv %>%
@@ -774,7 +780,7 @@ p_rmse_rarity <- prevalence_cv %>%
 p_rmse_rarity
 ```
 
-### Number of datasets
+#### Number of datasets
 
 We cannot compute the evenness for species only found in a single dataset.
 
@@ -824,7 +830,7 @@ grouped_lm(
 )
 ```
 
-### Effective number of datasets
+#### Effective number of datasets
 
 The effective number of datasets takes into account the proportion of observations per dataset.
 It is calculated per species $j$ as the exponent of the Shannon Entropy:
@@ -863,7 +869,7 @@ grouped_lm(
 )
 ```
 
-### Dataset evenness
+#### Dataset evenness
 
 Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
 Pielou’s Evenness index $J$ is calculated as the normalised Shannon Entropy:
@@ -942,7 +948,7 @@ plot(m)
 summary(m)
 ```
 
-## Trends in error: MRE
+### MRE trends
 
 We look at trends in CV error measures related to:
 
@@ -951,7 +957,7 @@ We look at trends in CV error measures related to:
 3. effective number of datasets
 4. dataset evenness
 
-### Differences in rarity
+#### Differences in rarity
 
 ```{r}
 p_mre_rarity <- prevalence_cv %>%
@@ -968,7 +974,7 @@ p_mre_rarity <- prevalence_cv %>%
 p_mre_rarity
 ```
 
-### Number of datasets
+#### Number of datasets
 
 ```{r}
 trend_dataset_mre <- birdcube_dataset_filtered %>%
@@ -1016,7 +1022,7 @@ grouped_lm(
 )
 ```
 
-### Effective number of datasets
+#### Effective number of datasets
 
 The effective number of datasets takes into account the proportion of observations per dataset.
 It is calculated per species $j$ as the exponent of the Shannon Entropy:
@@ -1055,7 +1061,7 @@ grouped_lm(
 )
 ```
 
-### Dataset evenness
+#### Dataset evenness
 
 Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
 Pielou’s Evenness index $J$ is calculated as the normalised Shannon Entropy:
@@ -1161,11 +1167,11 @@ p_error_trends <- plot_grid(
 
 ggsave(file.path(out_path, "error_trends.png"),
        p_error_trends,
-       width = 10, height = 10, dpi = 300)
+       width = 12, height = 10, dpi = 300)
 ```
 
-
-## Error of prevalence estimates relative to ABV reference values
+# Error of prevalence estimates relative to ABV reference values
+## Absolute and relative improvement definitions
 Calculate the CV error compared to ABV prevalence (= "true" prevalence).
 
 Let
@@ -1254,7 +1260,7 @@ improvement_df <- prevalence_cv %>%
   )
 ```
 
-### Overall effect of leave-one-dataset-out cross-validation
+## Overall effect of leave-one-dataset-out cross-validation
 
 ```{r}
 tab_overall <- improvement_df %>%
@@ -1285,7 +1291,7 @@ ggplot(improvement_df, aes(x = improvement)) +
   theme_bw(base_size = 12)
 ```
 
-### Differences in improvement across rarity classes
+## Differences in improvement across rarity classes
 
 ```{r}
 tab_rarity <- improvement_df %>%
@@ -1331,8 +1337,8 @@ ggplot(improvement_df, aes(rarity, rel_improvement)) +
   theme_bw(base_size = 12)
 ```
 
-### Aggregated species-level sensitivity patterns
-#### Distribution of species-level median improvements
+## Aggregated species-level sensitivity patterns
+### Distribution of species-level median improvements
 At the species level, median improvement scores were centred close to zero, indicating that for most species the omission of individual datasets had limited influence on prevalence estimates. A smaller number of species exhibited consistently positive or negative median improvements, suggesting higher sensitivity to data composition. Overall, cross-validation tends to move prevalence estimates closer to the true value.
 
 ```{r}
@@ -1345,7 +1351,7 @@ species_summary <- improvement_df %>%
     .groups = "drop"
   )
 
-ggplot(species_summary, aes(x = median_improvement)) +
+p_species_improvement <- ggplot(species_summary, aes(x = median_improvement)) +
   geom_histogram(bins = 30, fill = "cornflowerblue") +
   geom_vline(xintercept = 0, linetype = 2) +
   labs(
@@ -1353,10 +1359,16 @@ ggplot(species_summary, aes(x = median_improvement)) +
     y = "Number of species"
   ) +
   theme_bw(base_size = 12)
+p_species_improvement
 ```
 
-#### Species-level sensitivity by rarity class
+```{r, echo=FALSE}
+ggsave(file.path(out_path, "species_improvement.png"),
+       p_species_improvement,
+       width = 8, height = 6, dpi = 300)
+```
 
+### Species-level sensitivity by rarity class
 Species-level sensitivity differed between rarity classes. Rare species showed a wider spread of median improvements and larger relative changes compared to common species, indicating greater dependence on individual datasets.
 
 ```{r}
@@ -1383,7 +1395,7 @@ ggplot(species_summary, aes(rarity, median_rel_improvement)) +
 
 There is apparently one very common species that is also highly influenced by one dataset.
 
-#### Identifying outlying species (diagnostic, not reported)
+### Identifying outlying species (diagnostic, not reported)
 One species showed unusually large relative deteriorations when datasets were omitted. This species can be treated as a diagnostic case which serves to identify potential data or modelling issues.
 It concerns *Streptopelia decaocto* (EN: Eurasian collared dove, NL: Turkse tortel). <!-- spell-check: ignore -->
 
@@ -1408,7 +1420,7 @@ improvement_df %>%
 
 Without the *waarnemingen.be* dataset, the estimate is much lower.
 
-### Influence of individual component datasets
+## Influence of individual component datasets
 The *waarnemingen.be* dataset(s) show the largest influences (in both directions). For rare species, we see improvements, for common, we see deterioration.
 
 ```{r}
@@ -1509,7 +1521,7 @@ improvement_df %>%
         legend.position = c(0.83, 0.28))
 ```
 
-### Species-level robustness of prevalence estimates
+## Species-level robustness of prevalence estimates
 
 We summarised dataset-removal sensitivity at the species level by collapsing relative improvement scores into a single robustness metric.
 For each species, we define robustness as:
@@ -1537,7 +1549,7 @@ This metric is bounded between 0 (low robustness) and 1 (high robustness).
 
 Using the median ensures robustness against outlying datasets and prevents single influential components from dominating the score.
 
-#### Robustness by species
+### Robustness by species
 Species-level robustness scores were generally high, with most species exhibiting values close to one, indicating limited sensitivity to the omission of individual datasets. A smaller subset of species showed lower robustness scores, reflecting stronger dependence on specific data components.
 
 ```{r}
@@ -1564,7 +1576,7 @@ ggplot(species_summary, aes(x = robustness)) +
   theme_bw(base_size = 12)
 ```
 
-#### Robustness by rarity class
+### Robustness by rarity class
 Robustness scores do not differ that much between rarity classes.
 
 ```{r}
@@ -1577,7 +1589,7 @@ ggplot(species_summary, aes(rarity, robustness)) +
   theme_bw(base_size = 12)
 ```
 
-### Conclusions and discussion
+## Conclusions and discussion
 
 Using leave-one-dataset-out cross-validation, we assessed the sensitivity of prevalence estimates derived from the bird data cube to the composition of the underlying datasets, using ABV prevalence as a reference benchmark. Overall, omission of individual component datasets more often reduced than increased the deviation from the reference prevalence, although the magnitude of these improvements was typically small. This indicates that the prevalence indicator is generally robust to changes in dataset composition.
 
