@@ -928,6 +928,20 @@ grouped_lm(
 )
 ```
 
+```{r}
+m <- lm(
+  rmse ~ evenness * rarity,
+  data = trend_dataset_rmse
+)
+
+# Diagnostics
+plot(m)
+```
+
+```{r}
+summary(m)
+```
+
 ## Trends in error: MRE
 
 We look at trends in CV error measures related to:
@@ -1086,6 +1100,20 @@ grouped_lm(
   x_var = "evenness",
   y_var = "mre"
 )
+```
+
+```{r}
+m2 <- lm(
+  mre ~ evenness * rarity,
+  data = trend_dataset_mre
+)
+
+# Diagnostics
+plot(m2)
+```
+
+```{r}
+summary(m2)
 ```
 
 ```{r, echo=FALSE}
