@@ -535,6 +535,15 @@ prevalence_cv %>%
   distinct(species, rarity, mre) %>%
   ggplot() +
   geom_histogram(aes(x = mre, fill = rarity)) +
+  scale_fill_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   theme_bw(base_size = 12)
 ```
 
@@ -625,6 +634,15 @@ prevalence_cv %>%
   distinct(species, rarity, rmse) %>%
   ggplot() +
   geom_histogram(aes(x = rmse, fill = rarity)) +
+  scale_fill_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   theme_bw(base_size = 12)
 ```
 
@@ -785,6 +803,15 @@ trend_dataset_rmse %>%
   ggplot(aes(x = n_datasets, y = rmse, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   theme_bw(base_size = 12)
 ```
 
@@ -815,6 +842,15 @@ trend_dataset_rmse %>%
   ggplot(aes(x = neff_datasets, y = rmse, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   theme_bw(base_size = 12)
 ```
 
@@ -844,6 +880,15 @@ trend_dataset_rmse %>%
   ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   labs(x = "Dataset evenness", y = "RMSE", colour = "Rarity") +
   theme_bw(base_size = 12)
 ```
@@ -853,6 +898,15 @@ p_rmse_evenness <- trend_dataset_rmse %>%
   ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   labs(x = "Dataset evenness", y = "RMSE", colour = "Rarity") +
   theme_bw(base_size = 12) +
   theme(
@@ -927,6 +981,15 @@ trend_dataset_mre %>%
   ggplot(aes(x = n_datasets, y = mre, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   theme_bw(base_size = 12)
 ```
 
@@ -957,6 +1020,15 @@ trend_dataset_mre %>%
   ggplot(aes(x = neff_datasets, y = mre, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   theme_bw(base_size = 12)
 ```
 
@@ -985,6 +1057,15 @@ p_mre_evenness <- trend_dataset_mre %>%
   ggplot(aes(x = evenness, y = mre, colour = rarity)) +
   geom_point() +
   geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
   labs(x = "Dataset evenness", y = "MRE", colour = "Rarity") +
   theme_bw(base_size = 12) +
   theme(
