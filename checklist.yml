@@ -20,3 +20,6 @@ spelling:
   - .github
   - LICENSE.md
   - data/raw/utm_grid/utm1_vl.qmd
+pak:
+- b-cubed-eu/b3gbi
+- b-cubed-eu/dubicube
