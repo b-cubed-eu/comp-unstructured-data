@@ -218,7 +218,7 @@ p_dataset_year
 ```{r}
 ggsave(file.path(out_path, "component_datasets_year.png"),
        p_dataset_year,
-       width = 8, height = 6, dpi = 300)
+       width = 10, height = 6, dpi = 300)
 ```
 
 ### Number and proportion of species per dataset
@@ -1371,7 +1371,7 @@ p_species_improvement
 ```{r, echo=FALSE}
 ggsave(file.path(out_path, "species_improvement.png"),
        p_species_improvement,
-       width = 8, height = 6, dpi = 300)
+       width = 10, height = 6, dpi = 300)
 ```
 
 ### Species-level sensitivity by rarity class
