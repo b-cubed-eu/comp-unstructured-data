@@ -827,7 +827,8 @@ grouped_lm(
   group_var = "rarity",
   x_var = "n_datasets",
   y_var = "rmse"
-)
+) %>%
+  knitr::kable(digits = 5)
 ```
 
 #### Effective number of datasets
@@ -866,7 +867,8 @@ grouped_lm(
   group_var = "rarity",
   x_var = "neff_datasets",
   y_var = "rmse"
-)
+) %>%
+  knitr::kable(digits = 5)
 ```
 
 #### Dataset evenness
@@ -931,7 +933,8 @@ grouped_lm(
   group_var = "rarity",
   x_var = "evenness",
   y_var = "rmse"
-)
+) %>%
+  knitr::kable(digits = 5)
 ```
 
 ```{r}
@@ -1019,7 +1022,8 @@ grouped_lm(
   group_var = "rarity",
   x_var = "n_datasets",
   y_var = "mre"
-)
+) %>%
+  knitr::kable(digits = 5)
 ```
 
 #### Effective number of datasets
@@ -1058,7 +1062,8 @@ grouped_lm(
   group_var = "rarity",
   x_var = "neff_datasets",
   y_var = "mre"
-)
+) %>%
+  knitr::kable(digits = 5)
 ```
 
 #### Dataset evenness
@@ -1105,7 +1110,8 @@ grouped_lm(
   group_var = "rarity",
   x_var = "evenness",
   y_var = "mre"
-)
+) %>%
+  knitr::kable(digits = 5)
 ```
 
 ```{r}
