@@ -83,51 +83,59 @@ list(
   tar_target(
     obs_richness_map,
     obs_richness_map(data_cubes, cell_size = 10),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   ),
   tar_target(
     obs_richness_ts,
     obs_richness_ts(data_cubes),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   ),
   tar_target(
     total_occ_map,
     total_occ_map(data_cubes, cell_size = 10),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   ),
   tar_target(
     total_occ_ts,
     total_occ_ts(data_cubes),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   ),
-  tar_target(
-    pielou_evenness_map,
-    pielou_evenness_map(data_cubes, cell_size = 10),
-    pattern = map(data_cubes)
-  ),
-  tar_target(
-    pielou_evenness_ts,
-    pielou_evenness_ts(data_cubes),
-    pattern = map(data_cubes)
-  ),
+  # tar_target(
+  #   pielou_evenness_map, # nolint: commented_code_linter
+  #   pielou_evenness_map(data_cubes, cell_size = 10), # nolint: commented_code_linter
+  #   pattern = map(data_cubes), # nolint: commented_code_linter
+  # ),
+  # tar_target(
+  #   pielou_evenness_ts, # no_lint: commented_code_linter
+  #   pielou_evenness_ts(data_cubes), # nolint: commented_code_linter
+  #   pattern = map(data_cubes) # nolint: commented_code_linter
+  # ),
   tar_target(
     spec_occ_map,
     spec_occ_map(data_cubes),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   ),
   tar_target(
     spec_occ_ts,
     spec_occ_ts(data_cubes),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   ),
   tar_target(
     spec_range_map,
     spec_range_map(data_cubes),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   ),
   tar_target(
     spec_range_ts,
     spec_range_ts(data_cubes),
-    pattern = map(data_cubes)
+    pattern = map(data_cubes),
+    iteration = "list"
   )
 )

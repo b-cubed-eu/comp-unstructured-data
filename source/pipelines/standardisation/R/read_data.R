@@ -39,9 +39,10 @@ add_cyclus <- function(data) {
 # Add rareness categories to dataset based on the number of observations
 add_category <- function(data) {
   require("dplyr")
+  require("rlang")
 
   output <- data |>
-    group_by(species) |>
+    group_by(.data$species) |>
     mutate(n_obs = sum(.data$n)) |>
     ungroup() |>
     mutate(category = cut(.data$n_obs,
@@ -104,9 +105,9 @@ filter_3 <- function(data, divide_by) {
             "species",
             "category",
             divide_by)
-          )
         )
-      ) |>
+      )
+    ) |>
     summarise(n = sum(.data$n)) |>
     ungroup() |>
     group_by(.data$id_dataset,
@@ -127,7 +128,10 @@ filter_3 <- function(data, divide_by) {
 }
 
 # Standardize data based on total observations per family or order
-stand_class_level <- function(data, stand_by, time_period){
+stand_class_level <- function(data, stand_by, time_period) {
+  require("dplyr")
+  require("rlang")
+
   output <- data |>
     group_by(
       across(
@@ -136,11 +140,14 @@ stand_class_level <- function(data, stand_by, time_period){
             "id_spat_res",
             "species",
             "category",
-            time_period)))) |>
+            time_period)
+        )
+      )
+    ) |>
     summarise(n = sum(.data$n),
               total = sum(!!sym(stand_by))) |>
     ungroup() |>
-    mutate(n = .data$n / total)
+    mutate(n = .data$n / .data$total)
 
   if ("id_filter_per" %in% colnames(data)) {
     output$id_filter_per <- data$id_filter_per[1]
@@ -151,5 +158,3 @@ stand_class_level <- function(data, stand_by, time_period){
 
   return(output)
 }
-
-
