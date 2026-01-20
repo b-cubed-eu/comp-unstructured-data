@@ -1,0 +1,469 @@
+---
+title: "Standardisation"
+author: "Emma Cartuyvels, Ward Langeraert, Toon Van Daele"
+date: "`r Sys.Date()`" 
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+library(knitr)
+opts_chunk$set(collapse = TRUE, comment = "#>")
+
+library(targets)
+Sys.setenv(TAR_PROJECT = "standardisation")
+store <- file.path(here::here(), "source/pipelines/standardisation/_targets")
+
+library(ggplot2)
+library(ggpattern)
+library(ggpubr)
+library(dplyr)
+library(ggforce)
+library(crosstalk)
+library(DT)
+library(plotly)
+
+# Source functions
+source(here::here("source", "R", "utils.R"))
+```
+
+```{r consistent colors}
+# Create a custom color scale
+library(RColorBrewer)
+my_colors <- brewer.pal(5, "Dark2")
+names(my_colors) <- c("Very rare", "Rare", "Common",
+                      "Very common", "Extremely common")
+col_scale <- scale_color_manual(name = "Category",
+                                values = my_colors)
+fill_scale <- scale_fill_manual(name = "Category",
+                                values = my_colors)
+```
+
+## Trend comparison {.tabset}
+### No filter
+#### 2007-2023
+
+```{r}
+selected_species <- c("Spinus spinus", "Dendrocoptes medius",
+                      "Pyrrhula pyrrhula")
+
+tar_load(trend_comp_0, store = store)
+
+trend_comp_0 |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_0$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_0), 2)
+    ),
+    hjust = 0
+  )
+```
+
+#### 2007-2018 (based on where we see drop-off in data)
+```{r}
+tar_load(trend_comp_0_cutoff, store = store)
+
+trend_comp_0_cutoff |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_0_cutoff$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_0_cutoff), 2)
+    ),
+    hjust = 0
+  )
+```
+
+### Standardized for total observations per cycle
+#### 2007-2023
+
+```{r}
+tar_load(trend_comp_3, store = store)
+
+trend_comp_3 |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus",
+         id_filter_per == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_3$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_3), 2)
+    ),
+    hjust = 0
+  )
+```
+
+#### 2007-2018 (based on where we see drop-off in data)
+
+```{r}
+tar_load(trend_comp_3_cutoff, store = store)
+
+trend_comp_3_cutoff |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus",
+         id_filter_per == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_3_cutoff$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_3_cutoff), 2)
+    ),
+    hjust = 0
+  )
+```
+
+
+### Standardized for order
+#### 2007-2023
+
+```{r}
+tar_load(trend_comp_order, store = store)
+
+trend_comp_order |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_order$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_order), 2)
+    ),
+    hjust = 0
+  )
+```
+
+#### 2007-2018 (based on where we see drop-off in data)
+
+```{r}
+tar_load(trend_comp_order_cutoff, store = store)
+
+trend_comp_order_cutoff |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_order_cutoff$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_order_cutoff), 2)
+    ),
+    hjust = 0
+  )
+```
+
+### Standardized for family
+#### 2007-2023
+
+```{r}
+tar_load(trend_comp_family, store = store)
+
+trend_comp_family |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_family$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_family), 2)
+    ),
+    hjust = 0
+  )
+```
+
+#### 2007-2018 (based on where we see drop-off in data)
+
+```{r}
+tar_load(trend_comp_family_cutoff, store = store)
+
+trend_comp_family_cutoff |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_family_cutoff$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_family_cutoff), 2)
+    ),
+    hjust = 0
+  )
+```
+
+### Standardized for genus
+#### 2007-2023
+
+```{r}
+tar_load(trend_comp_genus, store = store)
+
+trend_comp_genus |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_genus$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_genus), 2)
+    ),
+    hjust = 0
+  )
+```
+
+#### 2007-2018 (based on where we see drop-off in data)
+
+```{r}
+tar_load(trend_comp_genus_cutoff, store = store)
+
+trend_comp_genus_cutoff |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  mutate(selected_species = ifelse(species %in% selected_species,
+                                   "yes", "no")) |>
+  filter(id_spat_res == "1km",
+         time_period == "cyclus") |>
+  ggplot(aes(x = correlation, fill = category, pattern = selected_species)) +
+  geom_histogram_pattern(color = "black",
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         pattern_density = 0.1,
+                         pattern_spacing = 0.0125,
+                         pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values = c(yes = "stripe", no = "none")) +
+  xlim(-1, 1) +
+  ylim(0, 25) +
+  fill_scale +
+  labs(x = "Correlation",
+       y = "Number of species") +
+  annotate("text",
+           x = -1, y = 23,
+           label = paste0("Mean: ",
+                          round(mean(trend_comp_genus_cutoff$correlation,
+                                     na.rm = TRUE), 2)),
+           hjust = 0) +
+  annotate(
+    "text",
+    x = -1, y = 24.5,
+    label = paste0(
+      "Mean without (very) rare species: ",
+      round(get_mean_common(trend_comp_genus_cutoff), 2)
+    ),
+    hjust = 0
+  )
+```

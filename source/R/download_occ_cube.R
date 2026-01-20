@@ -12,7 +12,7 @@ download_occ_cube <- function(sql_query, file, path, overwrite = FALSE) {
             sep = "\n")
     )
 
-    occ_cube <- readr::read_csv(file = file_path, show_col_types = FALSE)
+    occ_cube <- readr::read_delim(file = file_path, show_col_types = FALSE)
 
     return(occ_cube)
   }
