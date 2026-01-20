@@ -8,6 +8,8 @@ output:
     toc: true
     toc_float: true
     toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Introduction
@@ -25,6 +27,9 @@ store <- file.path(here::here(),
 
 library(b3gbi)
 library(ggplot2)
+
+# Source functions
+source(here::here("source", "R", "read_branch.R"))
 ```
 
 # Biodiversity indicators
@@ -33,12 +38,27 @@ library(ggplot2)
 
 ### Map
 
+Branch 1: abv_data         1 km
+Branch 2: abv_data         10 km
+Branch 3: birdflanders     1 km
+Branch 4: birdflanders     10 km
+
 ```{r total occurrences map, fig.show="hold", out.width="50%"}
-total_occ_map_abv <- tar_read(total_occ_map_abv, store = store)
+total_occ_map_abv <- read_branch(
+  "total_occ_map",
+  dataset = "abv_data",
+  spat_res = 10,
+  store = store
+)
 p <- plot(total_occ_map_abv)
 p + labs(title = paste0(p$labels$title, " - ABV"))
 
-total_occ_map_birdcube <- tar_read(total_occ_map_cube, store = store)
+total_occ_map_birdcube <- read_branch(
+  "total_occ_map",
+  dataset = "birdflanders",
+  spat_res = 10,
+  store = store
+)
 p <- plot(total_occ_map_birdcube)
 p + labs(title = paste0(p$labels$title, " - Cube"))
 ```
