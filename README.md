@@ -2,6 +2,7 @@
 ![GitHub](https://img.shields.io/github/license/b-cubed-eu/comp-unstructured-data)
 [![repo status](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 ![GitHub repo size](https://img.shields.io/github/repo-size/b-cubed-eu/comp-unstructured-data)
+[![funder](https://badgen.net/static/funder/European%20Union/f2a)](https://doi.org/10.3030/101059592)
 <!-- badges: end -->
 
 # Compare unstructured data
