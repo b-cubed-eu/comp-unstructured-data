@@ -1,0 +1,1606 @@
+---
+title: "Investigate dataset bias"
+author: "Ward Langeraert"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+# Load packages
+library(tidyverse) # Data wrangling and visualisation
+library(cowplot)   # Nice figures
+library(dubicube)  # Cross-validation
+library(sf)        # Spatial objects
+library(targets)
+
+# Globals
+store <- here::here("source", "pipelines", "exploratory_analysis", "_targets")
+out_path <- here::here("output", "dataset_bias_cv")
+dir.create(out_path, recursive = TRUE, showWarnings = FALSE)
+
+# Source functions
+source(here::here("source", "R", "download_occ_cube.R"))
+source(here::here("source", "R", "get_dataset_names.R"))
+source(here::here("source", "R", "plot_cross_validation.R"))
+source(here::here("source", "R", "grouped_lm.R"))
+```
+
+# Goal
+
+Investigate bias in indicators caused by the over/under representation of certain datasets in the occurrence cube.
+
+# Load data
+## Download occurrence cube
+We download the occurrence cube.
+This cube is four dimensional, where the fourth dimension is the dataset.
+
+```{r, message=FALSE}
+# nolint start: line_length_linter.
+query <- "SELECT
+  \"year\",
+  GBIF_MGRSCode(1000, decimalLatitude, decimalLongitude,
+  COALESCE(coordinateUncertaintyInMeters, 1000)) AS mgrsCode,
+  speciesKey,
+  species,
+  family,
+  datasetName,
+  datasetKey,
+  COUNT(*) AS n,
+  MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
+  IF(ISNULL(family), NULL, SUM(COUNT(*)) OVER (PARTITION BY family)) AS familyCount
+  FROM
+  occurrence
+  WHERE
+  occurrenceStatus = 'PRESENT'
+  AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
+  AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_INVALID')
+  AND NOT ARRAY_CONTAINS(issue, 'COUNTRY_COORDINATE_MISMATCH')
+  AND level1gid = 'BEL.2_1'
+  AND \"year\" >= 2007
+  AND \"year\" <= 2022
+  AND speciesKey IS NOT NULL
+  AND decimalLatitude IS NOT NULL
+  AND decimalLongitude IS NOT NULL
+  AND class = 'Aves'
+  AND collectionCode != 'ABV'
+  GROUP BY
+  \"year\",
+  mgrsCode,
+  speciesKey,
+  species,
+  family,
+  datasetName,
+  datasetKey
+  ORDER BY
+  \"year\" ASC,
+  mgrsCode ASC,
+  speciesKey ASC,
+  datasetName ASC"
+# nolint end
+
+download_occ_cube(
+  sql_query = query,
+  file = "birdcubeflanders_dataset.csv",
+  path = here::here("data", "raw"),
+  overwrite = FALSE
+)
+```
+
+> GBIF.org (05 August 2025) GBIF Occurrence Download https://doi.org/10.15468/dl.48vfzy
+
+## Read and preprocess cube
+We read in the data cube and add dataset names.
+
+```{r}
+birdcubeflanders_dataset_raw <- read_csv(
+  here::here("data", "raw", "birdcubeflanders_dataset.csv"),
+  show_col_types = FALSE
+)
+
+# Add dataset names
+birdcubeflanders_dataset <- get_dataset_names(birdcubeflanders_dataset_raw) %>%
+  dplyr::select("mgrscode", "year", "specieskey", "species", "family",
+                "datasetkey", "datasetname", "n",
+                "mincoordinateuncertaintyinmeters", "familycount") %>%
+  arrange(year, mgrscode, species, datasetname)
+
+glimpse(birdcubeflanders_dataset)
+```
+
+There are `r nrow(birdcubeflanders_dataset)` rows in the dataset.
+They should be the same as the unique combinations of grid cell code, species, year and dataset.
+
+```{r}
+n_distinct <- birdcubeflanders_dataset %>%
+  distinct(mgrscode, specieskey, year, datasetname) %>%
+  nrow()
+
+nrow(birdcubeflanders_dataset) == n_distinct
+```
+
+## Overview of component datasets
+### Number and proportion of observations per dataset
+
+In total, there are `r n_distinct(birdcubeflanders_dataset$datasetname)` component datasets. We look at the number and proportion of observations per dataset in the cube.
+
+```{r}
+total_obs <- sum(birdcubeflanders_dataset$n)
+birdcubeflanders_dataset %>%
+  summarise(n_obs = sum(n),
+            p_obs = n_obs / total_obs,
+            .by = "datasetname") %>%
+  arrange(desc(n_obs)) %>%
+  mutate(cum_prop = cumsum(p_obs)) %>%
+  knitr::kable()
+```
+
+```{r}
+birdcubeflanders_dataset %>%
+  summarise(n_obs = sum(n),
+            .by = "datasetname") %>%
+  mutate(datasetname = reorder(datasetname, n_obs)) %>%
+  ggplot(aes(x = datasetname, y = n_obs)) +
+  geom_bar(stat = "identity",
+           fill = "cornflowerblue") +
+  geom_text(aes(label = n_obs), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.2))) +
+  labs(x = "", y = "Number of observations") +
+  theme_bw(base_size = 12) +
+  theme(plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) +
+  coord_flip()
+```
+
+Over time, we see strong influences of component datasets. The two largest datasets are not covering the full temporal range of the cube. With an extreme drop-off of the largest dataset after 2018.
+
+```{r}
+p_dataset_year <- birdcubeflanders_dataset %>%
+  group_by(datasetname, year) %>%
+  summarise(n_obs = sum(n), .groups = "drop") %>%
+
+  # total per dataset (this is what you intended)
+  group_by(datasetname) %>%
+  mutate(order = sum(n_obs)) %>%
+  ungroup() %>%
+
+  # reorder ONCE by total
+  mutate(datasetname = reorder(datasetname, order, decreasing = TRUE)) %>%
+  arrange(datasetname) %>%
+
+  # numeric rank AFTER stable ordering
+  mutate(data_id = as.integer(datasetname)) %>%
+
+  # KEEP factor, do NOT use ifelse()
+  mutate(
+    datasetname = if_else(
+      data_id > 6,
+      factor("Other", levels = c(levels(datasetname), "Other")),
+      datasetname
+    )
+  ) %>%
+
+  # recompute after collapsing
+  group_by(datasetname, year) %>%
+  summarise(n_obs = sum(n_obs), .groups = "drop") %>%
+
+  # optional: re-order final result
+  group_by(datasetname) %>%
+  mutate(order = sum(n_obs)) %>%
+  ungroup() %>%
+
+  # visualisation
+  ggplot(aes(x = factor(year), y = n_obs, fill = datasetname)) +
+  geom_bar(stat = "identity", colour = "black", linewidth = 0.2) +
+  labs(x = "",  y = "Number of observations", fill = "") +
+  scale_fill_discrete(
+    labels = function(x) str_trunc(x, 40)
+  ) +
+  theme_bw(base_size = 12) +
+  theme(legend.position = "bottom",
+        legend.margin = margin(t = 0, r = 0, b = 5, l = -70),
+        legend.key.size = unit(0.5, "cm"), #change legend key size
+        legend.text = element_text(size = 7.5)) #change legend text font size
+p_dataset_year
+```
+
+```{r}
+ggsave(file.path(out_path, "component_datasets_year.png"),
+       p_dataset_year,
+       width = 10, height = 6, dpi = 300)
+```
+
+### Number and proportion of species per dataset
+
+We look at the number and proportion of species per dataset in the cube.
+
+```{r}
+total_spec <- n_distinct(birdcubeflanders_dataset$species)
+birdcubeflanders_dataset %>%
+  summarise(n_spec = n_distinct(species),
+            p_spec = n_spec / total_spec,
+            .by = "datasetname") %>%
+  arrange(desc(n_spec)) %>%
+  knitr::kable()
+```
+
+```{r}
+birdcubeflanders_dataset %>%
+  summarise(n_spec = n_distinct(species),
+            .by = "datasetname") %>%
+  mutate(datasetname = reorder(datasetname, n_spec)) %>%
+  ggplot(aes(x = datasetname, y = n_spec)) +
+  geom_bar(stat = "identity",
+           fill = "cornflowerblue") +
+  geom_text(aes(label = n_spec), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.2))) +
+  labs(x = "", y = "Number of species") +
+  theme_bw(base_size = 12) +
+  theme(plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) +
+  coord_flip()
+```
+
+### Combined visualisation of observations and species
+We see a large number of observations in a small number of component datasets. Some datasets are specialised in specific species, others are general.
+
+```{r}
+cat_labs <- c(n_obs = "Number of observations", n_spec = "Number of species")
+
+p_dataset <- birdcubeflanders_dataset %>%
+  summarise(n_obs = sum(n),
+            n_spec = n_distinct(species),
+            .by = "datasetname") %>%
+  mutate(datasetname = reorder(datasetname, n_obs)) %>%
+  pivot_longer(cols = c("n_obs", "n_spec"),
+               names_to = "cat", values_to = "n") %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity",
+           fill = "cornflowerblue") +
+  geom_text(aes(label = n), vjust = 0.3, hjust = -0.1, size = 2.5) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.2))) +
+  labs(x = "", y = "") +
+  facet_wrap(~cat, ncol = 2, scales = "free_x",
+             labeller = labeller(cat = cat_labs)) +
+  theme_bw(base_size = 12) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  coord_flip()
+p_dataset
+```
+
+```{r}
+ggsave(file.path(out_path, "component_datasets.png"),
+       p_dataset,
+       width = 10, height = 8, dpi = 300)
+```
+
+# Comparing species prevalence
+## Load and process ABV reference data
+We load the ABV data (structured monitoring data).
+We categorise the species according to rarity:
+
+| number of rows  | rarity           |
+| :-------------: | :--------------- |
+| [1, 10)         | very rare        |
+| [10, 100)       | rare             |
+| [100, 1000)     | common           |
+| [1000, 10.000)  | very common      |
+| [10.000, +Inf)  | extremely common |
+
+```{r, message=FALSE}
+abv_data_total <- tar_read(data, store = store)
+
+# Cut rarity
+abv_data <- abv_data_total %>%
+  filter(id_dataset == "abv_data",
+         id_spat_res == "1km") %>%
+  rename("rarity" = "category") %>%
+  arrange(year, mgrscode, species)
+
+glimpse(abv_data)
+```
+
+We filter the data cube based on species in ABV and add rarity categories.
+
+```{r}
+# Get ABV categories
+abv_species <- unique(abv_data$species)
+
+# Filter cube based on ABV species and add rarity categories
+birdcube_dataset_filtered <- birdcubeflanders_dataset %>%
+  dplyr::filter(species %in% abv_species) %>%
+  left_join(distinct(abv_data[, c("species", "rarity")]),
+            by = join_by("species"))
+
+# Also aggregate over datasets
+birdcube_filtered <- birdcube_dataset_filtered %>%
+  group_by(mgrscode, year, specieskey, species, family, familycount, rarity) %>%
+  summarise(
+    n = sum(n),
+    mincoordinateuncertaintyinmeters = min(mincoordinateuncertaintyinmeters),
+    .groups = "drop"
+  )
+```
+
+## Indicator calculation
+We calculate species prevalence.
+For each dataset we calculate the proportion of occupied grid cells by each species.
+
+```{r}
+species_prevalence <- function(
+    df,
+    total_grid_cells = length(unique(df$mgrscode))) {
+  require("dplyr")
+  require("rlang")
+
+  df_out <- df %>%
+    group_by(.data$species, .data$rarity) %>%
+    summarise(diversity_val = n_distinct(.data$mgrscode) / total_grid_cells,
+              .groups = "drop")
+
+  return(df_out)
+}
+```
+
+```{r}
+birdcube_prevalence <- species_prevalence(birdcube_filtered) %>%
+  mutate(data = "birdcube")
+abv_prevalence <- species_prevalence(abv_data) %>%
+  mutate(data = "abv")
+
+prevalence_df <- bind_rows(birdcube_prevalence, abv_prevalence) %>%
+  pivot_wider(names_from = data, values_from = diversity_val)
+```
+
+Rare species are more prevalent in the cube dataset while more common species are more prevalent in the ABV dataset.
+
+```{r}
+p_prevalence <- prevalence_df %>%
+  ggplot(aes(x = abv, y = birdcube)) +
+  geom_abline(slope = 1, intercept = 0, colour = "firebrick",
+              linewidth = 1) +
+  annotate("label", x = 0.8, y = 0.1, size = 4,
+           label = "Higher prevalence in ABV",
+           color = "black") +
+  annotate("label", x = 0.2, y = 0.95, size = 4,
+           label = "Higher prevalence in cube",
+           color = "black") +
+  geom_smooth(method = "loess", formula = "y ~ x",
+              colour = "darkgrey", linetype = "dashed") +
+  geom_point(aes(shape = rarity), size = 2) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "Proportion of occupied grid cells\nin ABV dataset",
+       y = "Proportion of occupied grid cells\nin cube dataset",
+       shape = "Rarity") +
+  theme_bw(base_size = 12)
+p_prevalence
+```
+
+```{r}
+ggsave(file.path(out_path, "prevalence.png"),
+       p_prevalence,
+       width = 8, height = 6, dpi = 300)
+```
+
+## Cross-validation of prevalence estimates
+We calculate error measures for the indicator based on leave-one-dataset-out cross-validation.
+We use a constant total of grid cells (`r length(unique(birdcube_dataset_filtered$mgrscode))`) such that this is independent from the datasets left out.
+
+```{r, message=FALSE}
+prevalence_cv <- cross_validate_cube(
+  birdcube_dataset_filtered,
+  fun = species_prevalence,
+  total_grid_cells = length(unique(birdcube_dataset_filtered$mgrscode)),
+  grouping_var = c("species", "rarity"),
+  out_var = "datasetkey",
+  progress = TRUE,
+  processed_cube = FALSE
+)
+```
+
+```{r}
+quantile <- 0.95
+```
+
+We visualise several error measures per species. Labels are included for species with values above the `r quantile * 100` % quantile (`r round(length(unique(prevalence_cv$species)) * (1 - quantile), 0)` species).
+
+### Maximum absolute error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
+# Calculate maximum error per species
+prevalence_cv %>%
+  mutate(max_error = max(abs_error),
+         .by = c("species", "rarity")) %>%
+  plot_cross_validation(
+    prevalence_df,
+    measure = "max_error",
+    quant = quantile
+  ) +
+  theme_bw(base_size = 12)
+```
+
+We look at the `r (1 - quantile) * 100` % species with the highest maximum absolute error.
+
+```{r}
+top_spec_max_error_df <- prevalence_cv %>%
+  mutate(max_error = max(abs_error),
+         .by = c("species", "rarity")) %>%
+  distinct(species, rarity, max_error) %>%
+  slice_max(max_error, prop = 1 - quantile) %>%
+  arrange(desc(max_error))
+
+top_spec_max_error_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_max_error_specs <- top_spec_max_error_df %>%
+  slice_max(max_error, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_max_error_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_max_error_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, max_error, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  labs(x = "", y = "Number of observations (count)") +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  theme_bw(base_size = 12) +
+  coord_flip() +
+  facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+### Maximum relative error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
+# Calculate maximum relative error per species
+prevalence_cv %>%
+  mutate(max_rel_error = max(rel_error),
+         .by = c("species", "rarity")) %>%
+  plot_cross_validation(
+    prevalence_df,
+    measure = "max_rel_error",
+    quant = quantile
+  ) +
+  theme_bw(base_size = 12)
+```
+
+We look at the `r (1 - quantile) * 100` % species with the highest maximum relative error.
+
+```{r}
+top_spec_max_rel_error_df <- prevalence_cv %>%
+  mutate(max_rel_error = max(rel_error),
+         .by = c("species", "rarity")) %>%
+  distinct(species, rarity, max_rel_error) %>%
+  slice_max(max_rel_error, prop = 1 - quantile) %>%
+  arrange(desc(max_rel_error))
+
+top_spec_max_rel_error_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_max_rel_error_specs <- top_spec_max_rel_error_df %>%
+  slice_max(max_rel_error, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_max_rel_error_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_max_rel_error_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, max_rel_error, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  labs(x = "", y = "Number of observations (count)") +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  theme_bw(base_size = 12) +
+  coord_flip() +
+  facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+### Mean relative error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
+# Mean relative error
+p_mre <- plot_cross_validation(
+  prevalence_cv,
+  prevalence_df,
+  measure = "mre",
+  quant = quantile
+) +
+  theme_bw(base_size = 12)
+p_mre
+```
+
+```{r}
+prevalence_cv %>%
+  distinct(species, rarity, mre) %>%
+  ggplot() +
+  geom_histogram(aes(x = mre, fill = rarity)) +
+  scale_fill_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  theme_bw(base_size = 12)
+```
+
+We look at the `r (1 - quantile) * 100` % species with the highest mean relative error (MRE).
+
+```{r}
+top_spec_mre_df <- prevalence_cv %>%
+  distinct(species, rarity, mre) %>%
+  slice_max(mre, prop = 1 - quantile) %>%
+  arrange(desc(mre))
+
+top_spec_mre_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_mre_specs <- top_spec_mre_df %>%
+  slice_max(mre, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_mre_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_mre_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, mre, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  labs(x = "", y = "Number of observations (count)") +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  theme_bw(base_size = 12) +
+  coord_flip() +
+  facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+We look at the `r (1 - quantile) * 100` % species with the lowest MRE.
+
+```{r}
+top_spec_mre_df <- prevalence_cv %>%
+  distinct(species, rarity, mre) %>%
+  slice_min(mre, prop = 1 - quantile) %>%
+  arrange(mre)
+
+top_spec_mre_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_mre_specs <- top_spec_mre_df %>%
+  slice_min(mre, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_mre_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_mre_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, mre, decreasing = FALSE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  labs(x = "", y = "Number of observations (count)") +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  theme_bw(base_size = 12) +
+  coord_flip() +
+  facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+### Root mean squared error
+
+```{r, warning=FALSE, out.width="90%", message=FALSE}
+# Root mean squared error
+p_rmse <- plot_cross_validation(
+  prevalence_cv,
+  prevalence_df,
+  measure = "rmse",
+  quant = quantile
+) +
+  theme_bw(base_size = 12)
+p_rmse
+```
+
+```{r}
+prevalence_cv %>%
+  distinct(species, rarity, rmse) %>%
+  ggplot() +
+  geom_histogram(aes(x = rmse, fill = rarity)) +
+  scale_fill_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  theme_bw(base_size = 12)
+```
+
+We look at the `r (1 - quantile) * 100` % species with the highest RMSE.
+
+```{r}
+top_spec_rmse_df <- prevalence_cv %>%
+  distinct(species, rarity, rmse) %>%
+  slice_max(rmse, prop = 1 - quantile) %>%
+  arrange(desc(rmse))
+
+top_spec_rmse_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_rmse_specs <- top_spec_rmse_df %>%
+  slice_max(rmse, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_rmse_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_rmse_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, rmse, decreasing = TRUE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  labs(x = "", y = "Number of observations (count)") +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  theme_bw(base_size = 12) +
+  coord_flip() +
+  facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+We look at the `r (1 - quantile) * 100` % species with the lowest RMSE.
+
+```{r}
+top_spec_rmse_df <- prevalence_cv %>%
+  distinct(species, rarity, rmse) %>%
+  slice_min(rmse, prop = 1 - quantile) %>%
+  arrange(rmse)
+
+top_spec_rmse_df %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+top_rmse_specs <- top_spec_rmse_df %>%
+  slice_min(rmse, n = 5) %>%
+  pull(species)
+
+birdcube_dataset_filtered %>%
+  dplyr::filter(species %in% top_rmse_specs) %>%
+  count(species, datasetname) %>%
+  left_join(top_spec_rmse_df, by = join_by(species)) %>%
+  mutate(species = reorder(species, rmse, decreasing = FALSE)) %>%
+  mutate(datasetname = tidytext::reorder_within(datasetname, n, species)) %>%
+  ggplot(aes(x = datasetname, y = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label =  n), vjust = 0.3, hjust = -0.3, size = 3) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  labs(x = "", y = "Number of observations (count)") +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  theme_bw(base_size = 12) +
+  coord_flip() +
+  facet_wrap(~species, ncol = 1, scales = "free")
+```
+
+```{r, echo=FALSE}
+# ----- Combine plots side by side -----
+bottom_row <- plot_grid(
+  p_rmse +
+    theme(plot.margin = margin(t = 12, r = -5, b = 5, l = 10)) +
+    guides(shape = "none"),
+  p_mre +
+    theme(axis.title.y = element_blank(),
+          plot.margin = margin(t = 12, r = 5, b = 5, l = 40)) +
+    guides(shape = "none"),
+  labels = c("B.", "C."),
+  label_size = 20,
+  ncol = 2,
+  rel_widths = c(1, 1)
+)
+
+# ----- Combine top + bottom -----
+final_plot <- plot_grid(
+  p_prevalence +
+    theme(axis.title.x = element_blank(),
+          plot.margin = margin(t = 10, r = 60, b = 10, l = 80)),
+  bottom_row,
+  labels = "A.",
+  label_size = 20,
+  ncol = 1,
+  rel_heights = c(1.2, 1)  # top vs bottom height ratio
+)
+
+# ----- Save to file -----
+ggsave(file.path(out_path, "prevalence_panels.png"),
+       final_plot,
+       width = 12, height = 10, dpi = 300)
+```
+
+## Trends in error measures
+We look at trends in CV error measures related to:
+
+1  differences in rarity
+2. number of datasets
+3. effective number of datasets
+4. dataset evenness
+
+### RMSE trends
+#### Differences in rarity
+
+```{r}
+p_rmse_rarity <- prevalence_cv %>%
+  mutate(
+    rarity = fct_recode(
+      rarity,
+      "Extremely\ncommon" = "Extremely common"
+    )
+  ) %>%
+  ggplot(aes(x = rarity, y = rmse)) +
+  geom_boxplot() +
+  labs(x = "Rarity", y = "RMSE") +
+  theme_bw(base_size = 12)
+p_rmse_rarity
+```
+
+#### Number of datasets
+
+We cannot compute the evenness for species only found in a single dataset.
+
+```{r}
+trend_dataset_rmse <- birdcube_dataset_filtered %>%
+  left_join(prevalence_cv %>% distinct(species, rarity, rmse),
+            by = join_by(species, rarity)) %>%
+  select(mgrscode, year, species, datasetname, rarity, rmse) %>%
+  count(species, rarity, rmse, datasetname) %>%
+  group_by(species, rarity, rmse) %>%
+  mutate(tot = sum(n),
+         p = n / tot) %>%
+  summarise(
+    n_datasets = n_distinct(datasetname),
+    shannon = -sum(p * log(p)),
+    neff_datasets = exp(shannon),
+    evenness = shannon / log(n_datasets),
+    .groups = "drop"
+  )
+```
+
+Does RMSE change with number of datasets?
+
+```{r}
+trend_dataset_rmse %>%
+  ggplot(aes(x = n_datasets, y = rmse, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset_rmse,
+  group_var = "rarity",
+  x_var = "n_datasets",
+  y_var = "rmse"
+) %>%
+  knitr::kable(digits = 5)
+```
+
+#### Effective number of datasets
+
+The effective number of datasets takes into account the proportion of observations per dataset.
+It is calculated per species $j$ as the exponent of the Shannon Entropy:
+
+<!-- spell-check: ignore:start -->
+$$
+N_{E,j} = \exp(- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))
+$$
+<!-- spell-check: ignore:end -->
+
+where $D_j$ the total number of datasets where species $j$ is present, and $p_i$ the proportion of entries (rows) of species $j$ in dataset $i$. 
+
+```{r}
+trend_dataset_rmse %>%
+  ggplot(aes(x = neff_datasets, y = rmse, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset_rmse,
+  group_var = "rarity",
+  x_var = "neff_datasets",
+  y_var = "rmse"
+) %>%
+  knitr::kable(digits = 5)
+```
+
+#### Dataset evenness
+
+Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
+Pielou’s Evenness index $J$ is calculated as the normalised Shannon Entropy:
+
+<!-- spell-check: ignore:start -->
+$$
+J_{j} = \frac{- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))}{\ln(D_j)}
+$$
+<!-- spell-check: ignore:end -->
+
+
+```{r}
+trend_dataset_rmse %>%
+  ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  labs(x = "Dataset evenness", y = "RMSE", colour = "Rarity") +
+  theme_bw(base_size = 12)
+```
+
+```{r, echo=FALSE}
+p_rmse_evenness <- trend_dataset_rmse %>%
+  ggplot(aes(x = evenness, y = rmse, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  labs(x = "Dataset evenness", y = "RMSE", colour = "Rarity") +
+  theme_bw(base_size = 12) +
+  theme(
+    legend.position = c(0.05, 0.05),        # bottom-left inside
+    legend.justification = c(0, 0),         # anchor legend at bottom-left
+    legend.background = element_rect(
+      fill = "white", colour = "black", linewidth = 0.3
+    ),
+    legend.key = element_blank()
+  )
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset_rmse,
+  group_var = "rarity",
+  x_var = "evenness",
+  y_var = "rmse"
+) %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+m <- lm(
+  rmse ~ evenness * rarity,
+  data = trend_dataset_rmse
+)
+
+# Diagnostics
+plot(m)
+```
+
+```{r}
+summary(m)
+```
+
+### MRE trends
+
+We look at trends in CV error measures related to:
+
+1  differences in rarity
+2. number of datasets
+3. effective number of datasets
+4. dataset evenness
+
+#### Differences in rarity
+
+```{r}
+p_mre_rarity <- prevalence_cv %>%
+  mutate(
+    rarity = fct_recode(
+      rarity,
+      "Extremely\ncommon" = "Extremely common"
+    )
+  ) %>%
+  ggplot(aes(x = rarity, y = mre)) +
+  geom_boxplot() +
+  labs(x = "Rarity", y = "MRE") +
+  theme_bw(base_size = 12)
+p_mre_rarity
+```
+
+#### Number of datasets
+
+```{r}
+trend_dataset_mre <- birdcube_dataset_filtered %>%
+  left_join(prevalence_cv %>% distinct(species, rarity, mre),
+            by = join_by(species, rarity)) %>%
+  select(mgrscode, year, species, datasetname, rarity, mre) %>%
+  count(species, rarity, mre, datasetname) %>%
+  group_by(species, rarity, mre) %>%
+  mutate(tot = sum(n),
+         p = n / tot) %>%
+  summarise(
+    n_datasets = n_distinct(datasetname),
+    shannon = -sum(p * log(p)),
+    neff_datasets = exp(shannon),
+    evenness = shannon / log(n_datasets),
+    .groups = "drop"
+  )
+```
+
+Does MRE change with number of datasets?
+
+```{r}
+trend_dataset_mre %>%
+  ggplot(aes(x = n_datasets, y = mre, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset_mre,
+  group_var = "rarity",
+  x_var = "n_datasets",
+  y_var = "mre"
+) %>%
+  knitr::kable(digits = 5)
+```
+
+#### Effective number of datasets
+
+The effective number of datasets takes into account the proportion of observations per dataset.
+It is calculated per species $j$ as the exponent of the Shannon Entropy:
+
+<!-- spell-check: ignore:start -->
+$$
+N_{E,j} = \exp(- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))
+$$
+<!-- spell-check: ignore:end -->
+
+where $D_j$ the total number of datasets where species $j$ is present, and $p_i$ the proportion of entries (rows) of species $j$ in dataset $i$. 
+
+```{r}
+trend_dataset_mre %>%
+  ggplot(aes(x = neff_datasets, y = mre, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset_mre,
+  group_var = "rarity",
+  x_var = "neff_datasets",
+  y_var = "mre"
+) %>%
+  knitr::kable(digits = 5)
+```
+
+#### Dataset evenness
+
+Dataset evenness is a measure that captures how occurrences of a species are distributed across multiple datasets (0 is highly uneven, 1 is completely even).
+Pielou’s Evenness index $J$ is calculated as the normalised Shannon Entropy:
+
+<!-- spell-check: ignore:start -->
+$$
+J_{j} = \frac{- \sum_{i=1}^{D_j}p_{ij}\ln(p_{ij}))}{\ln(D_j)}
+$$
+<!-- spell-check: ignore:end -->
+
+```{r}
+p_mre_evenness <- trend_dataset_mre %>%
+  ggplot(aes(x = evenness, y = mre, colour = rarity)) +
+  geom_point() +
+  geom_smooth(method = "lm",  formula = "y ~ x") +
+  scale_colour_manual(
+    values = c(
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E"
+    )
+  ) +
+  labs(x = "Dataset evenness", y = "MRE", colour = "Rarity") +
+  theme_bw(base_size = 12) +
+  theme(
+    legend.position = c(0.05, 0.05),        # bottom-left inside
+    legend.justification = c(0, 0),         # anchor legend at bottom-left
+    legend.background = element_rect(
+      fill = "white", colour = "black", linewidth = 0.3
+    ),
+    legend.key = element_blank()
+  )
+p_mre_evenness
+```
+
+```{r}
+grouped_lm(
+  data = trend_dataset_mre,
+  group_var = "rarity",
+  x_var = "evenness",
+  y_var = "mre"
+) %>%
+  knitr::kable(digits = 5)
+```
+
+```{r}
+m2 <- lm(
+  mre ~ evenness * rarity,
+  data = trend_dataset_mre
+)
+
+# Diagnostics
+plot(m2)
+```
+
+```{r}
+summary(m2)
+```
+
+```{r, echo=FALSE}
+col_rmse <- plot_grid(
+  p_rmse_rarity +
+    coord_cartesian(ylim = c(0, 0.12)) +
+    theme(
+      plot.margin = margin(t = 10, r = 5, b = 5, l = 20),
+      axis.title.x = element_blank(),
+      plot.title = element_text(hjust = 0.5)
+    ),
+  p_rmse_evenness +
+    coord_cartesian(ylim = c(0, 0.12)) +
+    theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 20)) +
+    guides(colour = "none"),
+  labels = c("A.", "C."),
+  label_size = 20,
+  ncol = 1
+)
+
+col_mre <- plot_grid(
+  p_mre_rarity +
+    coord_cartesian(ylim = c(0, 0.027)) +
+    theme(
+      plot.margin = margin(t = 10, r = 5, b = 5, l = 20),
+      axis.title.x = element_blank(),
+      plot.title = element_text(hjust = 0.5)
+    ),
+  p_mre_evenness +
+    coord_cartesian(ylim = c(0, 0.027)) +
+    theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5)),
+  labels = c("B.", "D."),
+  label_size = 20,
+  ncol = 1
+)
+
+p_error_trends <- plot_grid(
+  ggdraw() + draw_label("RMSE", fontface = "bold", size = 16),
+  ggdraw() + draw_label("MRE",  fontface = "bold", size = 16),
+  col_rmse,
+  col_mre,
+  ncol = 2,
+  rel_heights = c(0.08, 1)
+)
+
+ggsave(file.path(out_path, "error_trends.png"),
+       p_error_trends,
+       width = 12, height = 10, dpi = 300)
+```
+
+# Error of prevalence estimates relative to ABV reference values
+## Absolute and relative improvement definitions
+Calculate the CV error compared to ABV prevalence (= "true" prevalence).
+
+Let
+
+* $p_{\text{true}}$ = true prevalence
+* $p_{\text{est}}$= original estimated prevalence
+* $p_{\text{cv}}$ = prevalence from leave-one-dataset-out CV
+
+**1. Absolute error comparison (simplest and robust)**
+
+Compute absolute errors to the truth:
+
+<!-- spell-check: ignore:start -->
+
+$$
+e_{\text{est}} = |p_{\text{est}} - p_{\text{true}}|
+$$
+$$
+e_{\text{cv}} = |p_{\text{cv}} - p_{\text{true}}|
+$$
+
+<!-- spell-check: ignore:end -->
+
+Then define an **improvement score**:
+
+<!-- spell-check: ignore:start -->
+
+$$
+\Delta e = e_{\text{est}} - e_{\text{cv}}
+$$
+
+<!-- spell-check: ignore:end -->
+
+Interpretation:
+
+* $\Delta e > 0$: CV estimate is **closer** to the truth
+* $\Delta e = 0$: no change
+* $\Delta e < 0$: CV estimate is **worse**
+
+This is usually the cleanest answer.
+
+**2. Relative improvement (scale-free)**
+
+If prevalence values vary in scale across cases, use a relative measure:
+
+<!-- spell-check: ignore:start -->
+
+$$
+\text{Relative improvement} =
+\frac{|p_{\text{est}} - p_{\text{true}}| - |p_{\text{cv}} - p_{\text{true}}|}
+{|p_{\text{est}} - p_{\text{true}}|}
+$$
+
+<!-- spell-check: ignore:end -->
+
+Interpretation:
+
+* `1` → perfect improvement (CV hits the truth)
+* `0` → no improvement
+* `< 0` → deterioration
+
+
+```{r}
+# Get which species occurr in which datasets
+spec_dataset <- birdcube_dataset_filtered %>%
+  distinct(species, datasetkey_out = datasetkey) %>%
+  arrange(species, datasetkey_out)
+
+# Calculate improvement values
+improvement_df <- prevalence_cv %>%
+  inner_join(spec_dataset, by = join_by(species, datasetkey_out)) %>%
+  select("id_cv", "species", "rarity", "datasetkey_out", "rep_cv",
+         "est_original") %>%
+  left_join(abv_prevalence, by = join_by(species, rarity)) %>%
+  select(-"data") %>%
+  mutate(e_est = abs(est_original - diversity_val)) %>%
+  rowwise() %>%
+  mutate(
+    e_cv =  abs(rep_cv - diversity_val),
+    improvement = e_est - e_cv,
+    rel_improvement = (e_est - e_cv) / e_est
+  ) %>%
+  ungroup() %>%
+  mutate(
+    improved = improvement > 0
+  )
+```
+
+## Overall effect of leave-one-dataset-out cross-validation
+
+```{r}
+tab_overall <- improvement_df %>%
+  summarise(
+    n = n(),
+    prop_improved = mean(improved),
+    median_improvement = median(improvement),
+    median_rel_improvement = median(rel_improvement, na.rm = TRUE)
+  )
+```
+
+Across all species and component datasets, leave-one-dataset-out cross-validation resulted in an improvement of the prevalence estimate in `r round(tab_overall$prop_improved * 100, 3)` % of cases. The median absolute improvement in error was `r round(tab_overall$median_improvement, 5)`, corresponding to a median relative error reduction of `r round(tab_overall$median_rel_improvement  * 100, 3)` %. This indicates that, overall, cross-validation tends to move prevalence estimates closer to the true value.
+
+```{r}
+knitr::kable(tab_overall)
+```
+
+Improvement scores are centred around zero. Positive values indicate cases where omission of a dataset reduced the deviation from the true prevalence, while negative values indicate deterioration. The predominance of small improvements suggests that most datasets exert limited influence on prevalence estimates.
+
+```{r}
+ggplot(improvement_df, aes(x = improvement)) +
+  geom_histogram(bins = 30, fill = "cornflowerblue") +
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(
+    x = "Improvement in absolute error",
+    y = "Frequency"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+## Differences in improvement across rarity classes
+
+```{r}
+tab_rarity <- improvement_df %>%
+  group_by(rarity) %>%
+  summarise(
+    n = n(),
+    prop_improved = mean(improved),
+    median_improvement = median(improvement),
+    median_rel_improvement = median(rel_improvement, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+Sensitivity to dataset removal differed between rarity classes. Rare species showed a higher proportion of improvements compared to common species, and exhibited larger relative changes in error. This indicates that prevalence estimates for rare species are more sensitive to the composition of the underlying data.
+
+```{r}
+knitr::kable(tab_rarity)
+```
+
+This is because rare species are always more prevalent in the cube dataset while high prevalence species have higher values in the structured dataset.
+The former can improve by leaving out component datasets, but the latter cannot improve (= increase) by leaving out datasets.
+This is a characteristic of the indicator rather than the data.
+
+```{r}
+ggplot(improvement_df, aes(rarity, improvement)) +
+  geom_hline(yintercept = 0, linetype = 2, colour = "firebrick") +
+  geom_boxplot(outlier.alpha = 0.4) +
+  labs(
+    y = "Absolute improvement in error",
+    x = "Rarity class"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+ggplot(improvement_df, aes(rarity, rel_improvement)) +
+  geom_hline(yintercept = 0, linetype = 2, colour = "firebrick") +
+  geom_boxplot(outlier.alpha = 0.4) +
+  labs(
+    y = "Relative improvement in error",
+    x = "Rarity class"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+## Aggregated species-level sensitivity patterns
+### Distribution of species-level median improvements
+At the species level, median improvement scores were centred close to zero, indicating that for most species the omission of individual datasets had limited influence on prevalence estimates. A smaller number of species exhibited consistently positive or negative median improvements, suggesting higher sensitivity to data composition. Overall, cross-validation tends to move prevalence estimates closer to the true value.
+
+```{r}
+species_summary <- improvement_df %>%
+  group_by(species, rarity) %>%
+  summarise(
+    median_improvement = median(improvement),
+    median_rel_improvement = median(rel_improvement, na.rm = TRUE),
+    prop_improved = mean(improved),
+    .groups = "drop"
+  )
+
+p_species_improvement <- ggplot(species_summary, aes(x = median_improvement)) +
+  geom_histogram(bins = 30, fill = "cornflowerblue") +
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(
+    x = "Median improvement per species",
+    y = "Number of species"
+  ) +
+  theme_bw(base_size = 12)
+p_species_improvement
+```
+
+```{r, echo=FALSE}
+ggsave(file.path(out_path, "species_improvement.png"),
+       p_species_improvement,
+       width = 10, height = 6, dpi = 300)
+```
+
+### Species-level sensitivity by rarity class
+Species-level sensitivity differed between rarity classes. Rare species showed a wider spread of median improvements and larger relative changes compared to common species, indicating greater dependence on individual datasets.
+
+```{r}
+ggplot(species_summary, aes(rarity, median_improvement)) +
+  geom_boxplot(outlier.alpha = 0.4) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(
+    x = "Rarity class",
+    y = "Median improvement per species"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+```{r}
+ggplot(species_summary, aes(rarity, median_rel_improvement)) +
+  geom_boxplot(outlier.alpha = 0.4) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(
+    x = "Rarity class",
+    y = "Median relative improvement per species"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+There is apparently one very common species that is also highly influenced by one dataset.
+
+### Identifying outlying species (diagnostic, not reported)
+One species showed unusually large relative deteriorations when datasets were omitted. This species can be treated as a diagnostic case which serves to identify potential data or modelling issues.
+It concerns *Streptopelia decaocto* (EN: Eurasian collared dove, NL: Turkse tortel). <!-- spell-check: ignore -->
+
+```{r}
+improvement_df %>%
+  group_by(species, rarity) %>%
+  mutate(
+    median_rel_improvement = median(rel_improvement, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  filter(abs(median_rel_improvement) > 0.5) %>%
+  arrange(desc(abs(median_rel_improvement))) %>%
+  left_join(
+    birdcube_dataset_filtered %>%
+      distinct(species, datasetkey_out = datasetkey, datasetname),
+    by = join_by(species, datasetkey_out)
+  ) %>%
+  select(species, datasetname, rep_cv, est_original, diversity_val, improvement,
+         rel_improvement) %>%
+  knitr::kable()
+```
+
+Without the *waarnemingen.be* dataset, the estimate is much lower.
+
+## Influence of individual component datasets
+The *waarnemingen.be* dataset(s) show the largest influences (in both directions). For rare species, we see improvements, for common, we see deterioration.
+
+```{r}
+datasets_df <- birdcubeflanders_dataset %>%
+  group_by(datasetname, datasetkey) %>%
+  summarise(n_obs = sum(n),
+            n_spec = n_distinct(species)) %>%
+  ungroup() %>%
+  mutate(datasetname = reorder(datasetname, n_obs)) %>%
+  rename(datasetkey_out = datasetkey)
+```
+
+```{r}
+p_improvement <- improvement_df %>%
+  left_join(datasets_df, by = join_by(datasetkey_out)) %>%
+  select("datasetname", "species", "rarity", "improvement") %>%
+  ggplot(aes(x = species, y = datasetname, fill = improvement)) +
+  geom_tile() +
+  scale_fill_gradientn(
+    colours = c(
+      "#313695",  # strong negative
+      "#74add1",
+      "#e0f3f8",
+      "#ffffff",  # zero
+      "#fee090",
+      "#f46d43",
+      "#a50026"   # strong positive
+    ),
+    values = scales::rescale(c(-0.7, -0.2, -0.05, 0, 0.05, 0.2, 0.7)),
+    limits = c(-0.7, 0.7),
+    trans = scales::pseudo_log_trans(sigma = 0.01),
+    breaks = c(-0.6, -0.1, 0, 0.1, 0.6),
+    name = paste0(
+      "Improvement<br>",
+      "<span style='font-size: 8pt'>",
+      "(transformed scale)</span>"
+    )
+  ) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 20)) +
+  scale_y_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  facet_wrap(~rarity, scales = "free_x") +
+  labs(
+    x = "",
+    y = "Dataset omitted"
+  ) +
+  theme_bw(base_size = 12) +
+  theme(axis.text.x  = element_blank(),
+        legend.position = c(0.83, 0.28),
+        legend.title = ggtext::element_markdown())
+p_improvement
+```
+
+```{r}
+ggsave(file.path(out_path, "improvement_per_species.png"),
+       p_improvement,
+       width = 10, height = 10, dpi = 300)
+```
+
+We remove the *waarnemingen.be* datasets. Still, the largest datasets show strongest impacts, often positive.
+
+```{r}
+improvement_df %>%
+  left_join(datasets_df, by = join_by(datasetkey_out)) %>%
+  select("datasetname", "species", "rarity", "improvement") %>%
+  # Now we filter out the dataset
+  filter(!grepl("^Waarnemingen.be", datasetname)) %>%
+  ggplot(aes(x = species, y = datasetname, fill = improvement)) +
+  geom_tile() +
+  scale_fill_gradientn(
+    colours = c(
+      "#313695",  # strong negative
+      "#74add1",
+      "#e0f3f8",
+      "#ffffff",  # zero
+      "#fee090",
+      "#f46d43",
+      "#a50026"   # strong positive
+    ),
+    values = scales::rescale(
+      c(-0.05, -0.015, -0.005, 0, 0.005, 0.015, 0.05),
+      from = c(-0.05, 0.05)
+    ),
+    limits = c(-0.05, 0.05),
+    trans = scales::pseudo_log_trans(sigma = 0.005),
+    breaks = c(-0.05, -0.015, 0, 0.015, 0.05),
+    name = "Improvement"
+  ) +
+  scale_x_discrete(label = function(x) stringr::str_trunc(x, 20)) +
+  scale_y_discrete(label = function(x) stringr::str_trunc(x, 40)) +
+  facet_wrap(~rarity, scales = "free_x") +
+  labs(
+    x = "",
+    y = "Dataset omitted",
+    fill = "Improvement"
+  ) +
+  theme_bw(base_size = 12) +
+  theme(axis.text.x  = element_blank(),
+        legend.position = c(0.83, 0.28))
+```
+
+## Species-level robustness of prevalence estimates
+
+We summarised dataset-removal sensitivity at the species level by collapsing relative improvement scores into a single robustness metric.
+For each species, we define robustness as:
+
+<!-- spell-check: ignore:start -->
+
+$$
+\text{Robustness}_s = 1 - \min\left(1,; \left|\widetilde{RI}_s\right|\right)
+$$
+
+<!-- spell-check: ignore:end -->
+
+where $\widetilde{RI}_s$ is the median relative improvement across all leave-one-dataset-out cross-validation runs for species $s$.
+
+This metric is bounded between 0 (low robustness) and 1 (high robustness).
+
+* **Robustness ≈ 1**
+  Prevalence estimates are largely insensitive to the omission of individual datasets.
+
+* **Robustness ≈ 0.5**
+  Dataset removal typically changes error magnitude by ~50%.
+
+* **Robustness ≈ 0**
+  Prevalence estimates are highly dependent on individual datasets.
+
+Using the median ensures robustness against outlying datasets and prevents single influential components from dominating the score.
+
+### Robustness by species
+Species-level robustness scores were generally high, with most species exhibiting values close to one, indicating limited sensitivity to the omission of individual datasets. A smaller subset of species showed lower robustness scores, reflecting stronger dependence on specific data components.
+
+```{r}
+species_summary <- improvement_df %>%
+  group_by(species, rarity) %>%
+  summarise(
+    median_improvement = median(improvement),
+    median_rel_improvement = median(rel_improvement, na.rm = TRUE),
+    prop_improved = mean(improved),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    robustness = 1 - pmin(1, abs(median_rel_improvement))
+  )
+```
+
+```{r}
+ggplot(species_summary, aes(x = robustness)) +
+  geom_histogram(bins = 30) +
+  labs(
+    x = "Species robustness score",
+    y = "Number of species"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+### Robustness by rarity class
+Robustness scores do not differ that much between rarity classes.
+
+```{r}
+ggplot(species_summary, aes(rarity, robustness)) +
+  geom_boxplot(outlier.alpha = 0.4) +
+  labs(
+    x = "Rarity class",
+    y = "Species robustness score"
+  ) +
+  theme_bw(base_size = 12)
+```
+
+## Conclusions and discussion
+
+Using leave-one-dataset-out cross-validation, we assessed the sensitivity of prevalence estimates derived from the bird data cube to the composition of the underlying datasets, using ABV prevalence as a reference benchmark. Overall, omission of individual component datasets more often reduced than increased the deviation from the reference prevalence, although the magnitude of these improvements was typically small. This indicates that the prevalence indicator is generally robust to changes in dataset composition.
+
+Sensitivity patterns differed systematically across rarity classes. Rare species showed larger relative improvements and greater variability in error reduction than common species, reflecting their stronger dependence on individual datasets. In contrast, prevalence estimates for common species were more stable, but occasionally deteriorated substantially when influential datasets were removed. These differences largely arise from the mathematical properties of the indicator and the contrasting prevalence distributions between structured and opportunistic data sources, rather than from data quality issues alone. In particular, high-prevalence species have limited scope for improvement through dataset removal, whereas rare species can show appreciable gains.
+
+Aggregating results at the species level confirmed that most species exhibit limited sensitivity to dataset removal, while a small number act as diagnostic cases with pronounced dependence on specific datasets. Analysis at the dataset level showed that large datasets exert the strongest influence on prevalence estimates. The *waarnemingen.be* datasets, in particular, had a substantial impact, improving estimates for rare species while worsening them for common species. This dual effect highlights the central role of large opportunistic datasets in shaping prevalence indicators.
+
+To summarise sensitivity in a compact and interpretable way, we introduced a species-level robustness metric based on the median relative improvement in error across cross-validation runs. Most species exhibited high robustness scores, indicating stable prevalence estimates, while lower scores identified species for which estimates are more dependent on data composition. This metric provides a practical tool for summarising robustness in species-rich indicator systems and for identifying cases that may warrant closer scrutiny.
