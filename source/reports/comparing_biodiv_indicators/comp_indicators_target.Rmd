@@ -293,7 +293,7 @@ p
 
 #### Map
 
-```{r species occurrences map cettis warbler, fig.show="hold", out.width="50%"}
+```{r species occurrences map tree sparrow, fig.show="hold", out.width="50%"}
 spec_occ_map_abv <- read_branch(
   "spec_occ_map",
   dataset = "abv_data",
@@ -315,7 +315,7 @@ p
 
 #### Time series
 
-```{r species occurrences time series cettis warbler, fig.show="hold", out.width="50%"}
+```{r species occurrences time series tree sparrow, fig.show="hold", out.width="50%"}
 spec_occ_ts_abv <- read_branch(
   "spec_occ_ts",
   dataset = "abv_data",
@@ -339,7 +339,7 @@ p
 
 #### Map
 
-```{r species range map cettis warbler, fig.show="hold", out.width="50%"}
+```{r species range map tree sparrow, fig.show="hold", out.width="50%"}
 spec_range_map_abv <- read_branch(
   "spec_range_map",
   dataset = "abv_data",
@@ -361,7 +361,7 @@ p
 
 #### Time series
 
-```{r species range time series cettis warbler, fig.show="hold", out.width="50%"}
+```{r species range time series tree sparrow, fig.show="hold", out.width="50%"}
 spec_range_ts_abv <- read_branch(
   "spec_range_ts",
   dataset = "abv_data",
@@ -387,7 +387,7 @@ p
 
 #### Map
 
-```{r species occurrences map cettis warbler, fig.show="hold", out.width="50%"}
+```{r species occurrences map nightingale, fig.show="hold", out.width="50%"}
 spec_occ_map_abv <- read_branch(
   "spec_occ_map",
   dataset = "abv_data",
@@ -409,7 +409,7 @@ p
 
 #### Time series
 
-```{r species occurrences time series cettis warbler, fig.show="hold", out.width="50%"}
+```{r species occurrences time series nightingale, fig.show="hold", out.width="50%"}
 spec_occ_ts_abv <- read_branch(
   "spec_occ_ts",
   dataset = "abv_data",
@@ -433,7 +433,7 @@ p
 
 #### Map
 
-```{r species range map cettis warbler, fig.show="hold", out.width="50%"}
+```{r species range map nightingale, fig.show="hold", out.width="50%"}
 spec_range_map_abv <- read_branch(
   "spec_range_map",
   dataset = "abv_data",
@@ -455,7 +455,7 @@ p
 
 #### Time series
 
-```{r species range time series cettis warbler, fig.show="hold", out.width="50%"}
+```{r species range time series nightingale, fig.show="hold", out.width="50%"}
 spec_range_ts_abv <- read_branch(
   "spec_range_ts",
   dataset = "abv_data",
