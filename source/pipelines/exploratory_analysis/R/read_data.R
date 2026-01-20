@@ -33,9 +33,10 @@ add_cyclus <- function(data) {
 
 add_category <- function(data) {
   require("dplyr")
+  require("rlang")
 
   output <- data |>
-    group_by(species) |>
+    group_by(.data$species) |>
     mutate(n_obs = sum(.data$n)) |>
     ungroup() |>
     mutate(category = cut(.data$n_obs,

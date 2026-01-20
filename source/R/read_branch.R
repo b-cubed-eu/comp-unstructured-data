@@ -1,10 +1,11 @@
 #' Read a specific branch from a targets object
 #'
-#' Wrapper around \code{\link[targets]{tar_read}} to automatically select a branch
-#' based on dataset and spatial resolution.
+#' Wrapper around \code{\link[targets]{tar_read}} to automatically select a
+#' branch based on dataset and spatial resolution.
 #'
 #' @param name Character. Name of the target to read.
-#' @param dataset Character. Dataset name. Options: \code{"abv_data"} or \code{"birdflanders"}.
+#' @param dataset Character. Dataset name. Options: \code{"abv_data"} or
+#' \code{"birdflanders"}.
 #' @param spat_res Numeric. Spatial resolution in km. Options: 1 or 10.
 #' @param ... Additional arguments passed to \code{\link[targets]{tar_read}}.
 #'

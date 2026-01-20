@@ -231,7 +231,7 @@ list(
   tar_target(
     trend_comp_order_cutoff,
     trend_comp(data_abv |> filter(year < 2019),
-               stand_order_cube|> filter(year < 2019),
+               stand_order_cube |> filter(year < 2019),
                time_period),
     pattern = map(time_period)
   ),

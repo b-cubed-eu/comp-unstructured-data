@@ -19,7 +19,7 @@ opts_chunk$set(collapse = TRUE, comment = "#>")
 library(targets)
 Sys.setenv(TAR_PROJECT = "exploratory_analysis")
 store <- file.path(here::here(),
-                   "/source/pipelines/exploratory_analysis/_targets")
+                   "source/pipelines/exploratory_analysis/_targets")
 
 library(ggplot2)
 library(ggpubr)
@@ -114,7 +114,7 @@ rarity_labels <- c("Very rare\n(<10)",
                    "Extremely common\n(>10 000)")
 
 # Compute midpoints in log10 space for proper centering
-log10_mid <- function(lower, upper) 10^((log10(lower) + log10(upper))/2)
+log10_mid <- function(lower, upper) 10^((log10(lower) + log10(upper)) / 2)
 
 rarity_mid <- c(
   log10_mid(1, 10),       # use 1 instead of 0 because log10(0) is undefined
@@ -168,7 +168,8 @@ final_plot <- plot_grid(
 )
 
 # ----- Save to file -----
-ggsave(here::here("output", "data_exploration", "abv_three_panel.png"), final_plot,
+ggsave(here::here("output", "data_exploration", "abv_three_panel.png"),
+       final_plot,
        width = 12, height = 10, dpi = 300)
 ```
 
