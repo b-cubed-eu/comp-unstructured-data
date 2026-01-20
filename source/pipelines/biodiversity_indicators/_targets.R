@@ -105,15 +105,14 @@ list(
     iteration = "list"
   ),
   # tar_target(
-  #   pielou_evenness_map,
-  #   pielou_evenness_map(data_cubes, cell_size = 10),
-  #   pattern = map(data_cubes),
-  #   error = "continue"
+  #   pielou_evenness_map, # nolint: commented_code_linter
+  #   pielou_evenness_map(data_cubes, cell_size = 10), # nolint: commented_code_linter
+  #   pattern = map(data_cubes), # nolint: commented_code_linter
   # ),
   # tar_target(
-  #   pielou_evenness_ts,
-  #   pielou_evenness_ts(data_cubes),
-  #   pattern = map(data_cubes)
+  #   pielou_evenness_ts, # no_lint: commented_code_linter
+  #   pielou_evenness_ts(data_cubes), # nolint: commented_code_linter
+  #   pattern = map(data_cubes) # nolint: commented_code_linter
   # ),
   tar_target(
     spec_occ_map,
