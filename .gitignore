@@ -29,6 +29,7 @@
 *.utf8.md
 *.xls*
 *.xml
+*.zip
 *_cache/
 *_files
 .DS_Store
