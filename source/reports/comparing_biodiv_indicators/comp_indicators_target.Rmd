@@ -175,7 +175,7 @@ p + labs(title = paste0(p$labels$title, " - Cube")) +
 
 ### Map
 
-```r pielou evenness map, fig.show="hold", out.width="50%"
+```{r pielou evenness map, fig.show="hold", out.width="50%", eval=FALSE}
 pielou_evenness_map_abv <- tar_read(pielou_evenness_map_abv, store = store)
 p <- plot(pielou_evenness_map_abv)
 p + labs(title = paste0(p$labels$title, " - ABV")) +
@@ -189,7 +189,7 @@ p + labs(title = paste0(p$labels$title, " - Cube")) +
 
 ### Time series
 
-```r pielou evenness time series, fig.show="hold", out.width="50%"
+```{r pielou evenness time series, fig.show="hold", out.width="50%", eval=FALSE}
 pielou_evenness_ts_abv <- tar_read(pielou_evenness_ts_abv, store = store)
 p <- plot(pielou_evenness_ts_abv)
 p + labs(title = paste0(p$labels$title, " - ABV")) +
