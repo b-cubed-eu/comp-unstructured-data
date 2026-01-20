@@ -4,8 +4,8 @@
 #' branch based on dataset and spatial resolution.
 #'
 #' @param name Character. Name of the target to read.
-#' @param dataset Character. Dataset name. Options: \code{"abv_data"} or
-#' \code{"birdflanders"}.
+#' @param dataset Character. Dataset name. Options: `"abv_data" or
+#' `"birdflanders"`.
 #' @param spat_res Numeric. Spatial resolution in km. Options: 1 or 10.
 #' @param ... Additional arguments passed to \code{\link[targets]{tar_read}}.
 #'

@@ -38,10 +38,12 @@ source(here::here("source", "R", "read_branch.R"))
 
 ### Map
 
-Branch 1: abv_data         1 km
-Branch 2: abv_data         10 km
-Branch 3: birdflanders     1 km
-Branch 4: birdflanders     10 km
+| Branch | Dataset        | Spatial resolution |
+|--------|----------------|--------------------|
+| 1      | `abv_data`     | 1 km               |
+| 2      | `abv_data`     | 10 km              |
+| 3      | `birdflanders` | 1 km               |
+| 4      | `birdflanders` | 10 km              |
 
 ```{r total occurrences map, fig.show="hold", out.width="50%"}
 total_occ_map_abv <- read_branch(
