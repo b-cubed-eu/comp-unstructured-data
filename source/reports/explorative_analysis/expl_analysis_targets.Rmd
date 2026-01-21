@@ -28,6 +28,10 @@ library(ggforce)
 library(crosstalk)
 library(DT)
 library(plotly)
+
+# Folder to store figures
+out_path <- here::here("output", "data_exploration")
+dir.create(out_path, recursive = TRUE, showWarnings = FALSE)
 ```
 
 ```{r consistent colors}
@@ -168,7 +172,7 @@ final_plot <- plot_grid(
 )
 
 # ----- Save to file -----
-ggsave(here::here("output", "data_exploration", "abv_three_panel.png"),
+ggsave(file.path(out_path, "abv_three_panel.png"),
        final_plot,
        width = 12, height = 10, dpi = 300)
 ```
@@ -278,7 +282,7 @@ final_plot <- plot_grid(
 )
 
 # ----- Save to file -----
-ggsave(here::here("output", "data_exploration", "cube_three_panel.png"),
+ggsave(file.path(out_path, "cube_three_panel.png"),
        final_plot,
        width = 12, height = 10, dpi = 300)
 ```
@@ -313,7 +317,7 @@ coord_uncertainty
 
 ```{r}
 # ----- Save to file -----
-ggsave(here::here("output", "data_exploration", "cube_coord_uncertainty.png"),
+ggsave(file.path(out_path, "cube_coord_uncertainty.png"),
        coord_uncertainty,
        width = 8, height = 6, dpi = 300)
 ```
