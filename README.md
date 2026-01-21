@@ -62,8 +62,6 @@ Outputs
   `data/processed/`
   in both `.csv` and `.gpkg` formats.
 
-> ⚠ Only `data/raw/` needs to be created manually. All other directories are created automatically when needed.
-
 ### 2. Species list preparation (shared input)
 
 Both analysis pipelines rely on a consistent list of ABV bird species.
@@ -100,7 +98,7 @@ All core analyses are implemented as `{targets}` pipelines, allowing reproducibl
 * Aggregates data into cubes, fits models, and computes indicators as defined in the pipeline.
 * Intermediate and final results are cached automatically by `{targets}`.
 
-> ℹ See [https://books.ropensci.org/targets/](https://books.ropensci.org/targets/) for details on how `{targets}` works and how to inspect or debug pipelines.
+> See [https://books.ropensci.org/targets/](https://books.ropensci.org/targets/) for details on how `{targets}` works and how to inspect or debug pipelines.
 
 ### 4. Reporting and visualisation
 
@@ -133,7 +131,7 @@ Once a pipeline has been successfully run, results can be summarised and visuali
 ## Repository structure
 
 The repository is organised to clearly separate data, analysis pipelines, and reporting.
-Most directories are created automatically during execution.
+All necessary directories are created automatically during execution.
 
 ```
 ├── source
