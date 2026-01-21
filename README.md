@@ -32,7 +32,7 @@ This code is developed in context of **T4.5** of the [B-Cubed project](https://b
 
 ### Analysis workflow
 
-To download the latest version of each of the data sets run `prepare_abv_data.Rmd` and `prepare_data_10km.Rmd` (in the `source/reports` directory).
+To download the latest version of each of the data sets run `prepare_abv_data.Rmd` and `prepare_data_10km.Rmd` (in the `source/reports/prepare_data` directory).
 Alternatively, you can download the exact same data we used by following the GBIF links in these same Rmd's.
 These data sets are saved under `data/raw`, the Rmd's further clean the data and add geometric properties.
 The cleaned data is stored in both `.csv` and `.gpkg` format under `data/processed`.
