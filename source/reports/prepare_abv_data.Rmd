@@ -372,7 +372,7 @@ birdcube_data_out <- st_drop_geometry(birdcube_data_out_sf)
 We write out the data for exploration and analysis.
 
 ```{r}
-out_path <- here("data", "interim")
+out_path <- here("data", "processed")
 dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
 
 # Structured data

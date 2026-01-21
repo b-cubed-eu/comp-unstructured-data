@@ -1,6 +1,6 @@
-path_to_interim <- function(path_to_data, dataset, spat_res) {
+path_to_processed <- function(path_to_data, dataset, spat_res) {
   file <- paste0(dataset, "_cube_", spat_res, ".csv")
-  file.path(path_to_data, "interim", file)
+  file.path(path_to_data, "processed", file)
 }
 
 read_andid <- function(data_file, dataset, spat_res) {
@@ -35,7 +35,7 @@ add_cyclus <- function(data) {
 filter_1 <- function(data) {
   require("dplyr")
 
-  abv_birds <- read.csv("./data/interim/abv_birds.csv")
+  abv_birds <- read.csv("./data/processed/abv_birds.csv")
 
   output <- data |>
     filter(.data$species %in% abv_birds$species)

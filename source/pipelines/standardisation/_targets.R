@@ -48,16 +48,20 @@ list(
   #' Define the data file target:
   tarchetypes::tar_file(
     data_file_abv,
-    path_to_interim(path_to_data = path_to_data,
-                    dataset = "abv_data",
-                    spat_res = spat_res),
+    path_to_processed(
+      path_to_data = path_to_data,
+      dataset = "abv_data",
+      spat_res = spat_res
+    ),
     pattern = map(spat_res)
   ),
   tarchetypes::tar_file(
     data_file_cube,
-    path_to_interim(path_to_data = path_to_data,
-                    dataset = "birdflanders",
-                    spat_res = spat_res),
+    path_to_processed(
+      path_to_data = path_to_data,
+      dataset = "birdflanders",
+      spat_res = spat_res
+    ),
     pattern = map(spat_res)
   ),
   #' Read abv_1km and abv_10km:

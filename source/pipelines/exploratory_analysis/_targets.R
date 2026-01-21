@@ -48,9 +48,11 @@ list(
   #' Define the data file target:
   tarchetypes::tar_file(
     data_file,
-    path_to_interim(path_to_data = path_to_data,
-                    dataset = dataset,
-                    spat_res = spat_res),
+    path_to_processed(
+      path_to_data = path_to_data,
+      dataset = dataset,
+      spat_res = spat_res
+    ),
     pattern = cross(dataset, spat_res)
   ),
   #' Read abv_1km, abv_10km, birdflanders_1km and birdflanders_10km:

@@ -37,4 +37,4 @@ abv_birds <- map_taxa_from_vernacular(
 )
 abv_birds
 
-write.csv(abv_birds, "./data/interim/abv_birds.csv")
+write.csv(abv_birds, "./data/processed/abv_birds.csv")

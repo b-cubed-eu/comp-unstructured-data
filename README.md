@@ -30,43 +30,49 @@ Scripts to explore the conditions that determine the reliability of models, tren
 
 This code is developed in context of **T4.5** of the [B-Cubed project](https://b-cubed.eu/).
 
-### Analyses workflow
-To download the latest version of each of the data sets run `prepare_abv_data.Rmd` and `Prepare_data_10km.Rmd`.
+### Analysis workflow
+
+To download the latest version of each of the data sets run `prepare_abv_data.Rmd` and `prepare_data_10km.Rmd` (in the `source/reports` directory).
 Alternatively, you can download the exact same data we used by following the GBIF links in these same Rmd's.
 These data sets are saved under `data/raw`, the Rmd's further clean the data and add geometric properties.
-The cleaned data is stored in both `.csv` and `.gpkg` format under `data/interim`.
+The cleaned data is stored in both `.csv` and `.gpkg` format under `data/processed`.
 
-To get the list of ABV birds used to filter the data in both pipelines run the `get_abv_species.R` after sourcing the functions in `taxon_mapping.R`.
+To get the list of ABV birds used to filter the data in both pipelines run the `get_abv_species.R` after sourcing the functions in `taxon_mapping.R` (in the `source/R` directory).
 
-To run the targets pipelines, run `run_pipeline.R` in the folder of the pipeline you want to run.
-Afterwards, you can run the associated Rmd found under `reports`.
-
+To run the targets pipelines, run the `run_pipeline.R` script in the folder of the pipeline you want to run (see the `source/pipelines` directory).
+Afterwards, you can run the associated Rmd reports found under `source/reports`.
 
 ### Repo structure
 
 ```
-├── source                         ├ 
+├── source                         
 │   ├── pipelines                  ├ target pipelines https://books.ropensci.org/targets/
-│   ├── R                          ├ R scripts and R markdown files
+│   |     └── ...                  ├ folder per analysis
+│   ├── R                          ├ R scripts
 │   └── reports                    ├ reports based on output from target pipelines
+│         └── ...                  ├ folder per analysis
 ├── data
 │   ├── raw                        ├ create this folder and store raw data, see prepare_abv_data.Rmd
-│   ├── intermediate               ├ store intermediate data
 │   └── processed                  ├ store processed data
+│
+├── output                         ├ folder to store created outputs (e.g. figures)
+│     └── ...                      ├ folder per analysis
+│
+├── README.md                      ├ project description
+├── LICENSE.md                     ├ license
+├── CITATION.cff                   ├ citation info
+├── comp-unstructured-data.Rproj   ├ R project
+|
 ├── checklist.yml                  ├ options checklist package (https://github.com/inbo/checklist)
 ├── organisation.yml               ├ organisation info (https://inbo.github.io/checklist/articles/organisation.html)
+├── targets.yml                    ├ targets pipeline settings
+|
 ├── inst
 │   └── en_gb.dic                  ├ dictionary with words that should not be checked by the checklist package
-├── .github                        │ 
-│   ├── workflows                  │ 
-│   │   └── checklist_project.yml  ├ GitHub repo settings
-│   ├── CODE_OF_CONDUCT.md         │ 
-│   └── CONTRIBUTING.md            │
-├── comp-unstructured-data.Rproj   ├ R project
-├── README.md                      ├ project description
-├── LICENSE.md                     ├ licence
-├── LICENSE                        │
-├── CITATION.cff                   ├ citation info
-├── .zenodo.json                   ├ zenodo metadata
+├── .github                        
+│   ├── workflows                  
+│   │   └── checklist_project.yml  ├ GitHub actions
+│   ├── CODE_OF_CONDUCT.md         
+│   └── CONTRIBUTING.md            
 └── .gitignore                     ├ files to ignore
 ```
