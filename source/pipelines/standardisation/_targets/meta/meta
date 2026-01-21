@@ -2,11 +2,7 @@ name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iterat
 time_period|stem|5a2b6b1b19e3072d|b115c63f54fe6958|2c530c1562a7fbd1|857672053||t20406.6507780029s|s94b|94|qs|local|vector||time_period_dab20f8537398031*time_period_b36c363a5c648bd4|0.58||
 spat_res|stem|1a29b196dbf69973|43ed5bdf25dcedef|2c530c1562a7fbd1|-1448122772||t20406.6507787789s|s91b|91|qs|local|vector||spat_res_1a0154cae0fe4fc9*spat_res_c0bfdc4196f8ca59|0||
 dataset|stem|11fc59b2ed29cae1|1f039bd635d5bfde|2c530c1562a7fbd1|728897448||t20406.650779334s|s104b|104|qs|local|vector|||0||
-data_file_abv_10b5ff8918317a8f|branch|c0e22f179b857738|6efa59ae685a66b1|e0fe4f16f55bb63a|1540203761|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/interim/abv_data_cube_1km_temp.csv|t20406.6603763439s|s9122322b|9122322|file|local|vector|data_file_abv||0||
-data_file_abv_ddb94564d1c93407|branch|78a726e54f66e3de|6efa59ae685a66b1|e0fe4f16f55bb63a|-1389231168|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/interim/abv_data_cube_10km_temp.csv|t20406.6634782427s|s6098250b|6098250|file|local|vector|data_file_abv||0||
 data_file_abv|pattern|c4a53ea0c4017e0e|6efa59ae685a66b1||268568608||||6098250|file|local|vector||data_file_abv_10b5ff8918317a8f*data_file_abv_ddb94564d1c93407|0||
-data_file_cube_10b5ff8918317a8f|branch|579a7d371ce8da39|c5301236a9126a69|e0fe4f16f55bb63a|-779678832|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/interim/birdflanders_cube_1km_temp.csv|t20406.6604316356s|s538580059b|538580059|file|local|vector|data_file_cube||0||
-data_file_cube_ddb94564d1c93407|branch|e49d2cee6b6441df|c5301236a9126a69|e0fe4f16f55bb63a|435454491|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/interim/birdflanders_cube_10km_temp.csv|t20406.6635057436s|s40231662b|40231662|file|local|vector|data_file_cube||0||
 data_file_cube|pattern|825a5a7b05f8b6fc|c5301236a9126a69||-1420749355||||578811721|file|local|vector||data_file_cube_10b5ff8918317a8f*data_file_cube_ddb94564d1c93407|0||
 data_abv_int1_bd228e62f0fa0dca|branch|daa0b623bcf0bb42|8e4848ba6041eefb|9209689f2e7d936b|-82379651||t20406.6639156513s|s793633b|793633|qs|local|vector|data_abv_int1||0.23||
 data_abv_int1_3ea2e3d6efa604c2|branch|0b76f07a386854e5|8e4848ba6041eefb|7b8b88230694797a|1765189436||t20406.6639175391s|s541101b|541101|qs|local|vector|data_abv_int1||0.14||
@@ -23,8 +19,6 @@ data_cube|pattern|f415eef7dc021291|2f321a560326fd1e||-80261551||||58225581|qs|lo
 data_abv|pattern|bc4f7d6c4bbe898c|09e9f6c4cb779824||1365720492||||1534696|qs|local|vector||data_abv_53b04943773e9b31*data_abv_4bab1ed01e1288d2|0.01||
 stand_order_cube|pattern|2089078f7df30801|cc66266b1e8de324||-1020114097||||217096|qs|local|vector||stand_order_cube_3c16fbd56a67f5f6*stand_order_cube_159fe50ce5c8a932*stand_order_cube_6bd88ade944d7d01*stand_order_cube_13e5f96cb4fba7d3|0.94||
 stand_genus_cube|pattern|c405cadb16a78f39|a85fa5d35e2a9976||-456227285||||224153|qs|local|vector||stand_genus_cube_3c16fbd56a67f5f6*stand_genus_cube_159fe50ce5c8a932*stand_genus_cube_6bd88ade944d7d01*stand_genus_cube_13e5f96cb4fba7d3|0.82||
-filter1_cube_485d33f9501a5179|branch|4316bd3804ea30ad|1ae24cd91e07a8a9|44e98dc4e3d112a9|-397380637||t20406.6643529955s|s37273117b|37273117|qs|local|vector|filter1_cube||0.47||
-filter1_cube_04faeee80fbf8490|branch|6f67c97d1fd732ec|1ae24cd91e07a8a9|dad92633d453b618|-1570849103||t20406.6643559149s|s1054143b|1054143|qs|local|vector|filter1_cube||0.01||
 filter1_cube|pattern|cfcfa785c15a96c3|1ae24cd91e07a8a9||383042957||||38327260|qs|local|vector||filter1_cube_485d33f9501a5179*filter1_cube_04faeee80fbf8490|0.48||
 filter2_cube_3c16fbd56a67f5f6|branch|f2e693d45befab66|9dd79c0a4feb0d18|5277c973ffdbbd05|-671205092||t20406.6645880617s|s60316830b|60316830|qs|local|vector|filter2_cube||15.89||
 filter2_cube_159fe50ce5c8a932|branch|a5e455ebd0b5f982|9dd79c0a4feb0d18|5277c973ffdbbd05|791333578||t20406.6648136484s|s56355321b|56355321|qs|local|vector|filter2_cube||15.31||
@@ -37,8 +31,6 @@ filter3_cube_159fe50ce5c8a932|branch|cb2762aaec4b097b|ea565f2a27e9e5a8|9c10a4aec
 filter3_cube_6bd88ade944d7d01|branch|27d503f20f5f1bb9|ea565f2a27e9e5a8|37dc91a619bc1e75|724278879||t20406.66494778s|s47805b|47805|qs|local|vector|filter3_cube||0.07||
 filter3_cube_13e5f96cb4fba7d3|branch|e86e82e87dc0a6e3|ea565f2a27e9e5a8|37dc91a619bc1e75|1922682981||t20406.6649502375s|s26636b|26636|qs|local|vector|filter3_cube||0.06||
 filter3_cube|pattern|d5483a12864c87b5|ea565f2a27e9e5a8||-1583901660||||148693|qs|local|vector||filter3_cube_3c16fbd56a67f5f6*filter3_cube_159fe50ce5c8a932*filter3_cube_6bd88ade944d7d01*filter3_cube_13e5f96cb4fba7d3|0.7||
-filter1_abv_2b4c7d4b934a7577|branch|074409a8a0ea3ad9|4b46dc3332676fdc|9493c572c6b17471|2028879604||t20406.6649515686s|s852072b|852072|qs|local|vector|filter1_abv||0.01||
-filter1_abv_3a73852794d1af05|branch|41a3576c9ddad5e3|4b46dc3332676fdc|651d54dae5b6209b|-1524281766||t20406.664952217s|s578084b|578084|qs|local|vector|filter1_abv||0||
 filter1_abv|pattern|cb792a81d02d03a1|4b46dc3332676fdc||-1655722892||||1430156|qs|local|vector||filter1_abv_2b4c7d4b934a7577*filter1_abv_3a73852794d1af05|0.01||
 trend_comp_0|pattern|f300a262bb73f4b2|d08e40c5896b50dc||-2028922957||||15119|qs|local|vector||trend_comp_0_7e52083f5afe5d32*trend_comp_0_2d015e7bca5c3c76|2.13||
 stand_family_abv|pattern|5b1f8f2880745ed0|37e462379a232501||1591446207||||70759|qs|local|vector||stand_family_abv_994a9cf0b49a570d*stand_family_abv_e0f2d22e6641ba08*stand_family_abv_0401cc926380cafe*stand_family_abv_6557caaa2460f84d|0.21||
@@ -84,18 +76,7 @@ filter4_abv_035fa584ed83dc0a|branch|a4530719887e5e1c|1dacf7d2ef8bf91d|34bb76416e
 filter4_abv_c281f93b0310341d|branch|335848a01525deab|1dacf7d2ef8bf91d|34bb76416ea2d2c5|-1925121782||t20406.6658603704s|s5800b|5800|qs|local|vector|filter4_abv||0.03||
 filter4_abv|pattern|5b47c33eae50d8c7|1dacf7d2ef8bf91d||-292803461||||66132|qs|local|vector||filter4_abv_6114d1cda9920c63*filter4_abv_1b5b1fff5a166a8c*filter4_abv_adf642c1f9b4acb3*filter4_abv_5be1349254d78e71*filter4_abv_c88a8176dd0ceae1*filter4_abv_c934bfd6f97b4350*filter4_abv_035fa584ed83dc0a*filter4_abv_c281f93b0310341d|0.28||
 trend_comp_4|pattern|2307c49f8cec22c3|b041d454385a0859||1403839019||||19290|qs|local|vector||trend_comp_4_7e52083f5afe5d32*trend_comp_4_2d015e7bca5c3c76|0.51||
-read_andid|function|b8b692d7024b4ef2|||||||||||||||
-trend_comp|function|1744f2de8ea45da0|||||||||||||||
 path_to_interim|function|f76e7ad7972bfc35|||||||||||||||
-range_comp|function|5d23eb81bd962202|||||||||||||||
-add_category|function|32bb916cbb164567|||||||||||||||
-add_cyclus|function|dff241668b4366c0|||||||||||||||
-stand_class_level|function|3c62aea552631a06|||||||||||||||
-path_to_data|object|de49ac0f4411477d|||||||||||||||
-filter_1|function|fc876ce5e24554e3|||||||||||||||
-filter_2|function|c1df51c70662a707|||||||||||||||
-filter_3|function|069c1c7d4ff4efb7|||||||||||||||
-targets_project_dir|object|4e9c20c139fb718b|||||||||||||||
 data_abv_53b04943773e9b31|branch|7a5c532001217f8f|09e9f6c4cb779824|565cdbd034e84d58|52362228||t20473.6723118125s|s914701b|914701|qs|local|vector|data_abv||0.047||
 data_abv_4bab1ed01e1288d2|branch|7e0aef93f270129b|09e9f6c4cb779824|36d842a1d268b057|-721112125||t20473.6723137107s|s619995b|619995|qs|local|vector|data_abv||0.031||
 stand_order_cube_3c16fbd56a67f5f6|branch|efe0dbd93bd3f118|cc66266b1e8de324|32d7eba8adfbabd0|1372869836||t20473.6723659608s|s73481b|73481|qs|local|vector|stand_order_cube||0.688||
@@ -151,3 +132,23 @@ trend_comp_3_cutoff_7e52083f5afe5d32|branch|9efa95031f6e0959|413abbbd9081b766|c7
 trend_comp_3_cutoff_2d015e7bca5c3c76|branch|8de792cb734ac2f9|413abbbd9081b766|c7e53c53aefcb5a2|518679375||t20473.6737547614s|s433b|433|qs|local|vector|trend_comp_3_cutoff||0.125||
 trend_comp_4_7e52083f5afe5d32|branch|3f0f9622101c5e6e|b041d454385a0859|142acb9eff67ef66|-876578913||t20473.6737626841s|s9653b|9653|qs|local|vector|trend_comp_4||0.343|There were 44 warnings in `summarise()`. The first warning was: ℹ In argument: `correlation = cor(.data$abv_data, .data$birdflanders, method =   'pearson')`. ℹ In group 65: `species = 'Anser albifrons'`, `category = Very rare`,   `id_spat_res = '10km'`, `id_filter_per = 'cyclus'`, `id_filter_per2 =   'year'`. Caused by warning in `cor()`: ! the standard deviation is zero ℹ Run `dplyr::last_dplyr_warnings()` to see the 43 remaining warnings.|
 trend_comp_4_2d015e7bca5c3c76|branch|4d76abdf325e681f|b041d454385a0859|142acb9eff67ef66|-1448276416||t20473.6737684619s|s9637b|9637|qs|local|vector|trend_comp_4||0.375|There were 34 warnings in `summarise()`. The first warning was: ℹ In argument: `correlation = cor(.data$abv_data, .data$birdflanders, method =   'pearson')`. ℹ In group 65: `species = 'Anser albifrons'`, `category = Very rare`,   `id_spat_res = '10km'`, `id_filter_per = 'cyclus'`, `id_filter_per2 =   'cyclus'`. Caused by warning in `cor()`: ! the standard deviation is zero ℹ Run `dplyr::last_dplyr_warnings()` to see the 33 remaining warnings.|
+data_file_abv_10b5ff8918317a8f|branch|c0e22f179b857738|fbfcbf92fb19cb12|8e28adc8e1cf94d5|1540203761|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/processed/abv_data_cube_1km.csv|t20474.4575644138s|s9122322b|9122322|file|local|vector|data_file_abv||0||
+data_file_abv_ddb94564d1c93407|branch|78a726e54f66e3de|fbfcbf92fb19cb12|8e28adc8e1cf94d5|-1389231168|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/processed/abv_data_cube_10km.csv|t20474.4587440651s|s6098250b|6098250|file|local|vector|data_file_abv||0.016||
+data_file_cube_10b5ff8918317a8f|branch|579a7d371ce8da39|5aba6ab2702fb7b5|8e28adc8e1cf94d5|-779678832|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/processed/birdflanders_cube_1km.csv|t20474.4575986441s|s538580059b|538580059|file|local|vector|data_file_cube||0||
+data_file_cube_ddb94564d1c93407|branch|e49d2cee6b6441df|5aba6ab2702fb7b5|8e28adc8e1cf94d5|435454491|C:/R/git_repositories/b_cubed/comp-unstructured-data/data/processed/birdflanders_cube_10km.csv|t20474.4587761936s|s40231662b|40231662|file|local|vector|data_file_cube||0||
+filter1_cube_485d33f9501a5179|branch|4316bd3804ea30ad|1ae24cd91e07a8a9|fd3421af88d90b4c|-397380637||t20474.4788258227s|s37273117b|37273117|qs|local|vector|filter1_cube||0.797||
+filter1_cube_04faeee80fbf8490|branch|6f67c97d1fd732ec|1ae24cd91e07a8a9|4317cdf1e1f5d4c1|-1570849103||t20474.4788318138s|s1054143b|1054143|qs|local|vector|filter1_cube||0.062||
+filter1_abv_2b4c7d4b934a7577|branch|074409a8a0ea3ad9|4b46dc3332676fdc|650b08d09664d873|2028879604||t20474.4788372899s|s852072b|852072|qs|local|vector|filter1_abv||0.031||
+filter1_abv_3a73852794d1af05|branch|41a3576c9ddad5e3|4b46dc3332676fdc|806c74156a07e657|-1524281766||t20474.4788392929s|s578084b|578084|qs|local|vector|filter1_abv||0.015||
+read_andid|function|b8b692d7024b4ef2
+trend_comp|function|1744f2de8ea45da0
+range_comp|function|5d23eb81bd962202
+add_category|function|32bb916cbb164567
+path_to_processed|function|918ebe5d53d7a9e2
+add_cyclus|function|dff241668b4366c0
+stand_class_level|function|3c62aea552631a06
+path_to_data|object|de49ac0f4411477d
+filter_1|function|0f17e748c294710f
+filter_2|function|c1df51c70662a707
+filter_3|function|069c1c7d4ff4efb7
+targets_project_dir|object|4e9c20c139fb718b

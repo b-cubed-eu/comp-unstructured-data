@@ -2,7 +2,7 @@
 
 # Create path to specific dataset in processed data folder
 path_to_processed <- function(path_to_data, dataset, spat_res) {
-  file <- paste0(dataset, "_cube_", spat_res, "_temp.csv")
+  file <- paste0(dataset, "_cube_", spat_res, ".csv")
   file.path(path_to_data, "processed", file)
 }
 

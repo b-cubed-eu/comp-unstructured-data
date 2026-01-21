@@ -40,7 +40,7 @@ store <- file.path(
 ### Map
 
 | Branch | Dataset        | Spatial resolution |
-|--------|----------------|--------------------|
+|:-------|:---------------|:-------------------|
 | 1      | `abv_data`     | 1 km               |
 | 2      | `abv_data`     | 10 km              |
 | 3      | `birdflanders` | 1 km               |

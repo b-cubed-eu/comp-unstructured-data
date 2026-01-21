@@ -297,18 +297,18 @@ dir.create(out_path, showWarnings = FALSE, recursive = TRUE)
 # Structured data
 ## CSV
 write_csv(abv_data_out,
-          file.path(out_path, "abv_data_cube_10km_temp.csv"))
+          file.path(out_path, "abv_data_cube_10km.csv"))
 
 ## Spatial object
 write_sf(abv_data_out_sf,
-         file.path(out_path, "abv_data_cube_10km_temp.gpkg"))
+         file.path(out_path, "abv_data_cube_10km.gpkg"))
 
 # Unstructured data
 ## CSV
 write_csv(birdcube_data_out,
-          file.path(out_path, "birdflanders_cube_10km_temp.csv"))
+          file.path(out_path, "birdflanders_cube_10km.csv"))
 
 ## Spatial object
 write_sf(birdcube_data_out_sf,
-         file.path(out_path, "birdflanders_cube_10km_temp.gpkg"))
+         file.path(out_path, "birdflanders_cube_10km.gpkg"))
 ```
