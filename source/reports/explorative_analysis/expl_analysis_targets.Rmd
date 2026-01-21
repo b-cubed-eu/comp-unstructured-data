@@ -17,10 +17,6 @@ library(knitr)
 opts_chunk$set(collapse = TRUE, comment = "#>")
 
 library(targets)
-Sys.setenv(TAR_PROJECT = "exploratory_analysis")
-store <- file.path(here::here(),
-                   "source/pipelines/exploratory_analysis/_targets")
-
 library(ggplot2)
 library(ggpubr)
 library(dplyr)
@@ -32,6 +28,11 @@ library(plotly)
 # Folder to store figures
 out_path <- here::here("output", "data_exploration")
 dir.create(out_path, recursive = TRUE, showWarnings = FALSE)
+
+# Globals
+store <- file.path(
+  here::here(), "source/pipelines/exploratory_analysis/_targets"
+)
 ```
 
 ```{r consistent colors}

@@ -89,8 +89,6 @@ All core analyses are implemented as `{targets}` pipelines, allowing reproducibl
 
 * `run_pipeline.R`
 
-> ⚠️ Change the paths in _targets.yml to the correct location on your computer. For now, we were unable to provide relative paths (see #5).
-
 **Where**
 
 * Inside the folder of the pipeline you want to execute, e.g.:
@@ -159,7 +157,6 @@ Most directories are created automatically during execution.
 │
 ├── checklist.yml                  ├ checklist package configuration
 ├── organisation.yml               ├ organisation metadata
-├── _targets.yml                    ├ global {targets} settings
 │
 ├── inst
 │   └── en_gb.dic                  ├ custom dictionary for checklist

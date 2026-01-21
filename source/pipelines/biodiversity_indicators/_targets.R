@@ -1,3 +1,5 @@
+# Pipeline to run the standardization analysis
+
 # Load packages required to define the pipeline:
 library(targets)
 
@@ -7,22 +9,11 @@ tar_option_set(
   format = "qs" # Optionally set the default storage format. qs is fast.
 )
 
+# Set project directory and data path:
 targets_project_dir <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("source/pipelines/")
 path_to_data <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("data")
-
-tar_config_set(
-  script = file.path(targets_project_dir,
-                     "biodiversity_indicators",
-                     "_targets.R"),
-  store = file.path(targets_project_dir,
-                    "biodiversity_indicators",
-                    "_targets/"),
-  config = "_targets.yaml",
-  project = "biodiversity_indicators",
-  use_crew = TRUE
-)
 
 # Run the R scripts in the R/ folder with our custom functions:
 tar_source(file.path(targets_project_dir, "biodiversity_indicators", "R"))

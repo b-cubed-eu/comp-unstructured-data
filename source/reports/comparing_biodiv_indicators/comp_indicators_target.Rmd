@@ -21,15 +21,16 @@ library(knitr)
 opts_chunk$set(collapse = TRUE, comment = "#>")
 
 library(targets)
-Sys.setenv(TAR_PROJECT = "biodiversity_indicators")
-store <- file.path(here::here(),
-                   "source/pipelines/biodiversity_indicators/_targets")
-
 library(b3gbi)
 library(ggplot2)
 
 # Source functions
 source(here::here("source", "R", "read_branch.R"))
+
+# Globals
+store <- file.path(
+  here::here(), "source/pipelines/biodiversity_indicators/_targets"
+)
 ```
 
 # Biodiversity indicators
