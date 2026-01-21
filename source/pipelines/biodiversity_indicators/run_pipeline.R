@@ -1,17 +1,8 @@
-# run the pipeline
-
 library(targets)
-Sys.setenv(TAR_PROJECT = "biodiversity_indicators")
+tar_path <- file.path(here::here(), "source/pipelines/biodiversity_indicators")
 
-tar_make()
+# Install b3gbi v0.8.11
 
-
-# inspect pipeline
-tar_prune()
-
-tar_visnetwork()
-meta <- tar_meta()
-
-
-# debug pipeline
-abv <- tar_read(abv)
+# Run the pipeline
+tar_make(script = file.path(tar_path, "_targets.R"),
+         store = file.path(tar_path, "_targets"))

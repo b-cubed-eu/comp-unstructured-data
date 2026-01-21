@@ -3,7 +3,6 @@
 # Load packages required to define the pipeline:
 library(targets)
 
-
 # Set target options:
 tar_option_set(
   packages = c("tidyverse"),
@@ -15,17 +14,6 @@ targets_project_dir <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("source/pipelines/")
 path_to_data <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("data")
-
-#' Write custom settings for the current project to
-#' YAML configuration file
-tar_config_set(
-  script = file.path(targets_project_dir, "standardisation", "_targets.R"),
-  store = file.path(targets_project_dir, "standardisation",
-                    "_targets/"),
-  config = "_targets.yaml",
-  project = "standardisation",
-  use_crew = TRUE
-)
 
 # Run the R scripts in the R/ folder with our custom functions:
 tar_source(file.path(targets_project_dir, "standardisation", "R"))
@@ -48,16 +36,20 @@ list(
   #' Define the data file target:
   tarchetypes::tar_file(
     data_file_abv,
-    path_to_interim(path_to_data = path_to_data,
-                    dataset = "abv_data",
-                    spat_res = spat_res),
+    path_to_processed(
+      path_to_data = path_to_data,
+      dataset = "abv_data",
+      spat_res = spat_res
+    ),
     pattern = map(spat_res)
   ),
   tarchetypes::tar_file(
     data_file_cube,
-    path_to_interim(path_to_data = path_to_data,
-                    dataset = "birdflanders",
-                    spat_res = spat_res),
+    path_to_processed(
+      path_to_data = path_to_data,
+      dataset = "birdflanders",
+      spat_res = spat_res
+    ),
     pattern = map(spat_res)
   ),
   #' Read abv_1km and abv_10km:

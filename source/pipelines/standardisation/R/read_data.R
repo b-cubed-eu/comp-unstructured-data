@@ -1,9 +1,9 @@
 # Functions for reading and filtering data
 
-# Create path to specific dataset in interim data folder
-path_to_interim <- function(path_to_data, dataset, spat_res) {
-  file <- paste0(dataset, "_cube_", spat_res, "_temp.csv")
-  file.path(path_to_data, "interim", file)
+# Create path to specific dataset in processed data folder
+path_to_processed <- function(path_to_data, dataset, spat_res) {
+  file <- paste0(dataset, "_cube_", spat_res, ".csv")
+  file.path(path_to_data, "processed", file)
 }
 
 # Add dataset id and spatial resolution as column to dataset
@@ -56,7 +56,7 @@ add_category <- function(data) {
 
 # Filter data for only species analysed under ABV
 filter_1 <- function(data) {
-  abv_birds <- read.csv("./data/interim/abv_birds.csv")
+  abv_birds <- read.csv("./data/processed/abv_birds.csv")
 
   output <- data |>
     filter(.data$species %in% abv_birds$species)

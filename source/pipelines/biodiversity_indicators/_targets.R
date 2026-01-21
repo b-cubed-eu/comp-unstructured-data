@@ -1,3 +1,5 @@
+# Pipeline to run the standardization analysis
+
 # Load packages required to define the pipeline:
 library(targets)
 
@@ -7,22 +9,11 @@ tar_option_set(
   format = "qs" # Optionally set the default storage format. qs is fast.
 )
 
+# Set project directory and data path:
 targets_project_dir <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("source/pipelines/")
 path_to_data <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("data")
-
-tar_config_set(
-  script = file.path(targets_project_dir,
-                     "biodiversity_indicators",
-                     "_targets.R"),
-  store = file.path(targets_project_dir,
-                    "biodiversity_indicators",
-                    "_targets/"),
-  config = "_targets.yaml",
-  project = "biodiversity_indicators",
-  use_crew = TRUE
-)
 
 # Run the R scripts in the R/ folder with our custom functions:
 tar_source(file.path(targets_project_dir, "biodiversity_indicators", "R"))
@@ -43,9 +34,11 @@ list(
   ),
   tarchetypes::tar_file(
     data_file,
-    path_to_interim(path_to_data = path_to_data,
-                    dataset = dataset,
-                    spat_res = spat_res),
+    path_to_processed(
+      path_to_data = path_to_data,
+      dataset = dataset,
+      spat_res = spat_res
+    ),
     pattern = cross(dataset, spat_res)
   ),
   tar_target(
@@ -104,16 +97,19 @@ list(
     pattern = map(data_cubes),
     iteration = "list"
   ),
-  # tar_target(
-  #   pielou_evenness_map, # nolint: commented_code_linter
-  #   pielou_evenness_map(data_cubes, cell_size = 10), # nolint: commented_code_linter
-  #   pattern = map(data_cubes), # nolint: commented_code_linter
-  # ),
-  # tar_target(
-  #   pielou_evenness_ts, # no_lint: commented_code_linter
-  #   pielou_evenness_ts(data_cubes), # nolint: commented_code_linter
-  #   pattern = map(data_cubes) # nolint: commented_code_linter
-  # ),
+  tar_target(
+    pielou_evenness_map,
+    pielou_evenness_map(data_cubes, cell_size = 10),
+    pattern = map(data_cubes),
+    iteration = "list",
+    error = "continue" # run this with b3gbi v0.8.11
+  ),
+  tar_target(
+    pielou_evenness_ts,
+    pielou_evenness_ts(data_cubes),
+    pattern = map(data_cubes),
+    iteration = "list"
+  ),
   tar_target(
     spec_occ_map,
     spec_occ_map(data_cubes),

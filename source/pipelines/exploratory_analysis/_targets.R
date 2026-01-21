@@ -3,7 +3,6 @@
 # Load packages required to define the pipeline:
 library(targets)
 
-
 # Set target options:
 tar_option_set(
   packages = c("tidyverse"),
@@ -15,17 +14,6 @@ targets_project_dir <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("source/pipelines/")
 path_to_data <- rprojroot::find_root(rprojroot::is_git_root) |>
   file.path("data")
-
-#' Write custom settings for the current project to
-#' YAML configuration file
-tar_config_set(
-  script = file.path(targets_project_dir, "exploratory_analysis", "_targets.R"),
-  store = file.path(targets_project_dir, "exploratory_analysis",
-                    "_targets/"),
-  config = "_targets.yaml",
-  project = "exploratory_analysis",
-  use_crew = TRUE
-)
 
 # Run the R scripts in the R/ folder with our custom functions:
 tar_source(file.path(targets_project_dir, "exploratory_analysis", "R"))
@@ -48,9 +36,11 @@ list(
   #' Define the data file target:
   tarchetypes::tar_file(
     data_file,
-    path_to_interim(path_to_data = path_to_data,
-                    dataset = dataset,
-                    spat_res = spat_res),
+    path_to_processed(
+      path_to_data = path_to_data,
+      dataset = dataset,
+      spat_res = spat_res
+    ),
     pattern = cross(dataset, spat_res)
   ),
   #' Read abv_1km, abv_10km, birdflanders_1km and birdflanders_10km:

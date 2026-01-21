@@ -17,9 +17,6 @@ library(knitr)
 opts_chunk$set(collapse = TRUE, comment = "#>")
 
 library(targets)
-Sys.setenv(TAR_PROJECT = "standardisation")
-store <- file.path(here::here(), "source/pipelines/standardisation/_targets")
-
 library(ggplot2)
 library(ggpattern)
 library(ggpubr)
@@ -31,6 +28,9 @@ library(plotly)
 
 # Source functions
 source(here::here("source", "R", "utils.R"))
+
+# Globals
+store <- file.path(here::here(), "source/pipelines/standardisation/_targets")
 ```
 
 ```{r consistent colors}
@@ -91,6 +91,7 @@ trend_comp_0 |>
 ```
 
 #### 2007-2018 (based on where we see drop-off in data)
+
 ```{r}
 tar_load(trend_comp_0_cutoff, store = store)
 
