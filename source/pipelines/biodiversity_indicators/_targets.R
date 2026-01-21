@@ -110,11 +110,13 @@ list(
   #   pielou_evenness_map,
   #   pielou_evenness_map(data_cubes, cell_size = 10),
   #   pattern = map(data_cubes),
+  #   iteration = "list"
   # ),
   # tar_target(
   #   pielou_evenness_ts, # no_lint: commented_code_linter
   #   pielou_evenness_ts(data_cubes),
-  #   pattern = map(data_cubes)
+  #   pattern = map(data_cubes),
+  #   iteration = "list"
   # ),
   tar_target(
     spec_occ_map,
