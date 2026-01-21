@@ -202,7 +202,7 @@ The cube is made up of several datasets:
   - European Seabirds At Sea (ESAS)
   - And 80+ smaller datasets
   
-With the first dataset (waarnemingen.be) containing most of the observations (67%). For further analyses it is important to know that waarnemingen.be data was last published in 2019 and currently runs only to 31-12-2018.
+With the first dataset (waarnemingen.be) containing most of the observations (74.7 %). For further analyses it is important to know that waarnemingen.be data was last published in 2019 and currently runs only to 31-12-2018.
 
 ```{r}
 fig_year <- cube |>
@@ -282,7 +282,6 @@ ggsave(here::here("output", "data_exploration", "cube_three_panel.png"),
        final_plot,
        width = 12, height = 10, dpi = 300)
 ```
-
 
 ```{r}
 cube |>
