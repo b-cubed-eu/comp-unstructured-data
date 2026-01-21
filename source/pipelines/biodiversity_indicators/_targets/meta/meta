@@ -73,14 +73,6 @@ spec_range_ts_7c5ea9287d06e208|branch|2c5eefea7b0b2aa6|e49f384e32bd115a|13c20028
 spec_range_ts|pattern|00d8b006a7205955|e49f384e32bd115a||1899864952||||325370|qs|local|list||spec_range_ts_70d34382ead4ea05*spec_range_ts_ebfeebaa3e17d293*spec_range_ts_0af481d5c4cd9eea*spec_range_ts_7c5ea9287d06e208|313.734||
 spec_range_map_70d34382ead4ea05|branch|1b3f1b0f8cb75912|b0f9fd489bb8c569|6ba3f55bb0f800d5|-1154570202||t20474.4754145715s|s307185b|307185|qs|local|list|spec_range_map||5.187||
 spec_range_map_ebfeebaa3e17d293|branch|9f37e328ec54fea2|b0f9fd489bb8c569|a5de35397ea35e13|-1780023250||t20474.4754405051s|s57108b|57108|qs|local|list|spec_range_map||2.172||
-read_andid|function|b8b692d7024b4ef2
-path_to_processed|function|918ebe5d53d7a9e2
-add_cyclus|function|dff241668b4366c0
-path_to_data|object|de49ac0f4411477d
-filter_1|function|54d6110ff5923080
-filter_2|function|c1df51c70662a707
-filter_3|function|fc3344380f45dfcb
-targets_project_dir|object|4e9c20c139fb718b
 spec_range_map_0af481d5c4cd9eea|branch|7bb31f05ab09ca48|b0f9fd489bb8c569|d670c3644aac4958|1178962200||t20474.5152497675s|s7168440b|7168440|qs|local|list|spec_range_map||202.391||
 spec_range_map_7c5ea9287d06e208|branch|4f0d1b79e08dcc61|b0f9fd489bb8c569|13c200283c87b9ed|-2122001478||t20474.5153868262s|s235127b|235127|qs|local|list|spec_range_map||11.516||
 spec_range_map|pattern|4196baab5d94e961|b0f9fd489bb8c569||-1923056872||||7403567|qs|local|list||spec_range_map_70d34382ead4ea05*spec_range_map_ebfeebaa3e17d293*spec_range_map_0af481d5c4cd9eea*spec_range_map_7c5ea9287d06e208|213.907||
@@ -94,3 +86,21 @@ obs_richness_ts_ebfeebaa3e17d293|branch|d7d35f8b7398f240|5d1bcc18a534dac0|a5de35
 obs_richness_ts_0af481d5c4cd9eea|branch|9801b54197379351|5d1bcc18a534dac0|d670c3644aac4958|1905341264||t20474.5208723214s|s7190b|7190|qs|local|list|obs_richness_ts||1.859|Bootstrapped confidence intervals cannot be calculated for the chosen indicator.|
 obs_richness_ts_7c5ea9287d06e208|branch|cbc3b0716d8e90eb|5d1bcc18a534dac0|13c200283c87b9ed|1723768177||t20474.5208796466s|s7195b|7195|qs|local|list|obs_richness_ts||0.172|Bootstrapped confidence intervals cannot be calculated for the chosen indicator.|
 obs_richness_ts|pattern|95cce0ea1ef7a2e2|5d1bcc18a534dac0||-1832753236||||19387|qs|local|list||obs_richness_ts_70d34382ead4ea05*obs_richness_ts_ebfeebaa3e17d293*obs_richness_ts_0af481d5c4cd9eea*obs_richness_ts_7c5ea9287d06e208|2.187||
+pielou_evenness_map_ebfeebaa3e17d293|branch|eac4c4e256dab8c8|833dba80fd5c6d07|a5de35397ea35e13|-627861325||t20474.5770823663s|s8103b|8103|qs|local|list|pielou_evenness_map||4.984||
+pielou_evenness_map_7c5ea9287d06e208|branch|83be962f29d784ed|833dba80fd5c6d07|13c200283c87b9ed|1623339066||t20474.58027106s|s13547b|13547|qs|local|list|pielou_evenness_map||13.734||
+pielou_evenness_ts_70d34382ead4ea05|branch|2f666fdbbab70510|d017e1e51b3176a0|6ba3f55bb0f800d5|71982982||t20474.5802759156s|s2972b|2972|qs|local|list|pielou_evenness_ts||0.266||
+pielou_evenness_ts_ebfeebaa3e17d293|branch|13b443c24a98e35e|d017e1e51b3176a0|a5de35397ea35e13|773840179||t20474.5802781308s|s2969b|2969|qs|local|list|pielou_evenness_ts||0.14||
+pielou_evenness_ts_0af481d5c4cd9eea|branch|81d4f775858cec2c|d017e1e51b3176a0|d670c3644aac4958|81643099||t20474.5803522334s|s7717b|7717|qs|local|list|pielou_evenness_ts||2.859||
+pielou_evenness_ts_7c5ea9287d06e208|branch|3391ce8215d3b2c5|d017e1e51b3176a0|13c200283c87b9ed|-1479217848||t20474.5803687031s|s7720b|7720|qs|local|list|pielou_evenness_ts||0.375||
+pielou_evenness_ts|pattern|06d3acf0a197d926|d017e1e51b3176a0||-1247066622||||21378|qs|local|list||pielou_evenness_ts_70d34382ead4ea05*pielou_evenness_ts_ebfeebaa3e17d293*pielou_evenness_ts_0af481d5c4cd9eea*pielou_evenness_ts_7c5ea9287d06e208|3.64||
+read_andid|function|b8b692d7024b4ef2
+path_to_processed|function|918ebe5d53d7a9e2
+add_cyclus|function|dff241668b4366c0
+path_to_data|object|de49ac0f4411477d
+filter_1|function|54d6110ff5923080
+filter_2|function|c1df51c70662a707
+filter_3|function|fc3344380f45dfcb
+targets_project_dir|object|4e9c20c139fb718b
+pielou_evenness_map_70d34382ead4ea05|branch|51eddf3c17be9073|833dba80fd5c6d07|6ba3f55bb0f800d5|-909331525||t20474.6017776534s|s7457b|7457|qs|local|list|pielou_evenness_map||4.015||
+pielou_evenness_map_0af481d5c4cd9eea|branch|e69b18b1662504de|833dba80fd5c6d07|d670c3644aac4958|-1585253098||t20474.6051062978s|s12577b|12577|qs|local|list|pielou_evenness_map||278.406||
+pielou_evenness_map|pattern|5d46e499a1f31f3d|833dba80fd5c6d07||1015324679||||20034|qs|local|list||pielou_evenness_map_70d34382ead4ea05*pielou_evenness_map_ebfeebaa3e17d293*pielou_evenness_map_0af481d5c4cd9eea*pielou_evenness_map_7c5ea9287d06e208|282.421||

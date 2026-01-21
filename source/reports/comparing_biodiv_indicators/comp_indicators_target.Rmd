@@ -177,12 +177,22 @@ p + labs(title = paste0(p$labels$title, " - Cube")) +
 ### Map
 
 ```{r pielou evenness map, fig.show="hold", out.width="50%", eval=FALSE}
-pielou_evenness_map_abv <- tar_read(pielou_evenness_map_abv, store = store)
+pielou_evenness_map_abv <- read_branch(
+  "pielou_evenness_map",
+  dataset = "abv_data",
+  spat_res = 1,
+  store = store
+)
 p <- plot(pielou_evenness_map_abv)
 p + labs(title = paste0(p$labels$title, " - ABV")) +
   theme_bw(base_size = 12)
 
-pielou_evenness_map_cube <- tar_read(pielou_evenness_map_cube, store = store)
+pielou_evenness_map_cube <- read_branch(
+  "pielou_evenness_map",
+  dataset = "birdflanders",
+  spat_res = 1,
+  store = store
+)
 p <- plot(pielou_evenness_map_cube)
 p + labs(title = paste0(p$labels$title, " - Cube")) +
   theme_bw(base_size = 12)
@@ -191,12 +201,22 @@ p + labs(title = paste0(p$labels$title, " - Cube")) +
 ### Time series
 
 ```{r pielou evenness time series, fig.show="hold", out.width="50%", eval=FALSE}
-pielou_evenness_ts_abv <- tar_read(pielou_evenness_ts_abv, store = store)
+pielou_evenness_ts_abv <- read_branch(
+  "pielou_evenness_ts",
+  dataset = "abv_data",
+  spat_res = 1,
+  store = store
+)
 p <- plot(pielou_evenness_ts_abv)
 p + labs(title = paste0(p$labels$title, " - ABV")) +
   theme_bw(base_size = 12)
 
-pielou_evenness_ts_cube <- tar_read(pielou_evenness_ts_cube, store = store)
+pielou_evenness_ts_cube <- read_branch(
+  "pielou_evenness_ts",
+  dataset = "birdflanders",
+  spat_res = 1,
+  store = store
+)
 p <- plot(pielou_evenness_ts_cube)
 p + labs(title = paste0(p$labels$title, " - Cube")) +
   theme_bw(base_size = 12)
