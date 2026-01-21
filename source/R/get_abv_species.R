@@ -1,5 +1,7 @@
 # First source functions in taxon_mapping.R
+source(here::here("source", "R", "taxon_mapping.R"))
 
+# Get species
 example_specs <- c(
   "Cetti's zanger", "Putter", "Kleine mantelmeeuw", "Roek", "Kuifeend",
   "Halsbandparkiet", "Aalscholver", "Kauw", "Buizerd", "Nijlgans",
@@ -37,4 +39,5 @@ abv_birds <- map_taxa_from_vernacular(
 )
 abv_birds
 
+# Write out data
 write.csv(abv_birds, "./data/processed/abv_birds.csv")
