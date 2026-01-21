@@ -178,14 +178,18 @@ ggsave(file.path(out_path, "abv_three_panel.png"),
        width = 12, height = 10, dpi = 300)
 ```
 
-180 bird species were recorded, of which 34 were recorded < 10 times (very rare), 29 were recorded between 10 and 100 times (rare), 59 were recorded between 100 and 1000 times (common), 43 were recorded between 1000 and 10000 times (very common) and 15 were recorded more than 10 000 times (extremely common).
+```{r}
+abv_table <- abv |>
+  distinct(category, species) |>
+  count(category)
+```
+
+`r sum(abv_table$n)` bird species were recorded, of which `r abv_table[[1, 2]]` were recorded < 10 times (very rare), `r abv_table[[2, 2]]` were recorded between 10 and 100 times (rare), `r abv_table[[3, 2]]` were recorded between 100 and 1000 times (common), `r abv_table[[4, 2]]` were recorded between 1000 and 10000 times (very common) and `r abv_table[[5, 2]]` were recorded more than 10 000 times (extremely common).
 
 This categorization is used throughout further analyses.
 
 ```{r}
-abv |>
-  distinct(category, species) |>
-  count(category) |>
+abv_table |>
   knitr::kable()
 ```
 
@@ -289,17 +293,21 @@ ggsave(file.path(out_path, "cube_three_panel.png"),
 ```
 
 ```{r}
-cube |>
+cube_table <- cube |>
   group_by(species) |>
   summarise(n_obs = sum(n)) |>
   mutate(category = cut(n_obs,
                         breaks = c(-Inf, 0, 1, 10, 100, 1000, 10000, Inf),
                         right = FALSE)) |>
-  count(category) |>
-  knitr::kable()
+  count(category)
 ```
 
-The cube contains information on 665 species, of which 158 were recorded less than 10 times (very rare), 125 were recorded between 10 and 100 times (rare), 135 were recorded between 100 and 1000 times (common), 84 were recorded between 1000 and 10000 times (very common) and 163 were recorded more than 10,000 times (extremely common).
+The cube contains information on `r sum(cube_table$n)` species, of which `r cube_table[[1, 2]]` were recorded less than 10 times (very rare), `r cube_table[[2, 2]]` were recorded between 10 and 100 times (rare), `r cube_table[[3, 2]]` were recorded between 100 and 1000 times (common), `r cube_table[[4, 2]]` were recorded between 1000 and 10000 times (very common) and `r cube_table[[5, 2]]` were recorded more than 10,000 times (extremely common).
+
+```{r}
+cube_table |>
+  knitr::kable()
+```
 
 ```{r}
 coord_uncertainty <- cube |>
@@ -322,8 +330,6 @@ ggsave(file.path(out_path, "cube_coord_uncertainty.png"),
        coord_uncertainty,
        width = 8, height = 6, dpi = 300)
 ```
-
-
 
 ## Occupancy comparison {.tabset}
 
@@ -395,6 +401,7 @@ Given the limitations of the ABV monitoring setup we can't compare exact pattern
 ## Trend comparison {.tabset}
 
 ### No filter
+
 ```{r}
 p0 <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
@@ -411,6 +418,7 @@ p0
 ```
 
 ### Filter 1
+
 ```{r}
 p1 <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
@@ -427,6 +435,7 @@ p1
 ```
 
 ### Filter 2
+
 ```{r}
 p2 <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
@@ -443,6 +452,7 @@ p2
 ```
 
 ### Filter 3
+
 ```{r}
 p3 <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
@@ -460,6 +470,7 @@ p3
 ```
 
 ### Filter 4
+
 ```{r}
 p4 <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
@@ -510,11 +521,13 @@ species_list_cor <- c("Motacilla flava", "Sylvia communis", "Motacilla alba",
 ```
 
 We include the trends of nine species:
- - Three have a strong positive correlation: **Parus montanus**, **Chloris chloris** and **Anthus trivialis**
- - Three have a almost zero correlation: **Cyanistes caeruleus**, **Passer domesticus** and **Prunella modularis**
- - Three have a strong negative correlation: **Motacilla flava**, **Sylvia communis** and **Motacilla alba**
+
+- Three have a strong positive correlation: **Parus montanus**, **Chloris chloris** and **Anthus trivialis**
+- Three have a almost zero correlation: **Cyanistes caeruleus**, **Passer domesticus** and **Prunella modularis**
+- Three have a strong negative correlation: **Motacilla flava**, **Sylvia communis** and **Motacilla alba**
 
 ### No filter
+
 ```{r}
 trend_comp_0_cyclus <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
@@ -556,6 +569,7 @@ bscols(
 ```
 
 ### Filter 1
+
 ```{r}
 trend_comp_1_cyclus <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
@@ -598,6 +612,7 @@ bscols(
 ```
 
 ### Filter 2
+
 ```{r}
 trend_comp_2_cyclus <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
@@ -640,6 +655,7 @@ bscols(
 ```
 
 ### Filter 3
+
 ```{r}
 trend_comp_3_cyclus <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
@@ -679,6 +695,7 @@ bscols(
 ```
 
 ### Filter 4
+
 ```{r}
 trend_comp_4_cyclus <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
