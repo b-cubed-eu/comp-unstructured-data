@@ -91,6 +91,7 @@ trend_comp_0 |>
 ```
 
 #### 2007-2018 (based on where we see drop-off in data)
+
 ```{r}
 tar_load(trend_comp_0_cutoff, store = store)
 
