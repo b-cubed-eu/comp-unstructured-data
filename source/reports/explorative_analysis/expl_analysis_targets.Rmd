@@ -24,6 +24,7 @@ library(ggforce)
 library(crosstalk)
 library(DT)
 library(plotly)
+library(cowplot)
 
 # Folder to store figures
 out_path <- here::here("output", "data_exploration")
@@ -155,7 +156,6 @@ figb
 ```
 
 ```{r}
-library(cowplot)
 # ----- Combine species-level plots side by side -----
 bottom_row <- plot_grid(
   figa, figb,
@@ -537,24 +537,28 @@ p4
 ##
 
 ```{r, include=FALSE}
-library(cowplot)
+middle_row <- plot_grid(
+  p1 + theme(legend.position = "none"),
+  p2 + theme(legend.position = "none"),
+  labels = c("B", "C"),
+  label_size = 12
+)
 
-middle_row <- plot_grid(p1 + theme(legend.position = "none"),
-                        p2 + theme(legend.position = "none"),
-                        labels = c("B", "C"),
-                        label_size = 12)
+bottom_row <- plot_grid(
+  p3 + theme(legend.position = "none"),
+  p4 + theme(legend.position = "none"),
+  labels = c("D", "E"),
+  label_size = 12
+)
 
-bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
-                        p4 + theme(legend.position = "none"),
-                        labels = c("D", "E"),
-                        label_size = 12)
-
-plot_grid(p0,
-          middle_row,
-          bottom_row,
-          nrow = 3,
-          labels = c("A", "", ""),
-          label_size = 12)
+plot_grid(
+  p0,
+  middle_row,
+  bottom_row,
+  nrow = 3,
+  labels = c("A", "", ""),
+  label_size = 12
+)
 ```
 
 ## Trend comparison with data aggregated per cycle {.tabset}
@@ -600,7 +604,6 @@ shared_filter0_cyclus <- SharedData$new(
     summarise(n = sum(n))
 )
 
-
 bscols(
   widths = c(3, 9),
   filter_select("species", "Species",
@@ -641,7 +644,6 @@ shared_filter1_cyclus <- SharedData$new(
     group_by(species, id_dataset, cyclus) |>
     summarise(n = sum(n))
 )
-
 
 bscols(
   widths = c(3, 9),
@@ -686,7 +688,6 @@ shared_filter2_cyclus <- SharedData$new(
     summarise(n = sum(n))
 )
 
-
 bscols(
   widths = c(3, 9),
   filter_select("species", "Species",
@@ -721,11 +722,12 @@ p3
 ```
 
 ```{r}
-shared_filter3_cyclus <- SharedData$new(tar_read(filter3, store = store) |>
-                                          filter(species %in% species_list_cor,
-                                                 id_spat_res == "1km",
-                                                 id_filter_per == "cyclus"))
-
+shared_filter3_cyclus <- SharedData$new(
+  tar_read(filter3, store = store) |>
+    filter(species %in% species_list_cor,
+           id_spat_res == "1km",
+           id_filter_per == "cyclus")
+)
 
 bscols(
   widths = c(3, 9),
@@ -762,12 +764,13 @@ p4
 ```
 
 ```{r}
-shared_filter4_cyclus <- SharedData$new(tar_read(filter4, store = store) |>
-                                          filter(species %in% species_list_cor,
-                                                 id_spat_res == "1km",
-                                                 id_filter_per == "cyclus",
-                                                 id_filter_per2 == "cyclus"))
-
+shared_filter4_cyclus <- SharedData$new(
+  tar_read(filter4, store = store) |>
+    filter(species %in% species_list_cor,
+           id_spat_res == "1km",
+           id_filter_per == "cyclus",
+           id_filter_per2 == "cyclus")
+)
 
 bscols(
   widths = c(3, 9),
@@ -785,22 +788,26 @@ bscols(
 ##
 
 ```{r, include=FALSE}
-library(cowplot)
+middle_row <- plot_grid(
+  p1 + theme(legend.position = "none"),
+  p2 + theme(legend.position = "none"),
+  labels = c("B", "C"),
+  label_size = 12
+)
 
-middle_row <- plot_grid(p1 + theme(legend.position = "none"),
-                        p2 + theme(legend.position = "none"),
-                        labels = c("B", "C"),
-                        label_size = 12)
+bottom_row <- plot_grid(
+  p3 + theme(legend.position = "none"),
+  p4 + theme(legend.position = "none"),
+  labels = c("D", "E"),
+  label_size = 12
+)
 
-bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
-                        p4 + theme(legend.position = "none"),
-                        labels = c("D", "E"),
-                        label_size = 12)
-
-plot_grid(p0,
-          middle_row,
-          bottom_row,
-          nrow = 3,
-          labels = c("A", "", ""),
-          label_size = 12)
+plot_grid(
+  p0,
+  middle_row,
+  bottom_row,
+  nrow = 3,
+  labels = c("A", "", ""),
+  label_size = 12
+)
 ```
