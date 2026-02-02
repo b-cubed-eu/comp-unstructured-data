@@ -842,3 +842,42 @@ plot_grid(
   label_size = 12
 )
 ```
+
+```{r, echo=FALSE}
+# 1. Extract legend (force bottom layout)
+shared_legend <- get_legend(
+  p0 +
+    theme(legend.position = "bottom")
+)
+
+# 2. Panels without legends
+p_panels <- plot_grid(
+  p0 +
+    coord_cartesian(xlim = c(-1, 1), ylim = c(0, 30)) +
+    theme(legend.position = "none",
+          plot.margin = margin(t = 10, r = 10, b = 10, l = 20)),
+  p2 +
+    coord_cartesian(xlim = c(-1, 1), ylim = c(0, 30)) +
+    theme(legend.position = "none",
+          axis.title.y = element_text(colour = alpha("black", 0)),
+          plot.margin = margin(t = 10, r = 10, b = 10, l = 20)),
+  labels = c("A.", "B."),
+  label_size = 20,
+  ncol = 2
+)
+
+# 3. Stack panels + legend vertically
+p_trend_comparison <- plot_grid(
+  p_panels,
+  shared_legend,
+  ncol = 1,
+  rel_heights = c(1, 0.12)
+)
+
+# Save
+ggsave(
+  file.path(out_path, "trend_comparison.png"),
+  p_trend_comparison,
+  width = 10, height = 6, dpi = 300
+)
+```
