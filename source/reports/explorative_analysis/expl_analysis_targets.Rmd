@@ -41,10 +41,12 @@ library(RColorBrewer)
 my_colors <- brewer.pal(5, "Dark2")
 names(my_colors) <- c("Very rare", "Rare", "Common",
                       "Very common", "Extremely common")
-col_scale <- scale_color_manual(name = "Category",
-                                values = my_colors)
-fill_scale <- scale_fill_manual(name = "Category",
-                                values = my_colors)
+col_scale <- scale_color_manual(
+  name = "Category", values = my_colors, drop = FALSE
+)
+fill_scale <- scale_fill_manual(
+  name = "Category", values = my_colors
+)
 ```
 
 In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar ranges and trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
@@ -336,67 +338,111 @@ ggsave(file.path(out_path, "cube_coord_uncertainty.png"),
 ### No filter
 
 ```{r}
-tar_read(range_comp_0, store = store) |>
+p_range_comp_0 <- tar_read(range_comp_0, store = store) |>
   filter(id_spat_res == "1km") |>
-  ggplot(aes(x = percentage_abv_data,
-             y = percentage_birdflanders,
-             color = category)) +
-  geom_point() +
+  ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
+  geom_point(aes(colour = category), show.legend = TRUE) +
+  geom_abline(linetype = "dashed") +
   col_scale +
   stat_cor(mapping = aes(color = NULL),
-           label.x.npc = "centre",
-           label.y.npc = "bottom",
+           label.x = 0.6,
+           label.y = 0.05,
            method = "pearson") +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  guides(
+    color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
+  ) +
   theme_bw(base_size = 12)
+p_range_comp_0
 ```
 
 ### Filter 1
 
 ```{r}
-tar_read(range_comp_1, store = store) |>
+p_range_comp_1 <- tar_read(range_comp_1, store = store) |>
   filter(id_spat_res == "1km") |>
-  ggplot(aes(x = percentage_abv_data,
-             y = percentage_birdflanders,
-             color = category)) +
-  geom_point() +
+  ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
+  geom_point(aes(colour = category), show.legend = TRUE) +
+  geom_abline(linetype = "dashed") +
   col_scale +
   stat_cor(mapping = aes(color = NULL),
-           label.x.npc = "centre",
-           label.y.npc = "bottom",
+           label.x = 0.6,
+           label.y = 0.05,
            method = "pearson") +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  guides(
+    color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
+  ) +
   theme_bw(base_size = 12)
+p_range_comp_1
 ```
 
 ### Filter 2
 
 ```{r}
-tar_read(range_comp_2, store = store) |>
+p_range_comp_2 <- tar_read(range_comp_2, store = store) |>
   filter(id_spat_res == "1km") |>
   filter(id_filter_per == "year") |>
-  ggplot(aes(x = percentage_abv_data,
-             y = percentage_birdflanders,
-             color = category)) +
-  geom_point() +
+  ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
+  geom_point(aes(colour = category), show.legend = TRUE) +
+  geom_abline(linetype = "dashed") +
   col_scale +
   stat_cor(mapping = aes(color = NULL),
-           label.x.npc = "centre",
-           label.y.npc = "bottom",
+           label.x = 0.6,
+           label.y = 0.05,
            method = "pearson") +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
   labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
        y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  guides(
+    color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
+  ) +
   theme_bw(base_size = 12)
+p_range_comp_2
 ```
 
 ##
 
 Given the limitations of the ABV monitoring setup we can't compare exact patterns in biodiversity, for this we refer to the South-African analysis.
+
+```{r, echo=FALSE}
+# 1. Extract legend (force bottom layout)
+shared_legend <- get_legend(
+  p_range_comp_0 +
+    theme(legend.position = "bottom")
+)
+
+# 2. Panels without legends
+p_panels <- plot_grid(
+  p_range_comp_0 +
+    theme(legend.position = "none"),
+  p_range_comp_2 +
+    theme(legend.position = "none",
+          axis.title.y = element_text(colour = alpha("black", 0))),
+  labels = c("A.", "B."),
+  label_size = 20,
+  ncol = 2
+)
+
+# 3. Stack panels + legend vertically
+p_range_comparison <- plot_grid(
+  p_panels,
+  shared_legend,
+  ncol = 1,
+  rel_heights = c(1, 0.12)
+)
+
+# Save
+ggsave(
+  file.path(out_path, "range_comparison.png"),
+  p_range_comparison,
+  width = 10, height = 6, dpi = 300
+)
+```
 
 ## Trend comparison {.tabset}
 
