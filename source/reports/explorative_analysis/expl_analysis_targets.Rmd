@@ -46,7 +46,7 @@ col_scale <- scale_color_manual(
   name = "Category", values = my_colors, drop = FALSE
 )
 fill_scale <- scale_fill_manual(
-  name = "Category", values = my_colors
+  name = "Category", values = my_colors, drop = FALSE
 )
 ```
 
@@ -453,11 +453,14 @@ p0 <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p0
@@ -470,11 +473,14 @@ p1 <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p1
@@ -487,11 +493,14 @@ p2 <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p2
@@ -505,11 +514,14 @@ p3 <- tar_read(trend_comp_3, store = store) |>
          time_period == "year",
          id_filter_per == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p3
@@ -524,11 +536,14 @@ p4 <- tar_read(trend_comp_4, store = store) |>
          id_filter_per == "year",
          id_filter_per2 == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p4
@@ -564,10 +579,11 @@ plot_grid(
 ## Trend comparison with data aggregated per cycle {.tabset}
 
 ```{r}
-species_list_cor <- c("Motacilla flava", "Sylvia communis", "Motacilla alba",
-                      "Cyanistes caeruleus", "Passer domesticus",
-                      "Prunella modularis", "Parus montanus", "Chloris chloris",
-                      "Anthus trivialis")
+species_list_cor <- c(
+  "Motacilla flava", "Sylvia communis", "Motacilla alba", "Cyanistes caeruleus",
+  "Passer domesticus", "Prunella modularis", "Parus montanus",
+  "Chloris chloris", "Anthus trivialis"
+)
 ```
 
 We include the trends of nine species:
@@ -585,11 +601,14 @@ trend_comp_0_cyclus <- tar_read(trend_comp_0, store = store) |>
 
 p0 <- trend_comp_0_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p0
@@ -626,11 +645,14 @@ trend_comp_1_cyclus <- tar_read(trend_comp_1, store = store) |>
 
 p1 <- trend_comp_1_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p1
@@ -668,11 +690,14 @@ trend_comp_2_cyclus <- tar_read(trend_comp_2, store = store) |>
 
 p2 <- trend_comp_2_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p2
@@ -711,11 +736,14 @@ trend_comp_3_cyclus <- tar_read(trend_comp_3, store = store) |>
 
 p3 <- trend_comp_3_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p3
@@ -753,11 +781,14 @@ trend_comp_4_cyclus <- tar_read(trend_comp_4, store = store) |>
 
 p4 <- trend_comp_4_cyclus  |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p4
