@@ -234,7 +234,7 @@ limits <- range(
 p_panels <- plot_grid(
   p1 +
     scale_y_continuous(limits = limits) +
-    labs(title = "", x = "") +
+    labs(title = "", x = "", y = "Species richness") +
     theme_bw(base_size = 12),
   p2 +
     scale_y_continuous(limits = limits) +
@@ -289,8 +289,8 @@ pielou_evenness_ts_abv <- read_branch(
   spat_res = 1,
   store = store
 )
-p <- plot(pielou_evenness_ts_abv)
-p + labs(title = paste0(p$labels$title, " - ABV")) +
+p1 <- plot(pielou_evenness_ts_abv)
+p1 + labs(title = paste0(p1$labels$title, " - ABV")) +
   theme_bw(base_size = 12)
 
 pielou_evenness_ts_cube <- read_branch(
@@ -299,9 +299,34 @@ pielou_evenness_ts_cube <- read_branch(
   spat_res = 1,
   store = store
 )
-p <- plot(pielou_evenness_ts_cube)
-p + labs(title = paste0(p$labels$title, " - Cube")) +
+p2 <- plot(pielou_evenness_ts_cube)
+p2 + labs(title = paste0(p2$labels$title, " - Cube")) +
   theme_bw(base_size = 12)
+```
+
+```{r, echo=FALSE}
+# Panels
+p_panels <- plot_grid(
+  p1 +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(title = "", x = "") +
+    theme_bw(base_size = 12),
+  p2 +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(title = "", x = "") +
+    theme_bw(base_size = 12) +
+    theme(axis.title.y = element_text(colour = alpha("black", 0))),
+  labels = c("A.", "B."),
+  label_size = 20,
+  ncol = 2
+)
+
+# Save
+ggsave(
+  file.path(out_path, "pielou_evenness_ts.png"),
+  p_panels,
+  width = 10, height = 4, dpi = 300
+)
 ```
 
 # Species-specific indicators {.tabset}
