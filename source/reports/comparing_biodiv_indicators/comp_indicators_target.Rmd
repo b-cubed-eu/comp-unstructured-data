@@ -176,10 +176,8 @@ shared_legend <- get_legend(p1)
 # Panels without legends
 p_panels <- plot_grid(
   p1 +
-    theme_bw(base_size = 12) +
     theme(legend.position = "none"),
   p2 +
-    theme_bw(base_size = 12) +
     theme(legend.position = "none"),
   labels = c("A.", "B."),
   label_size = 20,
