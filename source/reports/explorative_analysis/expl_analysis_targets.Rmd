@@ -14,7 +14,12 @@ editor_options:
 
 ```{r setup, include = FALSE}
 library(knitr)
-opts_chunk$set(collapse = TRUE, comment = "#>")
+opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE
+)
 
 library(targets)
 library(ggplot2)
@@ -337,7 +342,7 @@ ggsave(file.path(out_path, "cube_coord_uncertainty.png"),
 
 ### No filter
 
-```{r}
+```{r, warning=FALSE}
 p_range_comp_0 <- tar_read(range_comp_0, store = store) |>
   filter(id_spat_res == "1km") |>
   ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
@@ -360,7 +365,7 @@ p_range_comp_0
 
 ### Filter 1
 
-```{r}
+```{r, warning=FALSE}
 p_range_comp_1 <- tar_read(range_comp_1, store = store) |>
   filter(id_spat_res == "1km") |>
   ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
@@ -383,7 +388,7 @@ p_range_comp_1
 
 ### Filter 2
 
-```{r}
+```{r, warning=FALSE}
 p_range_comp_2 <- tar_read(range_comp_2, store = store) |>
   filter(id_spat_res == "1km") |>
   filter(id_filter_per == "year") |>
@@ -410,10 +415,10 @@ p_range_comp_2
 Given the limitations of the ABV monitoring setup we can't compare exact patterns in biodiversity, for this we refer to the South-African analysis.
 
 ```{r, echo=FALSE}
-# 1. Extract legend (force bottom layout)
+# 1. Extract legend (force top layout)
 shared_legend <- get_legend(
   p_range_comp_0 +
-    theme(legend.position = "bottom")
+    theme(legend.position = "top")
 )
 
 # 2. Panels without legends
@@ -430,10 +435,10 @@ p_panels <- plot_grid(
 
 # 3. Stack panels + legend vertically
 p_range_comparison <- plot_grid(
-  p_panels,
   shared_legend,
+  p_panels,
   ncol = 1,
-  rel_heights = c(1, 0.12)
+  rel_heights = c(0.12, 1)
 )
 
 # Save
@@ -448,7 +453,7 @@ ggsave(
 
 ### No filter
 
-```{r}
+```{r, warning=FALSE}
 p0 <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
@@ -468,7 +473,7 @@ p0
 
 ### Filter 1
 
-```{r}
+```{r, warning=FALSE}
 p1 <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
@@ -488,7 +493,7 @@ p1
 
 ### Filter 2
 
-```{r}
+```{r, warning=FALSE}
 p2 <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
@@ -508,7 +513,7 @@ p2
 
 ### Filter 3
 
-```{r}
+```{r, warning=FALSE}
 p3 <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year",
@@ -529,7 +534,7 @@ p3
 
 ### Filter 4
 
-```{r}
+```{r, warning=FALSE}
 p4 <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year",
@@ -594,7 +599,7 @@ We include the trends of nine species:
 
 ### No filter
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_0_cyclus <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
@@ -638,7 +643,7 @@ bscols(
 
 ### Filter 1
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_1_cyclus <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
@@ -683,7 +688,7 @@ bscols(
 
 ### Filter 2
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_2_cyclus <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
@@ -728,7 +733,7 @@ bscols(
 
 ### Filter 3
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_3_cyclus <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
@@ -772,7 +777,7 @@ bscols(
 
 ### Filter 4
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_4_cyclus <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
@@ -844,10 +849,10 @@ plot_grid(
 ```
 
 ```{r, echo=FALSE}
-# 1. Extract legend (force bottom layout)
+# 1. Extract legend (force top layout)
 shared_legend <- get_legend(
   p0 +
-    theme(legend.position = "bottom")
+    theme(legend.position = "top")
 )
 
 # 2. Panels without legends
@@ -868,10 +873,10 @@ p_panels <- plot_grid(
 
 # 3. Stack panels + legend vertically
 p_trend_comparison <- plot_grid(
-  p_panels,
   shared_legend,
+  p_panels,
   ncol = 1,
-  rel_heights = c(1, 0.12)
+  rel_heights = c(0.12, 1)
 )
 
 # Save
