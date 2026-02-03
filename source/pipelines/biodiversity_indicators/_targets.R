@@ -81,7 +81,7 @@ list(
   ),
   tar_target(
     obs_richness_ts,
-    obs_richness_ts(data_cubes),
+    obs_richness_ts(data_cubes, ci_type = "none"),
     pattern = map(data_cubes),
     iteration = "list"
   ),
@@ -93,7 +93,7 @@ list(
   ),
   tar_target(
     total_occ_ts,
-    total_occ_ts(data_cubes),
+    total_occ_ts(data_cubes, ci_type = "none"),
     pattern = map(data_cubes),
     iteration = "list"
   ),
@@ -106,7 +106,7 @@ list(
   ),
   tar_target(
     pielou_evenness_ts,
-    pielou_evenness_ts(data_cubes),
+    pielou_evenness_ts(data_cubes, ci_type = "none"),
     pattern = map(data_cubes),
     iteration = "list"
   ),
@@ -118,7 +118,7 @@ list(
   ),
   tar_target(
     spec_occ_ts,
-    spec_occ_ts(data_cubes),
+    spec_occ_ts(data_cubes, ci_type = "none"),
     pattern = map(data_cubes),
     iteration = "list"
   ),
@@ -130,7 +130,7 @@ list(
   ),
   tar_target(
     spec_range_ts,
-    spec_range_ts(data_cubes),
+    spec_range_ts(data_cubes, ci_type = "none"),
     pattern = map(data_cubes),
     iteration = "list"
   )
