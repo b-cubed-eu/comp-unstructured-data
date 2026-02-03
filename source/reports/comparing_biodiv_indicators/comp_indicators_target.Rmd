@@ -161,7 +161,7 @@ fill_limits <- c(0, max(range(
 
 # Clean figures
 p1 <- p1 +
-  scale_fill_viridis_c(name = "Observed\nspecies\nrichness",
+  scale_fill_viridis_c(name = "Species\nrichness",
                        limits = fill_limits,
                        na.value = "transparent") +
   ggtitle("")
