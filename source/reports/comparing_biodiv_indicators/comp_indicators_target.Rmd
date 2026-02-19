@@ -328,6 +328,129 @@ ggsave(
   width = 10, height = 4, dpi = 300
 )
 ```
+ 
+# Hill numbers
+
+```{r}
+# Load processed cube from abv_data
+proc_cube_abv <- read_branch(
+  "data_cubes",
+  dataset = "abv_data",
+  store = store)
+
+# Load processed cube from unstructered data
+proc_cube_unstr <- read_branch(
+  "data_cubes",
+  dataset = "birdflanders",
+  store = store)
+
+# class(proc_cube_abv)
+# class(proc_cube_unstr)
+
+# number of species in each dataset is very different 665 (unstructered) 
+# and 180 (abv).
+```
+
+## Hill0 - estimated species richness
+
+The estimated species richness (Hill0) corrects for survey effort. 
+
+### Hill0 - estimated species richness abv
+```{r}
+# to be included in the target workflow
+hill0_ts_abv <- b3gbi::hill0_ts(data = proc_cube_abv,
+                                coverage = 0.95,
+                                cutoff_length = 5,
+                                ci_type = "none")
+
+#saveRDS(hill0_ts_abv, file = "hill0_ts_abv.RDS")
+hill0_ts_abv <- readRDS(file = "hill0_ts_abv.RDS")
+
+p1 <- plot(hill0_ts_abv)
+p1 + labs(title = paste0(p2$labels$title, " - ABV")) +
+  theme_bw(base_size = 12)
+```
+
+### Hill0 - estimated species richness unstructered data
+```{r}
+hill0_ts_unstr <- b3gbi::hill0_ts(data = proc_cube_unstr,
+                                coverage = 0.95,
+                                cutoff_length = 5,
+                                ci_type = "none")
+
+#saveRDS(hill0_ts_unstr, file = "hill0_ts_unstr.RDS")
+hill0_ts_unstr <- readRDS(file = "hill0_ts_unstr.RDS")
+
+p2 <- plot(hill0_ts_unstr)
+p2 + labs(title = paste0(p1$labels$title, " - Cube")) +
+  theme_bw(base_size = 12)
+```
+
+### Hill0 - estimated species richness unstructered data (filtered)
+```{r}
+# unique taxonkeys in abv
+taxon_abv <- unique(proc_cube_abv$data$taxonKey)
+
+# filter abv species from unstructered data
+proc_cube_unstr_filt <- proc_cube_unstr
+proc_cube_unstr_filt$data <- proc_cube_unstr_filt$data %>%
+  dplyr::filter(taxonKey %in% taxon_abv & year < 2019) %>%
+  dplyr::slice_sample(n = 100000)   # for testing to be removed!!
+
+hill0_ts_unstr_filt <- b3gbi::hill0_ts(data = proc_cube_unstr_filt,
+                                coverage = 0.95,
+                                cutoff_length = 5,
+                                ci_type = "none")
+
+#saveRDS(hill0_ts_unstr_filt, file = "hill0_ts_unstr_filt.RDS")
+hill0_ts_unstr_filt <- readRDS(file = "hill0_ts_unstr_filt.RDS")
+
+p3 <- plot(hill0_ts_unstr_filt)
+p3 + labs(title = paste0(p1$labels$title, " - Cube filtered")) +
+  theme_bw(base_size = 12)
+```
+
+
+Three plots combined in one plot
+
+```{r}
+
+dfplot_hill0 <- dplyr::bind_rows(list(obs_richness_ts_abv$data,
+                                      hill0_ts_abv$data,
+                                      hill0_ts_unstr$data,
+                                      hill0_ts_unstr_filt$data),
+                                 .id = "id") %>%
+  dplyr::left_join(data.frame(id = c("1", "2", "3", "4"),
+                       data = c("obs. abv", "est. abv",
+                                "est. unstr.", "est. unstr. filter")),
+                   by = "id")
+
+p_hill0 <- dfplot_hill0 %>%
+  dplyr::filter(year < 2019) %>%
+  ggplot(aes(x = year,
+             y = diversity_val,
+             group = data,
+             colour = data)) + 
+  geom_point() + geom_smooth() + 
+  theme_bw(base_size = 12) +
+  scale_y_continuous(limits = c(50, 250)) +
+  labs(y = "diversity")
+
+# Save
+ggsave(
+  file.path(out_path, "hill0_est_richness_ts.png"),
+  p_hill0,
+  width = 10, height = 4, dpi = 300
+)
+```
+
+As expected, the estimated species richness for the abv dataset does not vary
+in time, as the survey effort is constant and the observed species richness does
+not vary a lot.
+
+
+
+
 
 # Species-specific indicators {.tabset}
 
