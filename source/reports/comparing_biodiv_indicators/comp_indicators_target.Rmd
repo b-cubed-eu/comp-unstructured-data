@@ -358,10 +358,10 @@ The estimated species richness (Hill0) corrects for survey effort.
 ### Hill0 - estimated species richness abv
 ```{r}
 # to be included in the target workflow
-hill0_ts_abv <- b3gbi::hill0_ts(data = proc_cube_abv,
-                                coverage = 0.95,
-                                cutoff_length = 5,
-                                ci_type = "none")
+# hill0_ts_abv <- b3gbi::hill0_ts(data = proc_cube_abv,
+#                                 coverage = 0.95,
+#                                 cutoff_length = 5,
+#                                 ci_type = "none")
 
 #saveRDS(hill0_ts_abv, file = "hill0_ts_abv.RDS")
 hill0_ts_abv <- readRDS(file = "hill0_ts_abv.RDS")
@@ -416,25 +416,27 @@ Three plots combined in one plot
 ```{r}
 
 dfplot_hill0 <- dplyr::bind_rows(list(obs_richness_ts_abv$data,
+                                      obs_richness_ts_cube$data,
                                       hill0_ts_abv$data,
                                       hill0_ts_unstr$data,
                                       hill0_ts_unstr_filt$data),
                                  .id = "id") %>%
-  dplyr::left_join(data.frame(id = c("1", "2", "3", "4"),
-                       data = c("obs. abv", "est. abv",
-                                "est. unstr.", "est. unstr. filter")),
+  dplyr::left_join(data.frame(id = c("1", "2", "3", "4", "5"),
+                              type = c(rep("obs", 2), rep("est", 3)),
+                              dataset = c("abv", "unstr.", "abv", "unstr.", "unstr.")),
                    by = "id")
 
 p_hill0 <- dfplot_hill0 %>%
   dplyr::filter(year < 2019) %>%
   ggplot(aes(x = year,
              y = diversity_val,
-             group = data,
-             colour = data)) + 
-  geom_point() + geom_smooth() + 
+             group = dataset,
+             colour = dataset)) + 
+  geom_point() + geom_smooth(se = FALSE) + 
   theme_bw(base_size = 12) +
-  scale_y_continuous(limits = c(50, 250)) +
-  labs(y = "diversity")
+  scale_y_continuous(limits = c(50, 500)) +
+  labs(y = "diversity") +
+  facet_wrap(~type)
 
 # Save
 ggsave(
