@@ -76,5 +76,5 @@ data/raw/*
 !data/raw/utm_grid/*.cpg
 
 # Allow some interim output (.rds)
+!data/interim/
 !data/interim/*.RDS
-
