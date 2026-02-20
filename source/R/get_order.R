@@ -7,7 +7,8 @@ spec_occ_ts_cube <- read_branch(
   "spec_occ_ts",
   dataset = "birdflanders",
   spat_res = 10,
-  store = store)
+  store = store
+)
 
 taxonkeys <- unique(spec_occ_ts_cube$data$taxonKey)
 

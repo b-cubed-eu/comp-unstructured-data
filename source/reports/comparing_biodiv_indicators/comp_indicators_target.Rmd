@@ -339,13 +339,15 @@ ggsave(
 proc_cube_abv <- read_branch(
   "data_cubes",
   dataset = "abv_data",
-  store = store)
+  store = store
+)
 
 # Load processed cube from unstructered data
 proc_cube_unstr <- read_branch(
   "data_cubes",
   dataset = "birdflanders",
-  store = store)
+  store = store
+)
 ```
 
 ## Hill0 - estimated species richness
@@ -414,7 +416,7 @@ p3 + labs(title = paste0(p3$labels$title, " - Cube filtered")) +
 ```{r}
 # observed species richness - with filtering of abv species
 
-obs_richness_ts_cube_filt <- b3gbi::obs_richness_ts(proc_cube_unstr_filt) 
+obs_richness_ts_cube_filt <- b3gbi::obs_richness_ts(proc_cube_unstr_filt)
 
 plot(obs_richness_ts_cube_filt)
 ```
@@ -429,19 +431,22 @@ dfplot_hill0 <- dplyr::bind_rows(list(obs_richness_ts_abv$data,
                                       hill0_ts_unstr$data,
                                       hill0_ts_unstr_filt$data),
                                  .id = "id") %>%
-  dplyr::left_join(data.frame(id = as.character(c(1:6)),
-                              type = factor(c(rep("obs", 3), rep("est", 3)), 
-                                               c("obs", "est")),
-                              dataset = c(rep(c("abv", "unstr.", "unstr. filt."), 2))),
-                   by = "id")
+  dplyr::left_join(
+    data.frame(
+      id = as.character(c(1:6)),
+      type = factor(c(rep("obs", 3), rep("est", 3)), c("obs", "est")),
+      dataset = c(rep(c("abv", "unstr.", "unstr. filt."), 2))
+    ),
+    by = "id"
+  )
 
 p_hill0 <- dfplot_hill0 %>%
   dplyr::filter(year < 2019) %>%
   ggplot(aes(x = year,
              y = diversity_val,
              group = dataset,
-             colour = dataset)) + 
-  geom_point() + geom_smooth(se = FALSE) + 
+             colour = dataset)) +
+  geom_point() + geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(50, 500)) +
   labs(y = "diversity") +
