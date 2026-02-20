@@ -364,7 +364,7 @@ The estimated species richness (Hill0) corrects for survey effort.
 hill0_ts_abv <- readRDS(file = file.path(interim_path, "hill0_ts_abv.RDS"))
 
 p1 <- plot(hill0_ts_abv)
-p1 + labs(title = paste0(p2$labels$title, " - ABV")) +
+p1 + labs(title = paste0(p1$labels$title, " - ABV")) +
   theme_bw(base_size = 12)
 ```
 
@@ -379,7 +379,7 @@ p1 + labs(title = paste0(p2$labels$title, " - ABV")) +
 hill0_ts_unstr <- readRDS(file = file.path(interim_path, "hill0_ts_unstr.RDS"))
 
 p2 <- plot(hill0_ts_unstr)
-p2 + labs(title = paste0(p1$labels$title, " - Cube")) +
+p2 + labs(title = paste0(p2$labels$title, " - Cube")) +
   theme_bw(base_size = 12)
 ```
 
@@ -405,7 +405,7 @@ hill0_ts_unstr_filt <- readRDS(file = file.path(interim_path,
                                                 "hill0_ts_unstr_filt.RDS"))
 
 p3 <- plot(hill0_ts_unstr_filt)
-p3 + labs(title = paste0(p1$labels$title, " - Cube filtered")) +
+p3 + labs(title = paste0(p3$labels$title, " - Cube filtered")) +
   theme_bw(base_size = 12)
 ```
 
@@ -471,7 +471,7 @@ We chose three species to compare the indicators between the two data sets:
 -   A species with a very stable trend: Common nightingale (*Luscinia megarhynchos*)
 
 ```{r}
-# Load general data for all species
+# Load species order list
 order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
 
 # Occurence map abv
@@ -483,7 +483,7 @@ spec_occ_map_abv <- read_branch(
 )
 
 # Occurence map unstructered
-spec_occ_map_cube <- spec_occ_map_abv <- read_branch(
+spec_occ_map_cube <- read_branch(
   "spec_occ_map",
   dataset = "birdflanders",
   spat_res = 10,
@@ -505,6 +505,10 @@ spec_occ_ts_cube <- read_branch(
   spat_res = 10,
   store = store
 )
+# Add orderKey to dataset
+spec_occ_ts_cube$data <- spec_occ_ts_cube$data %>%
+  dplyr::left_join(order_list,
+                   by = c("taxonKey" = "key"))
 
 # Species range map abv
 spec_range_map_abv <- read_branch(
@@ -539,10 +543,30 @@ spec_range_ts_cube <- read_branch(
 )
 ```
 
+For this analysis we only compare the period 2007-2018. There is very
+sharp decline after 2018, because observations from the key opportunistic data source is not yet passed on to GBIF.
+
+```{r}
+last_year <- 2018
+spec_occ_ts_abv$data <- spec_occ_ts_abv$data %>%
+  dplyr::filter(year <= last_year)
+spec_occ_ts_cube$data <- spec_occ_ts_cube$data %>%
+  dplyr::filter(year <= last_year)
+spec_range_ts_abv$data <- spec_range_ts_abv$data %>%
+  dplyr::filter(year <= last_year)
+spec_range_ts_cube$data <- spec_range_ts_cube$data %>%
+  dplyr::filter(year <= last_year)
+
+spec_occ_ts_abv$last_year <- last_year
+spec_occ_ts_cube$last_year <- last_year
+spec_range_ts_abv$last_year <- last_year
+spec_range_ts_cube$last_year <- last_year
+```
+
 ## Cetti's Warbler
 
 ```{r}
-spec <- "Cettia cetti" 
+spec <- "Cettia cetti"
 ```
 
 ### Species occurrences
@@ -550,111 +574,140 @@ spec <- "Cettia cetti"
 #### Map
 
 ```{r species occurrences map cettis warbler, fig.show="hold", out.width="50%"}
-p <- plot(spec_occ_map_abv, species = "Cettia cetti") +
+p1 <- plot(spec_occ_map_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_occ_map_cube, species = "Cettia cetti") +
+p2 <- plot(spec_occ_map_cube, species = spec) +
   theme_bw(base_size = 12)
-p
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 ```
 
 #### Time series
 
 ```{r species occurrences time series cettis warbler, fig.show="hold", out.width="50%"}
-p <- plot(spec_occ_ts_abv, species = "Cettia cetti") +
+p1 <- plot(spec_occ_ts_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-tot_occ_order <- spec_occ_ts_cube$data %>%
-  dplyr::left_join(order_list,
-                   by = c("taxonKey" = "key")) %>%
-  dplyr::filter(orderKey == 729) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val))
+p2 <- plot(spec_occ_ts_cube, species = spec) +
+  theme_bw(base_size = 12)
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
+# Calculate relative occurences to the total occurences of the species order
 rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(scientificName == "Cettia cetti" & year < 2019) %>%
-  dplyr::left_join(tot_occ_order, by = "year") %>%
+  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
+                  dplyr::filter(scientificName == spec) %>%
+                  dplyr::first() %>%
+                  dplyr::pull(orderKey)) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(tot = sum(diversity_val)) %>%
+  dplyr::left_join(spec_occ_ts_cube$data %>%
+                     dplyr::filter(scientificName == spec),
+                   by = "year") %>%
   dplyr::mutate(rel_occ = diversity_val / tot)
 
-ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
-  geom_smooth(se = FALSE)
+p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+  geom_smooth(se = FALSE) +
+  theme_bw(base_size = 12) +
+  scale_y_continuous(limits = c(0, 0.02)) +
+  labs(y = "relative occurence",
+       title = paste0(spec, " - Cube (norm)"))
+p3
 
-p <- plot(spec_occ_ts_cube, species = "Cettia cetti") +
-  theme_bw(base_size = 12)
-p
+# Save
+ggsave(
+  file.path(out_path, paste0(spec, "_rel_occ_ts.png")),
+  p3,
+  width = 10, height = 4, dpi = 300
+)
 ```
+
 
 ### Species range
 
 #### Map
 
 ```{r species range map cettis warbler, fig.show="hold", out.width="50%"}
-p <- plot(spec_range_map_abv, species = "Cettia cetti") +
+p1 <- plot(spec_range_map_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_range_map_cube, species = "Cettia cetti") +
+p2 <- plot(spec_range_map_cube, species = spec) +
   theme_bw(base_size = 12)
-p
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 ```
 
 #### Time series
 
 ```{r species range time series cettis warbler, fig.show="hold", out.width="50%"}
-p <- plot(spec_range_ts_abv, species = "Cettia cetti") +
+p1 <- plot(spec_range_ts_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_range_ts_cube, species = "Cettia cetti") +
+p2 <- plot(spec_range_ts_cube, species = spec) +
   theme_bw(base_size = 12)
-p
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 ```
 
 ## Eurasian tree sparrow
+
+```{r}
+spec <- "Passer montanus"
+```
+
 
 ### Species occurrences
 
 #### Map
 
 ```{r species occurrences map tree sparrow, fig.show="hold", out.width="50%"}
-p <- plot(spec_occ_map_abv, species = "Passer montanus") +
+p1 <- plot(spec_occ_map_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_occ_map_cube, species = "Passer montanus") +
+p2 <- plot(spec_occ_map_cube, species = spec) +
   theme_bw(base_size = 12)
-p
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 ```
 
 #### Time series
 
 ```{r species occurrences time series tree sparrow, fig.show="hold", out.width="50%"}
-p <- plot(spec_occ_ts_abv, species = "Passer montanus") +
+p1 <- plot(spec_occ_ts_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p2$labels$title, " - ABV"))
 
-p <- plot(spec_occ_ts_cube, species = "Passer montanus") +
+p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
-p
-```
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-```{r}
-tot_occ_order <- spec_occ_ts_cube$data %>%
-  dplyr::left_join(order_list,
-                   by = c("taxonKey" = "key")) %>%
-  dplyr::filter(orderKey == 729) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val))
-
+# Calculate relative occurences to the total occurences of the species order
 rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(scientificName == "Passer montanus" & year < 2019) %>%
-  dplyr::left_join(tot_occ_order, by = "year") %>%
+  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
+                  dplyr::filter(scientificName == spec) %>%
+                  dplyr::first() %>%
+                  dplyr::pull(orderKey)) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(tot = sum(diversity_val)) %>%
+  dplyr::left_join(spec_occ_ts_cube$data %>%
+                     dplyr::filter(scientificName == spec),
+                   by = "year") %>%
   dplyr::mutate(rel_occ = diversity_val / tot)
 
-ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
-  geom_smooth(se = FALSE)
+p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+  geom_smooth(se = FALSE) +
+  theme_bw(base_size = 12) +
+  scale_y_continuous(limits = c(0, 0.02)) +
+  labs(y = "relative occurences")
+p3
+
+# Save
+ggsave(
+  file.path(out_path, paste0(spec, "_rel_occ_ts.png")),
+  p3,
+  width = 10, height = 4, dpi = 300
+)
 ```
 
 ### Species range
@@ -662,70 +715,84 @@ ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
 #### Map
 
 ```{r species range map tree sparrow, fig.show="hold", out.width="50%"}
-p <- plot(spec_range_map_abv, species = "Passer montanus") +
+p1 <- plot(spec_range_map_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_range_map_cube, species = "Passer montanus") +
+p2 <- plot(spec_range_map_cube, species = spec) +
   theme_bw(base_size = 12)
-p
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 ```
 
 #### Time series
 
 ```{r species range time series tree sparrow, fig.show="hold", out.width="50%"}
-p <- plot(spec_range_ts_abv, species = "Passer montanus") +
+p1 <- plot(spec_range_ts_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_range_ts_cube, species = "Passer montanus") +
+p2 <- plot(spec_range_ts_cube, species = spec) +
   theme_bw(base_size = 12)
-p
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 ```
 
 ## Common nightingale
+
+```{r}
+spec <- "Luscinia megarhynchos"
+```
 
 ### Species occurrences
 
 #### Map
 
 ```{r species occurrences map nightingale, fig.show="hold", out.width="50%"}
-p <- plot(spec_occ_map_abv, species = "Luscinia megarhynchos") +
+p1 <- plot(spec_occ_map_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_occ_map_cube, species = "Luscinia megarhynchos") +
+p2 <- plot(spec_occ_map_cube, species = spec) +
   theme_bw(base_size = 12)
-p
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 ```
 
 #### Time series
 
 ```{r species occurrences time series nightingale, fig.show="hold", out.width="50%"}
-p <- plot(spec_occ_ts_abv, species = "Luscinia megarhynchos") +
+p1 <- plot(spec_occ_ts_abv, species = spec) +
   theme_bw(base_size = 12)
-p
+p1 + labs(title = paste0(p1$labels$title, " - ABV"))
 
-p <- plot(spec_occ_ts_cube, species = "Luscinia megarhynchos") +
+p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
-p
-```
+p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-```{r}
-tot_occ_order <- spec_occ_ts_cube$data %>%
-  dplyr::left_join(order_list,
-                   by = c("taxonKey" = "key")) %>%
-  dplyr::filter(orderKey == 729) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val))
-
+# Calculate relative occurences to the total occurences of the species order
 rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(scientificName == "Luscinia megarhynchos" & year < 2019) %>%
-  dplyr::left_join(tot_occ_order, by = "year") %>%
+  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
+                  dplyr::filter(scientificName == spec) %>%
+                  dplyr::first() %>%
+                  dplyr::pull(orderKey)) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(tot = sum(diversity_val)) %>%
+  dplyr::left_join(spec_occ_ts_cube$data %>%
+                     dplyr::filter(scientificName == spec),
+                   by = "year") %>%
   dplyr::mutate(rel_occ = diversity_val / tot)
 
-ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
-  geom_smooth(se = FALSE)
+p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+  geom_smooth(se = FALSE) +
+  theme_bw(base_size = 12) +
+  scale_y_continuous(limits = c(0, 0.02)) +
+  labs(y = "relative occurence")
+p3
+
+# Save
+ggsave(
+  file.path(out_path, paste0(spec, "_rel_occ_ts.png")),
+  p3,
+  width = 10, height = 4, dpi = 300
+)
 ```
 
 ### Species range
@@ -733,11 +800,11 @@ ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
 #### Map
 
 ```{r species range map nightingale, fig.show="hold", out.width="50%"}
-p <- plot(spec_range_map_abv, species = "Luscinia megarhynchos") +
+p <- plot(spec_range_map_abv, species = spec) +
   theme_bw(base_size = 12)
 p
 
-p <- plot(spec_range_map_cube, species = "Luscinia megarhynchos") +
+p <- plot(spec_range_map_cube, species = spec) +
   theme_bw(base_size = 12)
 p
 ```
@@ -746,11 +813,11 @@ p
 
 ```{r species range time series nightingale, fig.show="hold", out.width="50%"}
 
-p <- plot(spec_range_ts_abv, species = "Luscinia megarhynchos") +
+p <- plot(spec_range_ts_abv, species = spec) +
   theme_bw(base_size = 12)
 p
 
-p <- plot(spec_range_ts_cube, species = "Luscinia megarhynchos") +
+p <- plot(spec_range_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p
 ```
