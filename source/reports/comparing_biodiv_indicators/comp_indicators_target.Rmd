@@ -29,6 +29,9 @@ library(cowplot)
 out_path <- here::here("output", "comp_indicators")
 dir.create(out_path, recursive = TRUE, showWarnings = FALSE)
 
+# Folder to store interim data
+interim_path <- here::here("data", "interim")
+
 # Source functions
 source(here::here("source", "R", "read_branch.R"))
 
@@ -343,12 +346,6 @@ proc_cube_unstr <- read_branch(
   "data_cubes",
   dataset = "birdflanders",
   store = store)
-
-# class(proc_cube_abv)
-# class(proc_cube_unstr)
-
-# number of species in each dataset is very different 665 (unstructered) 
-# and 180 (abv).
 ```
 
 ## Hill0 - estimated species richness
@@ -363,8 +360,8 @@ The estimated species richness (Hill0) corrects for survey effort.
 #                                 cutoff_length = 5,
 #                                 ci_type = "none")
 
-#saveRDS(hill0_ts_abv, file = "hill0_ts_abv.RDS")
-hill0_ts_abv <- readRDS(file = "hill0_ts_abv.RDS")
+#saveRDS(hill0_ts_abv, file = file.path(interim_path, "hill0_ts_abv.RDS"))
+hill0_ts_abv <- readRDS(file = file.path(interim_path, "hill0_ts_abv.RDS"))
 
 p1 <- plot(hill0_ts_abv)
 p1 + labs(title = paste0(p2$labels$title, " - ABV")) +
@@ -373,13 +370,13 @@ p1 + labs(title = paste0(p2$labels$title, " - ABV")) +
 
 ### Hill0 - estimated species richness unstructered data
 ```{r}
-hill0_ts_unstr <- b3gbi::hill0_ts(data = proc_cube_unstr,
-                                coverage = 0.95,
-                                cutoff_length = 5,
-                                ci_type = "none")
+# hill0_ts_unstr <- b3gbi::hill0_ts(data = proc_cube_unstr,
+#                                 coverage = 0.95,
+#                                 cutoff_length = 5,
+#                                 ci_type = "none")
 
-#saveRDS(hill0_ts_unstr, file = "hill0_ts_unstr.RDS")
-hill0_ts_unstr <- readRDS(file = "hill0_ts_unstr.RDS")
+#saveRDS(hill0_ts_unstr, file = file.path(interim_path, "hill0_ts_unstr.RDS"))
+hill0_ts_unstr <- readRDS(file = file.path(interim_path, "hill0_ts_unstr.RDS"))
 
 p2 <- plot(hill0_ts_unstr)
 p2 + labs(title = paste0(p1$labels$title, " - Cube")) +
@@ -397,13 +394,15 @@ proc_cube_unstr_filt$data <- proc_cube_unstr_filt$data %>%
   dplyr::filter(taxonKey %in% taxon_abv & year < 2019) %>%
   dplyr::slice_sample(n = 100000)   # for testing to be removed!!
 
-hill0_ts_unstr_filt <- b3gbi::hill0_ts(data = proc_cube_unstr_filt,
-                                coverage = 0.95,
-                                cutoff_length = 5,
-                                ci_type = "none")
+# hill0_ts_unstr_filt <- b3gbi::hill0_ts(data = proc_cube_unstr_filt,
+#                                 coverage = 0.95,
+#                                 cutoff_length = 5,
+#                                 ci_type = "none")
 
-#saveRDS(hill0_ts_unstr_filt, file = "hill0_ts_unstr_filt.RDS")
-hill0_ts_unstr_filt <- readRDS(file = "hill0_ts_unstr_filt.RDS")
+# saveRDS(hill0_ts_unstr_filt, file = file.path(interim_path,
+#                                                "hill0_ts_unstr_filt.RDS"))
+hill0_ts_unstr_filt <- readRDS(file = file.path(interim_path,
+                                                "hill0_ts_unstr_filt.RDS"))
 
 p3 <- plot(hill0_ts_unstr_filt)
 p3 + labs(title = paste0(p1$labels$title, " - Cube filtered")) +
@@ -411,19 +410,28 @@ p3 + labs(title = paste0(p1$labels$title, " - Cube filtered")) +
 ```
 
 
-Three plots combined in one plot
+```{r}
+# observed species richness - with filtering of abv species
+
+obs_richness_ts_cube_filt <- b3gbi::obs_richness_ts(proc_cube_unstr_filt) 
+
+plot(obs_richness_ts_cube_filt)
+```
+
+Plots combined in one plot with facet_wrap
 
 ```{r}
-
 dfplot_hill0 <- dplyr::bind_rows(list(obs_richness_ts_abv$data,
                                       obs_richness_ts_cube$data,
+                                      obs_richness_ts_cube_filt$data,
                                       hill0_ts_abv$data,
                                       hill0_ts_unstr$data,
                                       hill0_ts_unstr_filt$data),
                                  .id = "id") %>%
-  dplyr::left_join(data.frame(id = c("1", "2", "3", "4", "5"),
-                              type = c(rep("obs", 2), rep("est", 3)),
-                              dataset = c("abv", "unstr.", "abv", "unstr.", "unstr.")),
+  dplyr::left_join(data.frame(id = as.character(c(1:6)),
+                              type = factor(c(rep("obs", 3), rep("est", 3)), 
+                                               c("obs", "est")),
+                              dataset = c(rep(c("abv", "unstr.", "unstr. filt."), 2))),
                    by = "id")
 
 p_hill0 <- dfplot_hill0 %>%
@@ -446,12 +454,12 @@ ggsave(
 )
 ```
 
-As expected, the estimated species richness for the abv dataset does not vary
-in time, as the survey effort is constant and the observed species richness does
-not vary a lot.
-
-
-
+As expected, there's no trend in the estimated species richness for the
+abv dataset. The survey effort in the monitoring scheme is constant and the
+observed species richness doesn't show any trend either. For the birdflanders
+dataset we see an increase in observed diversity due to increase survey effort.
+The estimated diversity corrects for this with the rarification algoritm
+(Chao, 2014) and eliminates the trend, even suggesting a decrease in time. 
 
 
 # Species-specific indicators {.tabset}
@@ -462,29 +470,90 @@ We chose three species to compare the indicators between the two data sets:
 -   The species with the biggest decrease according to the ABV: Eurasian tree sparrow (*Passer montanus*)
 -   A species with a very stable trend: Common nightingale (*Luscinia megarhynchos*)
 
-## Cetti's Warbler
+```{r}
+# Load general data for all species
+order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
 
-### Species occurrences
-
-#### Map
-
-```{r species occurrences map cettis warbler, fig.show="hold", out.width="50%"}
+# Occurence map abv
 spec_occ_map_abv <- read_branch(
   "spec_occ_map",
   dataset = "abv_data",
   spat_res = 10,
   store = store
 )
-p <- plot(spec_occ_map_abv, species = "Cettia cetti") +
-  theme_bw(base_size = 12)
-p
 
+# Occurence map unstructered
 spec_occ_map_cube <- spec_occ_map_abv <- read_branch(
   "spec_occ_map",
   dataset = "birdflanders",
   spat_res = 10,
   store = store
 )
+
+#Occurence time series abv
+spec_occ_ts_abv <- read_branch(
+  "spec_occ_ts",
+  dataset = "abv_data",
+  spat_res = 10,
+  store = store
+)
+
+# Occurence time series unstructered
+spec_occ_ts_cube <- read_branch(
+  "spec_occ_ts",
+  dataset = "birdflanders",
+  spat_res = 10,
+  store = store
+)
+
+# Species range map abv
+spec_range_map_abv <- read_branch(
+  "spec_range_map",
+  dataset = "abv_data",
+  spat_res = 10,
+  store = store
+)
+
+# species range map unstructered
+spec_range_map_cube <- read_branch(
+  "spec_range_map",
+  dataset = "birdflanders",
+  spat_res = 10,
+  store = store
+)
+
+# species range time series abv
+spec_range_ts_abv <- read_branch(
+  "spec_range_ts",
+  dataset = "abv_data",
+  spat_res = 10,
+  store = store
+)
+
+# species range time series unstructered
+spec_range_ts_cube <- read_branch(
+  "spec_range_ts",
+  dataset = "birdflanders",
+  spat_res = 10,
+  store = store
+)
+```
+
+## Cetti's Warbler
+
+```{r}
+spec <- "Cettia cetti" 
+```
+
+### Species occurrences
+
+#### Map
+
+```{r species occurrences map cettis warbler, fig.show="hold", out.width="50%"}
+p <- plot(spec_occ_map_abv, species = "Cettia cetti") +
+  theme_bw(base_size = 12)
+p
+
 p <- plot(spec_occ_map_cube, species = "Cettia cetti") +
   theme_bw(base_size = 12)
 p
@@ -493,22 +562,25 @@ p
 #### Time series
 
 ```{r species occurrences time series cettis warbler, fig.show="hold", out.width="50%"}
-spec_occ_ts_abv <- read_branch(
-  "spec_occ_ts",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_ts_abv, species = "Cettia cetti") +
   theme_bw(base_size = 12)
 p
 
-spec_occ_ts_cube <- read_branch(
-  "spec_occ_ts",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
+tot_occ_order <- spec_occ_ts_cube$data %>%
+  dplyr::left_join(order_list,
+                   by = c("taxonKey" = "key")) %>%
+  dplyr::filter(orderKey == 729) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(tot = sum(diversity_val))
+
+rel_occ <- spec_occ_ts_cube$data %>%
+  dplyr::filter(scientificName == "Cettia cetti" & year < 2019) %>%
+  dplyr::left_join(tot_occ_order, by = "year") %>%
+  dplyr::mutate(rel_occ = diversity_val / tot)
+
+ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+  geom_smooth(se = FALSE)
+
 p <- plot(spec_occ_ts_cube, species = "Cettia cetti") +
   theme_bw(base_size = 12)
 p
@@ -519,22 +591,10 @@ p
 #### Map
 
 ```{r species range map cettis warbler, fig.show="hold", out.width="50%"}
-spec_range_map_abv <- read_branch(
-  "spec_range_map",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_map_abv, species = "Cettia cetti") +
   theme_bw(base_size = 12)
 p
 
-spec_range_map_cube <- read_branch(
-  "spec_range_map",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_map_cube, species = "Cettia cetti") +
   theme_bw(base_size = 12)
 p
@@ -543,22 +603,10 @@ p
 #### Time series
 
 ```{r species range time series cettis warbler, fig.show="hold", out.width="50%"}
-spec_range_ts_abv <- read_branch(
-  "spec_range_ts",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_ts_abv, species = "Cettia cetti") +
   theme_bw(base_size = 12)
 p
 
-spec_range_ts_cube <- read_branch(
-  "spec_range_ts",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_ts_cube, species = "Cettia cetti") +
   theme_bw(base_size = 12)
 p
@@ -571,22 +619,10 @@ p
 #### Map
 
 ```{r species occurrences map tree sparrow, fig.show="hold", out.width="50%"}
-spec_occ_map_abv <- read_branch(
-  "spec_occ_map",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_map_abv, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
 
-spec_occ_map_cube <- spec_occ_map_abv <- read_branch(
-  "spec_occ_map",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_map_cube, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
@@ -595,25 +631,30 @@ p
 #### Time series
 
 ```{r species occurrences time series tree sparrow, fig.show="hold", out.width="50%"}
-spec_occ_ts_abv <- read_branch(
-  "spec_occ_ts",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_ts_abv, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
 
-spec_occ_ts_cube <- read_branch(
-  "spec_occ_ts",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_ts_cube, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
+```
+
+```{r}
+tot_occ_order <- spec_occ_ts_cube$data %>%
+  dplyr::left_join(order_list,
+                   by = c("taxonKey" = "key")) %>%
+  dplyr::filter(orderKey == 729) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(tot = sum(diversity_val))
+
+rel_occ <- spec_occ_ts_cube$data %>%
+  dplyr::filter(scientificName == "Passer montanus" & year < 2019) %>%
+  dplyr::left_join(tot_occ_order, by = "year") %>%
+  dplyr::mutate(rel_occ = diversity_val / tot)
+
+ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+  geom_smooth(se = FALSE)
 ```
 
 ### Species range
@@ -621,22 +662,10 @@ p
 #### Map
 
 ```{r species range map tree sparrow, fig.show="hold", out.width="50%"}
-spec_range_map_abv <- read_branch(
-  "spec_range_map",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_map_abv, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
 
-spec_range_map_cube <- read_branch(
-  "spec_range_map",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_map_cube, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
@@ -645,22 +674,10 @@ p
 #### Time series
 
 ```{r species range time series tree sparrow, fig.show="hold", out.width="50%"}
-spec_range_ts_abv <- read_branch(
-  "spec_range_ts",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_ts_abv, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
 
-spec_range_ts_cube <- read_branch(
-  "spec_range_ts",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_ts_cube, species = "Passer montanus") +
   theme_bw(base_size = 12)
 p
@@ -673,22 +690,10 @@ p
 #### Map
 
 ```{r species occurrences map nightingale, fig.show="hold", out.width="50%"}
-spec_occ_map_abv <- read_branch(
-  "spec_occ_map",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_map_abv, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
 
-spec_occ_map_cube <- spec_occ_map_abv <- read_branch(
-  "spec_occ_map",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_map_cube, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
@@ -697,25 +702,30 @@ p
 #### Time series
 
 ```{r species occurrences time series nightingale, fig.show="hold", out.width="50%"}
-spec_occ_ts_abv <- read_branch(
-  "spec_occ_ts",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_ts_abv, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
 
-spec_occ_ts_cube <- read_branch(
-  "spec_occ_ts",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_occ_ts_cube, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
+```
+
+```{r}
+tot_occ_order <- spec_occ_ts_cube$data %>%
+  dplyr::left_join(order_list,
+                   by = c("taxonKey" = "key")) %>%
+  dplyr::filter(orderKey == 729) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(tot = sum(diversity_val))
+
+rel_occ <- spec_occ_ts_cube$data %>%
+  dplyr::filter(scientificName == "Luscinia megarhynchos" & year < 2019) %>%
+  dplyr::left_join(tot_occ_order, by = "year") %>%
+  dplyr::mutate(rel_occ = diversity_val / tot)
+
+ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+  geom_smooth(se = FALSE)
 ```
 
 ### Species range
@@ -723,22 +733,10 @@ p
 #### Map
 
 ```{r species range map nightingale, fig.show="hold", out.width="50%"}
-spec_range_map_abv <- read_branch(
-  "spec_range_map",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_map_abv, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
 
-spec_range_map_cube <- read_branch(
-  "spec_range_map",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_map_cube, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
@@ -747,22 +745,11 @@ p
 #### Time series
 
 ```{r species range time series nightingale, fig.show="hold", out.width="50%"}
-spec_range_ts_abv <- read_branch(
-  "spec_range_ts",
-  dataset = "abv_data",
-  spat_res = 10,
-  store = store
-)
+
 p <- plot(spec_range_ts_abv, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
 
-spec_range_ts_cube <- read_branch(
-  "spec_range_ts",
-  dataset = "birdflanders",
-  spat_res = 10,
-  store = store
-)
 p <- plot(spec_range_ts_cube, species = "Luscinia megarhynchos") +
   theme_bw(base_size = 12)
 p
