@@ -369,6 +369,7 @@ p1 + labs(title = paste0(p1$labels$title, " - ABV")) +
 ```
 
 ### Hill0 - estimated species richness unstructered data
+
 ```{r}
 # hill0_ts_unstr <- b3gbi::hill0_ts(data = proc_cube_unstr,
 #                                 coverage = 0.95,
@@ -458,9 +459,8 @@ As expected, there's no trend in the estimated species richness for the
 abv dataset. The survey effort in the monitoring scheme is constant and the
 observed species richness doesn't show any trend either. For the birdflanders
 dataset we see an increase in observed diversity due to increase survey effort.
-The estimated diversity corrects for this with the rarification algoritm
+The estimated diversity corrects for this with the rarefaction algorithm
 (Chao, 2014) and eliminates the trend, even suggesting a decrease in time. 
-
 
 # Species-specific indicators {.tabset}
 
