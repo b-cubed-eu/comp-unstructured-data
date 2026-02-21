@@ -465,6 +465,9 @@ We chose three species to compare the indicators between the two data sets:
 -   A species with a very stable trend: Common nightingale (*Luscinia megarhynchos*)
 
 ```{r}
+# species vector
+spec_vec <- c("Cettia cetti", "Passer montanus", "Luscinia megarhynchos")
+
 # Load species order list
 order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
 
@@ -557,10 +560,18 @@ spec_range_ts_abv$last_year <- last_year
 spec_range_ts_cube$last_year <- last_year
 ```
 
+```{r}
+# Calculate relatieve occurences for the three species
+df_rel_occ <- purrr::map_dfr(spec_vec,
+                          ~get_rel_occ(cube = spec_occ_ts_cube,spec = .x)
+                          )
+```
+
+
 ## Cetti's Warbler
 
 ```{r}
-spec <- "Cettia cetti"
+spec <- spec_vec[1] #Cettia cetti
 ```
 
 ### Species occurrences
@@ -588,10 +599,10 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-# Calculate relative occurences to the total occurences of the species order
-rel_occ <- get_rel_occ(cube = spec_occ_ts_cube, spec = spec)
-  
-p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName == spec) %>%
+  ggplot(aes(x = year, y = rel_occ)) + 
+  geom_point() +
   geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
@@ -666,10 +677,9 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-# Calculate relative occurences to the total occurences of the species order
-rel_occ <- get_rel_occ(cube = spec_occ_ts_cube, spec = spec)
-
-p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName == spec) %>%
+  ggplot(aes(x = year, y = rel_occ)) + geom_point() +
   geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
@@ -741,10 +751,9 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-# Calculate relative occurences to the total occurences of the species order
-rel_occ <- get_rel_occ(cube = spec_occ_ts_cube, spec = spec)
-
-p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName == spec) %>%
+  ggplot(aes(x = year, y = rel_occ)) + geom_point() +
   geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
@@ -790,10 +799,55 @@ p
 # Species specific indicators - figures of three species united
 
 ```{r}
+# Time series species occurence ABV data 
+p1 <- spec_occ_ts_abv$data %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  ggplot(aes(x = year, y = diversity_val)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  scale_y_continuous(limits = c(0, 150)) +
+  scale_x_continuous(breaks = seq(2006, 2018, 2)) +
+  labs(y = "occurences") +
+  theme_bw(base_size = 12) +
+  facet_wrap(~scientificName) 
+p1
 
-spec_occ_ts_abv
-spec_occ_ts_cube
+ggsave(file.path(out_path, "species_occ_ABV.png"), p1,
+  width = 10, height = 4, dpi = 300)
 
+# Time series species occurence unstructered data
+p2 <- spec_occ_ts_cube$data %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  ggplot(aes(x = year, y = diversity_val)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  scale_y_continuous(limits = c(0, 11800)) +
+  scale_x_continuous(breaks = seq(2006, 2018, 2)) +
+  theme_bw(base_size = 12) +
+  labs(y = "occurences") + 
+  facet_wrap(~scientificName)
+p2
+
+ggsave(file.path(out_path, "species_occurences_cube.png"), p2,
+  width = 10, height = 4, dpi = 300)
+
+
+# Time series species occurence relative occurence to 
+# occurences / tot occurences wihtin order
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  ggplot(aes(x = year, y = rel_occ)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  scale_y_continuous(limits = c(0, 0.02)) +
+  scale_x_continuous(breaks = seq(2006, 2018, 2)) +
+  theme_bw(base_size = 12) +
+  labs(y = "relative occurences") + 
+  facet_wrap(~scientificName)
+p3
+
+ggsave(file.path(out_path, "spieces_rel_occurences_cube.png"), p1,
+  width = 10, height = 4, dpi = 300)
 
 ```
 
