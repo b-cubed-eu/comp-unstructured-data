@@ -34,6 +34,7 @@ interim_path <- here::here("data", "interim")
 
 # Source functions
 source(here::here("source", "R", "read_branch.R"))
+source(here::here("source", "R", "get_rel_occ.R"))
 
 # Globals
 store <- file.path(
@@ -588,18 +589,8 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
 # Calculate relative occurences to the total occurences of the species order
-rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
-                  dplyr::filter(scientificName == spec) %>%
-                  dplyr::first() %>%
-                  dplyr::pull(orderKey)) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val)) %>%
-  dplyr::left_join(spec_occ_ts_cube$data %>%
-                     dplyr::filter(scientificName == spec),
-                   by = "year") %>%
-  dplyr::mutate(rel_occ = diversity_val / tot)
-
+rel_occ <- get_rel_occ(cube = spec_occ_ts_cube, spec = spec)
+  
 p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
   geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
@@ -676,17 +667,7 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
 # Calculate relative occurences to the total occurences of the species order
-rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
-                  dplyr::filter(scientificName == spec) %>%
-                  dplyr::first() %>%
-                  dplyr::pull(orderKey)) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val)) %>%
-  dplyr::left_join(spec_occ_ts_cube$data %>%
-                     dplyr::filter(scientificName == spec),
-                   by = "year") %>%
-  dplyr::mutate(rel_occ = diversity_val / tot)
+rel_occ <- get_rel_occ(cube = spec_occ_ts_cube, spec = spec)
 
 p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
   geom_smooth(se = FALSE) +
@@ -761,17 +742,7 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
 # Calculate relative occurences to the total occurences of the species order
-rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
-                  dplyr::filter(scientificName == spec) %>%
-                  dplyr::first() %>%
-                  dplyr::pull(orderKey)) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val)) %>%
-  dplyr::left_join(spec_occ_ts_cube$data %>%
-                     dplyr::filter(scientificName == spec),
-                   by = "year") %>%
-  dplyr::mutate(rel_occ = diversity_val / tot)
+rel_occ <- get_rel_occ(cube = spec_occ_ts_cube, spec = spec)
 
 p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
   geom_smooth(se = FALSE) +
@@ -814,3 +785,15 @@ p <- plot(spec_range_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p
 ```
+
+
+# Species specific indicators - figures of three species united
+
+```{r}
+
+spec_occ_ts_abv
+spec_occ_ts_cube
+
+
+```
+
