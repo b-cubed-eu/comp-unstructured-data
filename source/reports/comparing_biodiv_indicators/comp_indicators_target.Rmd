@@ -809,7 +809,7 @@ p1 <- spec_occ_ts_abv$data %>%
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
   labs(y = "occurences") +
   theme_bw(base_size = 12) +
-  facet_wrap(~scientificName) 
+  facet_wrap(~scientificName)
 p1
 
 ggsave(file.path(out_path, "species_occ_ABV.png"), p1,
@@ -849,5 +849,38 @@ p3
 ggsave(file.path(out_path, "spieces_rel_occurences_cube.png"), p1,
   width = 10, height = 4, dpi = 300)
 
+```
+
+```{r}
+# species plots summarised in a facet_grid plot
+df_plot <- dplyr::bind_rows(spec_occ_ts_abv$data %>%
+                             dplyr::select(year, 
+                                           scientificName,
+                                           occurences = diversity_val),
+                           spec_occ_ts_cube$data %>%
+                             dplyr::select(year, 
+                                           scientificName,
+                                           occurences = diversity_val),
+                           df_rel_occ %>%
+                             dplyr::select(year, 
+                                           scientificName,
+                                           occurences = rel_occ),
+                           .id = "id") %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  dplyr::left_join(data.frame(id = as.character(c(1:3)),
+                              dataset = c("ABV", "unstr.", "unstr. norm")),
+                   by = "id")
+
+p_grid <- ggplot(df_plot, aes(x = year, y = occurences)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  theme_bw(base_size = 12) +
+  facet_grid(dataset ~ scientificName,
+             scales = "free_y") +
+  theme(strip.background = element_blank())
+p_grid
+
+ggsave(file.path(out_path, "spieces_facet_grid.png"), p_grid,
+  width = 10, height = 4, dpi = 300)
 ```
 
