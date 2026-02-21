@@ -881,6 +881,6 @@ p_grid <- ggplot(df_plot, aes(x = year, y = occurences)) +
 p_grid
 
 ggsave(file.path(out_path, "spieces_facet_grid.png"), p_grid,
-  width = 10, height = 4, dpi = 300)
+  width = 10, height = 8, dpi = 300)
 ```
 
