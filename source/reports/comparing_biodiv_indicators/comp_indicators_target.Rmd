@@ -851,6 +851,27 @@ ggsave(file.path(out_path, "spieces_rel_occurences_cube.png"), p1,
 
 ```
 
+
+```{r}
+species_plot_grid <- plot_grid(
+  p1 +
+    labs(title = "", x = "", y = ""),
+  p2 +
+    labs(title = "", x = "", y = ""),
+  p3 +
+    labs(title = "", x = "", y = ""),
+  labels = c("A.", "B.", "C."),
+  label_size = 10,
+  ncol = 1,
+  nrow = 3
+)
+species_plot_grid
+
+ggsave(file.path(out_path, "spieces_plot_grid.png"), species_plot_grid,
+  width = 10, height = 8, dpi = 300)
+```
+
+
 ```{r}
 # species plots summarised in a facet_grid plot
 df_plot <- dplyr::bind_rows(spec_occ_ts_abv$data %>%
