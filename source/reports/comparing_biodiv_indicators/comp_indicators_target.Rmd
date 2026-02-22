@@ -807,8 +807,10 @@ p1 <- spec_occ_ts_abv$data %>%
   geom_point() + geom_smooth(se = FALSE, span = 2) +
   scale_y_continuous(limits = c(0, 150)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
-  labs(y = "occurences") +
+  labs(y = "occurences - ABV",
+       x = "") +
   theme_bw(base_size = 12) +
+  theme(strip.background = element_blank()) +
   facet_wrap(~scientificName)
 p1
 
@@ -824,7 +826,10 @@ p2 <- spec_occ_ts_cube$data %>%
   scale_y_continuous(limits = c(0, 11800)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
   theme_bw(base_size = 12) +
-  labs(y = "occurences") + 
+  theme(strip.background = element_blank(),
+        strip.text = element_blank()) +
+  labs(x = "",
+       y = "occurences - unstructered") + 
   facet_wrap(~scientificName)
 p2
 
@@ -842,13 +847,14 @@ p3 <- df_rel_occ %>%
   scale_y_continuous(limits = c(0, 0.02)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
   theme_bw(base_size = 12) +
-  labs(y = "relative occurences") + 
+    theme(strip.background = element_blank(),
+        strip.text = element_blank()) +
+  labs(y = "relative frequency") + 
   facet_wrap(~scientificName)
 p3
 
-ggsave(file.path(out_path, "spieces_rel_occurences_cube.png"), p1,
+ggsave(file.path(out_path, "spieces_rel_occurences_cube.png"), p3,
   width = 10, height = 4, dpi = 300)
-
 ```
 
 
@@ -890,7 +896,7 @@ df_plot <- dplyr::bind_rows(spec_occ_ts_abv$data %>%
   dplyr::filter(scientificName %in% spec_vec) %>%
   dplyr::mutate(scientificName = as.factor(scientificName)) %>%
   dplyr::left_join(data.frame(id = as.character(c(1:3)),
-                              dataset = c("ABV", "unstr.", "unstr. norm")),
+                              dataset = c("ABV", "unstr.", "unstr. freq.")),
                    by = "id")
 
 p_grid <- ggplot(df_plot, aes(x = year, y = occurences)) +
