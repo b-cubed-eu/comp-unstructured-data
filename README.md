@@ -143,6 +143,7 @@ All necessary directories are created automatically during execution.
 │
 ├── data
 │   ├── raw                        ├ manually created; stores raw downloaded data
+│   ├── interim                    ├ automatically created; stores R Markdown cache data
 │   └── processed                  ├ automatically created; cleaned & spatialised data
 │
 ├── output                         ├ automatically created; analysis outputs (figures, results)
