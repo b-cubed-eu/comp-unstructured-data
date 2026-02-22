@@ -31,6 +31,7 @@ dir.create(out_path, recursive = TRUE, showWarnings = FALSE)
 
 # Folder to store interim data
 interim_path <- here::here("data", "interim")
+dir.create(interim_path, recursive = TRUE, showWarnings = FALSE)
 
 # Source functions
 source(here::here("source", "R", "read_branch.R"))
@@ -477,6 +478,7 @@ We chose three species to compare the indicators between the two data sets:
 
 ```{r}
 # Load species order list
+# source(here::here("source", "R", "get_order.R")
 order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
 
 # Occurence map abv

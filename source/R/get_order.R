@@ -2,6 +2,9 @@
 library(rgbif)
 
 # Load dataset occurence cube birdflanders
+store <- file.path(
+  here::here(), "source/pipelines/biodiversity_indicators/_targets"
+)
 
 spec_occ_ts_cube <- read_branch(
   "spec_occ_ts",
