@@ -853,7 +853,7 @@ p3 <- df_rel_occ %>%
   facet_wrap(~scientificName)
 p3
 
-ggsave(file.path(out_path, "spieces_rel_occurences_cube.png"), p3,
+ggsave(file.path(out_path, "spieces_rel_frequency.png"), p3,
   width = 10, height = 4, dpi = 300)
 ```
 
