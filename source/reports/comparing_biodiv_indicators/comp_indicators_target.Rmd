@@ -35,6 +35,7 @@ dir.create(interim_path, recursive = TRUE, showWarnings = FALSE)
 
 # Source functions
 source(here::here("source", "R", "read_branch.R"))
+source(here::here("source", "R", "get_rel_occ.R"))
 
 # Globals
 store <- file.path(
@@ -367,8 +368,9 @@ The estimated species richness (Hill0) corrects for survey effort.
 hill0_ts_abv <- readRDS(file = file.path(interim_path, "hill0_ts_abv.RDS"))
 
 p1 <- plot(hill0_ts_abv)
-p1 + labs(title = paste0(p1$labels$title, " - ABV")) +
+p1 <- p1 + labs(title = paste0(p1$labels$title, " - ABV")) +
   theme_bw(base_size = 12)
+p1
 ```
 
 ### Hill0 - estimated species richness unstructered data
@@ -383,61 +385,49 @@ p1 + labs(title = paste0(p1$labels$title, " - ABV")) +
 hill0_ts_unstr <- readRDS(file = file.path(interim_path, "hill0_ts_unstr.RDS"))
 
 p2 <- plot(hill0_ts_unstr)
-p2 + labs(title = paste0(p2$labels$title, " - Cube")) +
+p2 <- p2 + labs(title = paste0(p2$labels$title, " - Cube")) +
   theme_bw(base_size = 12)
+p2
 ```
-
-### Hill0 - estimated species richness unstructered data (filtered)
-```{r}
-# unique taxonkeys in abv
-taxon_abv <- unique(proc_cube_abv$data$taxonKey)
-
-# filter abv species from unstructered data
-proc_cube_unstr_filt <- proc_cube_unstr
-proc_cube_unstr_filt$data <- proc_cube_unstr_filt$data %>%
-  dplyr::filter(taxonKey %in% taxon_abv & year < 2019) %>%
-  dplyr::slice_sample(n = 100000)   # for testing to be removed!!
-
-# hill0_ts_unstr_filt <- b3gbi::hill0_ts(data = proc_cube_unstr_filt,
-#                                 coverage = 0.95,
-#                                 cutoff_length = 5,
-#                                 ci_type = "none")
-
-# saveRDS(hill0_ts_unstr_filt, file = file.path(interim_path,
-#                                                "hill0_ts_unstr_filt.RDS"))
-hill0_ts_unstr_filt <- readRDS(file = file.path(interim_path,
-                                                "hill0_ts_unstr_filt.RDS"))
-
-p3 <- plot(hill0_ts_unstr_filt)
-p3 + labs(title = paste0(p3$labels$title, " - Cube filtered")) +
-  theme_bw(base_size = 12)
-```
-
 
 ```{r}
-# observed species richness - with filtering of abv species
+# Panels
+p_panels <- plot_grid(
+  p1 +
+    scale_y_continuous(limits = c(0, 220)) +
+    labs(title = "", x = "") +
+    theme_bw(base_size = 12),
+  p2 +
+    scale_y_continuous(limits = c(0, 220)) +
+    labs(title = "", x = "") +
+    theme_bw(base_size = 12) +
+    theme(axis.title.y = element_text(colour = alpha("black", 0))),
+  labels = c("A.", "B."),
+  label_size = 20,
+  ncol = 2
+)
 
-obs_richness_ts_cube_filt <- b3gbi::obs_richness_ts(proc_cube_unstr_filt)
-
-plot(obs_richness_ts_cube_filt)
+# Save
+ggsave(
+  file.path(out_path, "hill0_species_richness_ts.png"),
+  p_panels,
+  width = 10, height = 4, dpi = 300
+)
 ```
+
 
 Plots combined in one plot with facet_wrap
 
 ```{r}
 dfplot_hill0 <- dplyr::bind_rows(list(obs_richness_ts_abv$data,
                                       obs_richness_ts_cube$data,
-                                      obs_richness_ts_cube_filt$data,
                                       hill0_ts_abv$data,
-                                      hill0_ts_unstr$data,
-                                      hill0_ts_unstr_filt$data),
+                                      hill0_ts_unstr$data),
                                  .id = "id") %>%
   dplyr::left_join(
-    data.frame(
-      id = as.character(c(1:6)),
-      type = factor(c(rep("obs", 3), rep("est", 3)), c("obs", "est")),
-      dataset = c(rep(c("abv", "unstr.", "unstr. filt."), 2))
-    ),
+    data.frame(id = as.character(c(1:4)),
+               type = factor(c(rep("obs", 2), rep("est", 2)),  c("obs", "est")),
+               dataset = c(rep(c("abv", "unstr."), 2))),
     by = "id"
   )
 
@@ -452,6 +442,8 @@ p_hill0 <- dfplot_hill0 %>%
   scale_y_continuous(limits = c(50, 500)) +
   labs(y = "diversity") +
   facet_wrap(~type)
+
+p_hill0
 
 # Save
 ggsave(
@@ -477,6 +469,9 @@ We chose three species to compare the indicators between the two data sets:
 -   A species with a very stable trend: Common nightingale (*Luscinia megarhynchos*)
 
 ```{r}
+# species vector
+spec_vec <- c("Cettia cetti", "Passer montanus", "Luscinia megarhynchos")
+
 # Load species order list
 # source(here::here("source", "R", "get_order.R")
 order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
@@ -570,10 +565,19 @@ spec_range_ts_abv$last_year <- last_year
 spec_range_ts_cube$last_year <- last_year
 ```
 
+```{r}
+# Calculate relatieve occurences for the three species
+df_rel_occ <- purrr::map_dfr(
+  spec_vec,
+  ~get_rel_occ(cube = spec_occ_ts_cube, spec = .x)
+)
+```
+
+
 ## Cetti's Warbler
 
 ```{r}
-spec <- "Cettia cetti"
+spec <- spec_vec[1] #Cettia cetti
 ```
 
 ### Species occurrences
@@ -601,20 +605,10 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-# Calculate relative occurences to the total occurences of the species order
-rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
-                  dplyr::filter(scientificName == spec) %>%
-                  dplyr::first() %>%
-                  dplyr::pull(orderKey)) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val)) %>%
-  dplyr::left_join(spec_occ_ts_cube$data %>%
-                     dplyr::filter(scientificName == spec),
-                   by = "year") %>%
-  dplyr::mutate(rel_occ = diversity_val / tot)
-
-p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName == spec) %>%
+  ggplot(aes(x = year, y = rel_occ)) +
+  geom_point() +
   geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
@@ -689,20 +683,9 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-# Calculate relative occurences to the total occurences of the species order
-rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
-                  dplyr::filter(scientificName == spec) %>%
-                  dplyr::first() %>%
-                  dplyr::pull(orderKey)) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val)) %>%
-  dplyr::left_join(spec_occ_ts_cube$data %>%
-                     dplyr::filter(scientificName == spec),
-                   by = "year") %>%
-  dplyr::mutate(rel_occ = diversity_val / tot)
-
-p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName == spec) %>%
+  ggplot(aes(x = year, y = rel_occ)) + geom_point() +
   geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
@@ -774,20 +757,9 @@ p2 <- plot(spec_occ_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
-# Calculate relative occurences to the total occurences of the species order
-rel_occ <- spec_occ_ts_cube$data %>%
-  dplyr::filter(orderKey ==  spec_occ_ts_cube$data %>%
-                  dplyr::filter(scientificName == spec) %>%
-                  dplyr::first() %>%
-                  dplyr::pull(orderKey)) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(tot = sum(diversity_val)) %>%
-  dplyr::left_join(spec_occ_ts_cube$data %>%
-                     dplyr::filter(scientificName == spec),
-                   by = "year") %>%
-  dplyr::mutate(rel_occ = diversity_val / tot)
-
-p3 <- ggplot(rel_occ, aes(x = year, y = rel_occ)) + geom_point() +
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName == spec) %>%
+  ggplot(aes(x = year, y = rel_occ)) + geom_point() +
   geom_smooth(se = FALSE) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
@@ -827,4 +799,116 @@ p
 p <- plot(spec_range_ts_cube, species = spec) +
   theme_bw(base_size = 12)
 p
+```
+
+
+# Species specific indicators - figures of three species united
+
+```{r}
+# Time series species occurence ABV data
+p1 <- spec_occ_ts_abv$data %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  ggplot(aes(x = year, y = diversity_val)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  scale_y_continuous(limits = c(0, 150)) +
+  scale_x_continuous(breaks = seq(2006, 2018, 2)) +
+  labs(y = "occurences - ABV",
+       x = "") +
+  theme_bw(base_size = 12) +
+  theme(strip.background = element_blank()) +
+  facet_wrap(~scientificName)
+p1
+
+ggsave(file.path(out_path, "species_occ_ABV.png"), p1,
+       width = 10, height = 4, dpi = 300)
+
+# Time series species occurence unstructered data
+p2 <- spec_occ_ts_cube$data %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  ggplot(aes(x = year, y = diversity_val)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  scale_y_continuous(limits = c(0, 11800)) +
+  scale_x_continuous(breaks = seq(2006, 2018, 2)) +
+  theme_bw(base_size = 12) +
+  theme(strip.background = element_blank(),
+        strip.text = element_blank()) +
+  labs(x = "",
+       y = "occurences - unstructered") +
+  facet_wrap(~scientificName)
+p2
+
+ggsave(file.path(out_path, "species_occurences_cube.png"), p2,
+       width = 10, height = 4, dpi = 300)
+
+
+# Time series species occurence relative occurence to
+# occurences / tot occurences wihtin order
+p3 <- df_rel_occ %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  ggplot(aes(x = year, y = rel_occ)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  scale_y_continuous(limits = c(0, 0.02)) +
+  scale_x_continuous(breaks = seq(2006, 2018, 2)) +
+  theme_bw(base_size = 12) +
+  theme(strip.background = element_blank(), strip.text = element_blank()) +
+  labs(y = "relative frequency") +
+  facet_wrap(~scientificName)
+p3
+
+ggsave(file.path(out_path, "spieces_rel_frequency.png"), p3,
+       width = 10, height = 4, dpi = 300)
+```
+
+
+```{r}
+species_plot_grid <- plot_grid(
+  p1 +
+    labs(title = "", x = "", y = ""),
+  p2 +
+    labs(title = "", x = "", y = ""),
+  p3 +
+    labs(title = "", x = "", y = ""),
+  labels = c("A.", "B.", "C."),
+  label_size = 10,
+  ncol = 1,
+  nrow = 3
+)
+species_plot_grid
+
+ggsave(file.path(out_path, "spieces_plot_grid.png"), species_plot_grid,
+       width = 10, height = 8, dpi = 300)
+```
+
+
+```{r}
+# species plots summarised in a facet_grid plot
+df_plot <- dplyr::bind_rows(
+  spec_occ_ts_abv$data %>%
+    dplyr::select(year, scientificName, occurences = diversity_val),
+  spec_occ_ts_cube$data %>%
+    dplyr::select(year, scientificName, occurences = diversity_val),
+  df_rel_occ %>%
+    dplyr::select(year, scientificName, occurences = rel_occ),
+  .id = "id"
+) %>%
+  dplyr::filter(scientificName %in% spec_vec) %>%
+  dplyr::mutate(scientificName = as.factor(scientificName)) %>%
+  dplyr::left_join(data.frame(id = as.character(c(1:3)),
+                              dataset = c("ABV", "unstr.", "unstr. freq.")),
+                   by = "id")
+
+p_grid <- ggplot(df_plot, aes(x = year, y = occurences)) +
+  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  theme_bw(base_size = 12) +
+  facet_grid(dataset ~ scientificName,
+             scales = "free_y") +
+  theme(strip.background = element_blank())
+p_grid
+
+ggsave(file.path(out_path, "spieces_facet_grid.png"), p_grid,
+  width = 10, height = 8, dpi = 300
+)
 ```
