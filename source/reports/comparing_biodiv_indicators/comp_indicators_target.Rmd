@@ -901,7 +901,7 @@ ggsave(file.path(out_path, "spieces_rel_frequency.png"), p3,
        width = 10, height = 4, dpi = 300)
 ```
 
-```{r}
+```{r, fig.height=10}
 # species plots summarised in a facet_grid plot
 df_plot <- dplyr::bind_rows(
   spec_occ_ts_abv$data %>%
