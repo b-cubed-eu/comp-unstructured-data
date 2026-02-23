@@ -357,16 +357,27 @@ proc_cube_unstr <- read_branch(
 The estimated species richness (Hill0) corrects for survey effort. 
 
 ### Hill0 - estimated species richness abv
+
 ```{r}
-# to be included in the target workflow
-# hill0_ts_abv <- b3gbi::hill0_ts(data = proc_cube_abv,
-#                                 coverage = 0.95,
-#                                 cutoff_length = 5,
-#                                 ci_type = "none")
+if (!file.exists(file.path(interim_path, "hill0_ts_abv.RDS"))) {
+  hill0_ts_abv <- b3gbi::hill0_ts(
+    data = proc_cube_abv,
+    coverage = 0.95,
+    cutoff_length = 5,
+    ci_type = "none"
+  )
 
-#saveRDS(hill0_ts_abv, file = file.path(interim_path, "hill0_ts_abv.RDS"))
-hill0_ts_abv <- readRDS(file = file.path(interim_path, "hill0_ts_abv.RDS"))
+  saveRDS(hill0_ts_abv, file = file.path(interim_path, "hill0_ts_abv.RDS"))
+} else {
+  hill0_ts_abv <- readRDS(file = file.path(interim_path, "hill0_ts_abv.RDS"))
+}
 
+# Hack to circumvent bug
+hill0_ts_abv_nolimits <- hill0_ts_abv$data %>%
+  dplyr::select(-c("ll", "ul"))
+hill0_ts_abv$data <- hill0_ts_abv_nolimits
+
+# Visualise
 p1 <- plot(hill0_ts_abv)
 p1 <- p1 + labs(title = paste0(p1$labels$title, " - ABV")) +
   theme_bw(base_size = 12)
@@ -376,14 +387,27 @@ p1
 ### Hill0 - estimated species richness unstructered data
 
 ```{r}
-# hill0_ts_unstr <- b3gbi::hill0_ts(data = proc_cube_unstr,
-#                                 coverage = 0.95,
-#                                 cutoff_length = 5,
-#                                 ci_type = "none")
+if (!file.exists(file.path(interim_path, "hill0_ts_unstr.RDS"))) {
+  hill0_ts_unstr <- b3gbi::hill0_ts(
+    data = proc_cube_unstr,
+    coverage = 0.95,
+    cutoff_length = 5,
+    ci_type = "none"
+  )
 
-#saveRDS(hill0_ts_unstr, file = file.path(interim_path, "hill0_ts_unstr.RDS"))
-hill0_ts_unstr <- readRDS(file = file.path(interim_path, "hill0_ts_unstr.RDS"))
+  saveRDS(hill0_ts_unstr, file = file.path(interim_path, "hill0_ts_unstr.RDS"))
+} else {
+  hill0_ts_unstr <- readRDS(
+    file = file.path(interim_path, "hill0_ts_unstr.RDS")
+  )
+}
 
+# Hack to circumvent bug
+hill0_ts_unstr_nolimits <- hill0_ts_unstr$data %>%
+  dplyr::select(-c("ll", "ul"))
+hill0_ts_unstr$data <- hill0_ts_unstr_nolimits
+
+# Visualise
 p2 <- plot(hill0_ts_unstr)
 p2 <- p2 + labs(title = paste0(p2$labels$title, " - Cube")) +
   theme_bw(base_size = 12)
@@ -395,7 +419,7 @@ p2
 p_panels <- plot_grid(
   p1 +
     scale_y_continuous(limits = c(0, 220)) +
-    labs(title = "", x = "") +
+    labs(title = "", x = "", y = "Species richness") +
     theme_bw(base_size = 12),
   p2 +
     scale_y_continuous(limits = c(0, 220)) +
@@ -415,15 +439,16 @@ ggsave(
 )
 ```
 
-
 Plots combined in one plot with facet_wrap
 
 ```{r}
-dfplot_hill0 <- dplyr::bind_rows(list(obs_richness_ts_abv$data,
-                                      obs_richness_ts_cube$data,
-                                      hill0_ts_abv$data,
-                                      hill0_ts_unstr$data),
-                                 .id = "id") %>%
+dfplot_hill0 <- dplyr::bind_rows(
+  list(obs_richness_ts_abv$data,
+       obs_richness_ts_cube$data,
+       hill0_ts_abv$data,
+       hill0_ts_unstr$data),
+  .id = "id"
+) %>%
   dplyr::left_join(
     data.frame(id = as.character(c(1:4)),
                type = factor(c(rep("obs", 2), rep("est", 2)),  c("obs", "est")),
@@ -444,7 +469,9 @@ p_hill0 <- dfplot_hill0 %>%
   facet_wrap(~type)
 
 p_hill0
+```
 
+```{r}
 # Save
 ggsave(
   file.path(out_path, "hill0_est_richness_ts.png"),
@@ -473,8 +500,12 @@ We chose three species to compare the indicators between the two data sets:
 spec_vec <- c("Cettia cetti", "Passer montanus", "Luscinia megarhynchos")
 
 # Load species order list
-# source(here::here("source", "R", "get_order.R")
-order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
+if (!file.exists(file.path(interim_path, "order_list.RDS"))) {
+  source(here::here("source", "R", "get_order.R"))
+  order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
+} else {
+  order_list <- readRDS(file = file.path(interim_path, "order_list.RDS"))
+}
 
 # Occurence map abv
 spec_occ_map_abv <- read_branch(
@@ -573,7 +604,6 @@ df_rel_occ <- purrr::map_dfr(
 )
 ```
 
-
 ## Cetti's Warbler
 
 ```{r}
@@ -608,8 +638,8 @@ p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 p3 <- df_rel_occ %>%
   dplyr::filter(scientificName == spec) %>%
   ggplot(aes(x = year, y = rel_occ)) +
-  geom_point() +
   geom_smooth(se = FALSE) +
+  geom_point(colour = "darkorange", size = 2) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
   labs(y = "relative occurence",
@@ -618,7 +648,10 @@ p3
 
 # Save
 ggsave(
-  file.path(out_path, paste0(spec, "_rel_occ_ts.png")),
+  file.path(
+    out_path,
+    paste0("rel_occ_ts_", tolower(gsub("\\s", "_", spec)), ".png")
+  ),
   p3,
   width = 10, height = 4, dpi = 300
 )
@@ -685,8 +718,9 @@ p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
 p3 <- df_rel_occ %>%
   dplyr::filter(scientificName == spec) %>%
-  ggplot(aes(x = year, y = rel_occ)) + geom_point() +
+  ggplot(aes(x = year, y = rel_occ)) +
   geom_smooth(se = FALSE) +
+  geom_point(colour = "darkorange", size = 2) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
   labs(y = "relative occurences")
@@ -694,7 +728,10 @@ p3
 
 # Save
 ggsave(
-  file.path(out_path, paste0(spec, "_rel_occ_ts.png")),
+  file.path(
+    out_path,
+    paste0("rel_occ_ts_", tolower(gsub("\\s", "_", spec)), ".png")
+  ),
   p3,
   width = 10, height = 4, dpi = 300
 )
@@ -759,8 +796,9 @@ p2 + labs(title = paste0(p2$labels$title, " - Cube"))
 
 p3 <- df_rel_occ %>%
   dplyr::filter(scientificName == spec) %>%
-  ggplot(aes(x = year, y = rel_occ)) + geom_point() +
+  ggplot(aes(x = year, y = rel_occ)) +
   geom_smooth(se = FALSE) +
+  geom_point(colour = "darkorange", size = 2) +
   theme_bw(base_size = 12) +
   scale_y_continuous(limits = c(0, 0.02)) +
   labs(y = "relative occurence")
@@ -768,7 +806,10 @@ p3
 
 # Save
 ggsave(
-  file.path(out_path, paste0(spec, "_rel_occ_ts.png")),
+  file.path(
+    out_path,
+    paste0("rel_occ_ts_", tolower(gsub("\\s", "_", spec)), ".png")
+  ),
   p3,
   width = 10, height = 4, dpi = 300
 )
@@ -810,17 +851,18 @@ p1 <- spec_occ_ts_abv$data %>%
   dplyr::filter(scientificName %in% spec_vec) %>%
   dplyr::mutate(scientificName = as.factor(scientificName)) %>%
   ggplot(aes(x = year, y = diversity_val)) +
-  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  geom_smooth(se = FALSE, span = 2) +
+  geom_point(colour = "darkorange", size = 2) +
   scale_y_continuous(limits = c(0, 150)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
-  labs(y = "occurences - ABV",
+  labs(y = "Occurences (ABV)",
        x = "") +
   theme_bw(base_size = 12) +
   theme(strip.background = element_blank()) +
   facet_wrap(~scientificName)
 p1
 
-ggsave(file.path(out_path, "species_occ_ABV.png"), p1,
+ggsave(file.path(out_path, "species_occ_abv.png"), p1,
        width = 10, height = 4, dpi = 300)
 
 # Time series species occurence unstructered data
@@ -828,14 +870,15 @@ p2 <- spec_occ_ts_cube$data %>%
   dplyr::filter(scientificName %in% spec_vec) %>%
   dplyr::mutate(scientificName = as.factor(scientificName)) %>%
   ggplot(aes(x = year, y = diversity_val)) +
-  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  geom_smooth(se = FALSE, span = 2) +
+  geom_point(colour = "darkorange", size = 2) +
   scale_y_continuous(limits = c(0, 11800)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
   theme_bw(base_size = 12) +
   theme(strip.background = element_blank(),
         strip.text = element_blank()) +
   labs(x = "",
-       y = "occurences - unstructered") +
+       y = "Occurences (unstructered)") +
   facet_wrap(~scientificName)
 p2
 
@@ -849,12 +892,13 @@ p3 <- df_rel_occ %>%
   dplyr::filter(scientificName %in% spec_vec) %>%
   dplyr::mutate(scientificName = as.factor(scientificName)) %>%
   ggplot(aes(x = year, y = rel_occ)) +
-  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  geom_smooth(se = FALSE, span = 2) +
+  geom_point(colour = "darkorange", size = 2) +
   scale_y_continuous(limits = c(0, 0.02)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
   theme_bw(base_size = 12) +
   theme(strip.background = element_blank(), strip.text = element_blank()) +
-  labs(y = "relative frequency") +
+  labs(y = "Relative frequency (unstructured)") +
   facet_wrap(~scientificName)
 p3
 
@@ -901,7 +945,8 @@ df_plot <- dplyr::bind_rows(
                    by = "id")
 
 p_grid <- ggplot(df_plot, aes(x = year, y = occurences)) +
-  geom_point() + geom_smooth(se = FALSE, span = 2) +
+  geom_smooth(se = FALSE, span = 2) +
+  geom_point(colour = "darkorange", size = 2) +
   theme_bw(base_size = 12) +
   facet_grid(dataset ~ scientificName,
              scales = "free_y") +
