@@ -657,7 +657,6 @@ ggsave(
 )
 ```
 
-
 ### Species range
 
 #### Map
@@ -842,7 +841,6 @@ p <- plot(spec_range_ts_cube, species = spec) +
 p
 ```
 
-
 # Species specific indicators - figures of three species united
 
 ```{r}
@@ -851,7 +849,7 @@ p1 <- spec_occ_ts_abv$data %>%
   dplyr::filter(scientificName %in% spec_vec) %>%
   dplyr::mutate(scientificName = as.factor(scientificName)) %>%
   ggplot(aes(x = year, y = diversity_val)) +
-  geom_smooth(se = FALSE, span = 2) +
+  geom_smooth(se = FALSE, span = 2, colour = alpha("blue", 0.5)) +
   geom_point(colour = "darkorange", size = 2) +
   scale_y_continuous(limits = c(0, 150)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
@@ -860,7 +858,6 @@ p1 <- spec_occ_ts_abv$data %>%
   theme_bw(base_size = 12) +
   theme(strip.background = element_blank()) +
   facet_wrap(~scientificName)
-p1
 
 ggsave(file.path(out_path, "species_occ_abv.png"), p1,
        width = 10, height = 4, dpi = 300)
@@ -870,7 +867,7 @@ p2 <- spec_occ_ts_cube$data %>%
   dplyr::filter(scientificName %in% spec_vec) %>%
   dplyr::mutate(scientificName = as.factor(scientificName)) %>%
   ggplot(aes(x = year, y = diversity_val)) +
-  geom_smooth(se = FALSE, span = 2) +
+  geom_smooth(se = FALSE, span = 2, colour = alpha("blue", 0.5)) +
   geom_point(colour = "darkorange", size = 2) +
   scale_y_continuous(limits = c(0, 11800)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
@@ -880,7 +877,6 @@ p2 <- spec_occ_ts_cube$data %>%
   labs(x = "",
        y = "Occurences (unstructered)") +
   facet_wrap(~scientificName)
-p2
 
 ggsave(file.path(out_path, "species_occurences_cube.png"), p2,
        width = 10, height = 4, dpi = 300)
@@ -892,7 +888,7 @@ p3 <- df_rel_occ %>%
   dplyr::filter(scientificName %in% spec_vec) %>%
   dplyr::mutate(scientificName = as.factor(scientificName)) %>%
   ggplot(aes(x = year, y = rel_occ)) +
-  geom_smooth(se = FALSE, span = 2) +
+  geom_smooth(se = FALSE, span = 2, colour = alpha("blue", 0.5)) +
   geom_point(colour = "darkorange", size = 2) +
   scale_y_continuous(limits = c(0, 0.02)) +
   scale_x_continuous(breaks = seq(2006, 2018, 2)) +
@@ -900,32 +896,10 @@ p3 <- df_rel_occ %>%
   theme(strip.background = element_blank(), strip.text = element_blank()) +
   labs(y = "Relative frequency (unstructured)") +
   facet_wrap(~scientificName)
-p3
 
 ggsave(file.path(out_path, "spieces_rel_frequency.png"), p3,
        width = 10, height = 4, dpi = 300)
 ```
-
-
-```{r}
-species_plot_grid <- plot_grid(
-  p1 +
-    labs(title = "", x = "", y = ""),
-  p2 +
-    labs(title = "", x = "", y = ""),
-  p3 +
-    labs(title = "", x = "", y = ""),
-  labels = c("A.", "B.", "C."),
-  label_size = 10,
-  ncol = 1,
-  nrow = 3
-)
-species_plot_grid
-
-ggsave(file.path(out_path, "spieces_plot_grid.png"), species_plot_grid,
-       width = 10, height = 8, dpi = 300)
-```
-
 
 ```{r}
 # species plots summarised in a facet_grid plot
@@ -944,16 +918,37 @@ df_plot <- dplyr::bind_rows(
                               dataset = c("ABV", "unstr.", "unstr. freq.")),
                    by = "id")
 
-p_grid <- ggplot(df_plot, aes(x = year, y = occurences)) +
-  geom_smooth(se = FALSE, span = 2) +
-  geom_point(colour = "darkorange", size = 2) +
-  theme_bw(base_size = 12) +
-  facet_grid(dataset ~ scientificName,
-             scales = "free_y") +
-  theme(strip.background = element_blank())
-p_grid
+# custom labels
+dataset_labs <- c(
+  "ABV" = "Occurences (ABV)",
+  "unstr." = "Occurences (unstructured)",
+  "unstr. freq." = "Relative frequency (unstructured)"
+)
 
+p_grid <- ggplot(df_plot, aes(x = year, y = occurences)) +
+  geom_smooth(se = FALSE, span = 2, colour = alpha("blue", 0.5)) +
+  geom_point(colour = "darkorange", size = 2) +
+  scale_x_continuous(breaks = seq(2006, 2018, 2)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(x = "", y = NULL) +   # remove global y label
+  theme_bw(base_size = 12) +
+  facet_grid(
+    dataset ~ scientificName,
+    scales = "free_y",
+    switch = "y",                         # move strip to left
+    labeller = labeller(dataset = dataset_labs)
+  ) +
+  theme(
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text.x = element_text(face = "italic"),
+    strip.text = element_text(size = 12)
+  )
+p_grid
+```
+
+```{r}
 ggsave(file.path(out_path, "spieces_facet_grid.png"), p_grid,
-  width = 10, height = 8, dpi = 300
+  width = 10, height = 10, dpi = 300
 )
 ```
