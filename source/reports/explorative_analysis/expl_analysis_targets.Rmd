@@ -858,10 +858,32 @@ shared_legend <- get_legend(
 # 2. Panels without legends
 p_panels <- plot_grid(
   p0 +
+    annotate(
+      "text",
+      x = 0,
+      y = Inf,
+      label = paste0(
+        "mean = ",
+        round(mean(trend_comp_0_cyclus$correlation, na.rm = TRUE), 2)
+      ),
+      vjust = 1.5,
+      size = 4
+    ) +
     coord_cartesian(xlim = c(-1, 1), ylim = c(0, 30)) +
     theme(legend.position = "none",
           plot.margin = margin(t = 10, r = 10, b = 10, l = 20)),
   p2 +
+    annotate(
+      "text",
+      x = 0,
+      y = Inf,
+      label = paste0(
+        "mean = ",
+        round(mean(trend_comp_2_cyclus$correlation, na.rm = TRUE), 2)
+      ),
+      vjust = 1.5,
+      size = 4
+    ) +
     coord_cartesian(xlim = c(-1, 1), ylim = c(0, 30)) +
     theme(legend.position = "none",
           axis.title.y = element_text(colour = alpha("black", 0)),
