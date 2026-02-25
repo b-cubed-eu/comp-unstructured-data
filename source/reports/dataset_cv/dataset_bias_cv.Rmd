@@ -385,8 +385,8 @@ p_prevalence <- prevalence_df %>%
               colour = "darkgrey", linetype = "dashed") +
   geom_point(aes(shape = rarity), size = 2) +
   coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
-  labs(x = "Proportion of occupied grid cells\nin ABV dataset",
-       y = "Proportion of occupied grid cells\nin cube dataset",
+  labs(x = "Proportion of occupied grid cells \nin structured data",
+       y = "Proportion of occupied grid cells \nin unstructured data",
        shape = "Rarity") +
   theme_bw(base_size = 12)
 p_prevalence

@@ -354,8 +354,8 @@ p_range_comp_0 <- tar_read(range_comp_0, store = store) |>
            label.y = 0.05,
            method = "pearson") +
   coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
-  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
-       y = "Percentage of cube squares occupied\nby species in cube dataset") +
+  labs(x = "Proportion of occupied grid cells \nin structured data",
+       y = "Proportion of occupied grid cells \nin unstructured data") +
   guides(
     color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
   ) +
@@ -377,8 +377,8 @@ p_range_comp_1 <- tar_read(range_comp_1, store = store) |>
            label.y = 0.05,
            method = "pearson") +
   coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
-  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
-       y = "Percentage of cube squares occupied\nby species in cube dataset") +
+  labs(x = "Proportion of occupied grid cells \nin structured data",
+       y = "Proportion of occupied grid cells \nin unstructured data") +
   guides(
     color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
   ) +
@@ -401,8 +401,8 @@ p_range_comp_2 <- tar_read(range_comp_2, store = store) |>
            label.y = 0.05,
            method = "pearson") +
   coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
-  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
-       y = "Percentage of cube squares occupied\nby species in cube dataset") +
+  labs(x = "Proportion of occupied grid cells \nin structured data",
+       y = "Proportion of occupied grid cells \nin unstructured data") +
   guides(
     color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
   ) +
