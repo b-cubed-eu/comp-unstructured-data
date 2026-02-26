@@ -14,7 +14,12 @@ editor_options:
 
 ```{r setup, include = FALSE}
 library(knitr)
-opts_chunk$set(collapse = TRUE, comment = "#>")
+opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE
+)
 
 library(targets)
 library(ggplot2)
@@ -24,6 +29,7 @@ library(ggforce)
 library(crosstalk)
 library(DT)
 library(plotly)
+library(cowplot)
 
 # Folder to store figures
 out_path <- here::here("output", "data_exploration")
@@ -41,10 +47,12 @@ library(RColorBrewer)
 my_colors <- brewer.pal(5, "Dark2")
 names(my_colors) <- c("Very rare", "Rare", "Common",
                       "Very common", "Extremely common")
-col_scale <- scale_color_manual(name = "Category",
-                                values = my_colors)
-fill_scale <- scale_fill_manual(name = "Category",
-                                values = my_colors)
+col_scale <- scale_color_manual(
+  name = "Category", values = my_colors, drop = FALSE
+)
+fill_scale <- scale_fill_manual(
+  name = "Category", values = my_colors, drop = FALSE
+)
 ```
 
 In this document we explore the ABV data set, the cube data generated for birds in Flanders and if there is any indication that the occurrences in both datasets show similar ranges and trends. We also explore if certain filters can help improve performance of maps and trends based on the cube data when comparing these to the structured ABV data.
@@ -153,7 +161,6 @@ figb
 ```
 
 ```{r}
-library(cowplot)
 # ----- Combine species-level plots side by side -----
 bottom_row <- plot_grid(
   figa, figb,
@@ -335,83 +342,130 @@ ggsave(file.path(out_path, "cube_coord_uncertainty.png"),
 
 ### No filter
 
-```{r}
-tar_read(range_comp_0, store = store) |>
+```{r, warning=FALSE}
+p_range_comp_0 <- tar_read(range_comp_0, store = store) |>
   filter(id_spat_res == "1km") |>
-  ggplot(aes(x = percentage_abv_data,
-             y = percentage_birdflanders,
-             color = category)) +
-  geom_point() +
+  ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
+  geom_point(aes(colour = category), show.legend = TRUE) +
+  geom_abline(linetype = "dashed") +
   col_scale +
   stat_cor(mapping = aes(color = NULL),
-           label.x.npc = "centre",
-           label.y.npc = "bottom",
+           label.x = 0.6,
+           label.y = 0.05,
            method = "pearson") +
-  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
-       y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "Proportion of occupied grid cells \nin structured data",
+       y = "Proportion of occupied grid cells \nin unstructured data") +
+  guides(
+    color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
+  ) +
   theme_bw(base_size = 12)
+p_range_comp_0
 ```
 
 ### Filter 1
 
-```{r}
-tar_read(range_comp_1, store = store) |>
+```{r, warning=FALSE}
+p_range_comp_1 <- tar_read(range_comp_1, store = store) |>
   filter(id_spat_res == "1km") |>
-  ggplot(aes(x = percentage_abv_data,
-             y = percentage_birdflanders,
-             color = category)) +
-  geom_point() +
+  ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
+  geom_point(aes(colour = category), show.legend = TRUE) +
+  geom_abline(linetype = "dashed") +
   col_scale +
   stat_cor(mapping = aes(color = NULL),
-           label.x.npc = "centre",
-           label.y.npc = "bottom",
+           label.x = 0.6,
+           label.y = 0.05,
            method = "pearson") +
-  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
-       y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "Proportion of occupied grid cells \nin structured data",
+       y = "Proportion of occupied grid cells \nin unstructured data") +
+  guides(
+    color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
+  ) +
   theme_bw(base_size = 12)
+p_range_comp_1
 ```
 
 ### Filter 2
 
-```{r}
-tar_read(range_comp_2, store = store) |>
+```{r, warning=FALSE}
+p_range_comp_2 <- tar_read(range_comp_2, store = store) |>
   filter(id_spat_res == "1km") |>
   filter(id_filter_per == "year") |>
-  ggplot(aes(x = percentage_abv_data,
-             y = percentage_birdflanders,
-             color = category)) +
-  geom_point() +
+  ggplot(aes(x = percentage_abv_data, y = percentage_birdflanders)) +
+  geom_point(aes(colour = category), show.legend = TRUE) +
+  geom_abline(linetype = "dashed") +
   col_scale +
   stat_cor(mapping = aes(color = NULL),
-           label.x.npc = "centre",
-           label.y.npc = "bottom",
+           label.x = 0.6,
+           label.y = 0.05,
            method = "pearson") +
-  labs(x = "Percentage of ABV squares occupied\nby species in ABV dataset",
-       y = "Percentage of cube squares occupied\nby species in cube dataset") +
-  guides(color = guide_legend(override.aes = aes(label = ""))) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "Proportion of occupied grid cells \nin structured data",
+       y = "Proportion of occupied grid cells \nin unstructured data") +
+  guides(
+    color = guide_legend(title = "Rarity", override.aes = aes(label = ""))
+  ) +
   theme_bw(base_size = 12)
+p_range_comp_2
 ```
 
 ##
 
 Given the limitations of the ABV monitoring setup we can't compare exact patterns in biodiversity, for this we refer to the South-African analysis.
 
+```{r, echo=FALSE}
+# 1. Extract legend (force top layout)
+shared_legend <- get_legend(
+  p_range_comp_0 +
+    theme(legend.position = "top")
+)
+
+# 2. Panels without legends
+p_panels <- plot_grid(
+  p_range_comp_0 +
+    theme(legend.position = "none"),
+  p_range_comp_2 +
+    theme(legend.position = "none",
+          axis.title.y = element_text(colour = alpha("black", 0))),
+  labels = c("A.", "B."),
+  label_size = 20,
+  ncol = 2
+)
+
+# 3. Stack panels + legend vertically
+p_range_comparison <- plot_grid(
+  shared_legend,
+  p_panels,
+  ncol = 1,
+  rel_heights = c(0.12, 1)
+)
+
+# Save
+ggsave(
+  file.path(out_path, "range_comparison.png"),
+  p_range_comparison,
+  width = 10, height = 6, dpi = 300
+)
+```
+
 ## Trend comparison {.tabset}
 
 ### No filter
 
-```{r}
+```{r, warning=FALSE}
 p0 <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p0
@@ -419,16 +473,19 @@ p0
 
 ### Filter 1
 
-```{r}
+```{r, warning=FALSE}
 p1 <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p1
@@ -436,16 +493,19 @@ p1
 
 ### Filter 2
 
-```{r}
+```{r, warning=FALSE}
 p2 <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p2
@@ -453,17 +513,20 @@ p2
 
 ### Filter 3
 
-```{r}
+```{r, warning=FALSE}
 p3 <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year",
          id_filter_per == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p3
@@ -471,18 +534,21 @@ p3
 
 ### Filter 4
 
-```{r}
+```{r, warning=FALSE}
 p4 <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "year",
          id_filter_per == "year",
          id_filter_per2 == "year") |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p4
@@ -491,33 +557,38 @@ p4
 ##
 
 ```{r, include=FALSE}
-library(cowplot)
+middle_row <- plot_grid(
+  p1 + theme(legend.position = "none"),
+  p2 + theme(legend.position = "none"),
+  labels = c("B", "C"),
+  label_size = 12
+)
 
-middle_row <- plot_grid(p1 + theme(legend.position = "none"),
-                        p2 + theme(legend.position = "none"),
-                        labels = c("B", "C"),
-                        label_size = 12)
+bottom_row <- plot_grid(
+  p3 + theme(legend.position = "none"),
+  p4 + theme(legend.position = "none"),
+  labels = c("D", "E"),
+  label_size = 12
+)
 
-bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
-                        p4 + theme(legend.position = "none"),
-                        labels = c("D", "E"),
-                        label_size = 12)
-
-plot_grid(p0,
-          middle_row,
-          bottom_row,
-          nrow = 3,
-          labels = c("A", "", ""),
-          label_size = 12)
+plot_grid(
+  p0,
+  middle_row,
+  bottom_row,
+  nrow = 3,
+  labels = c("A", "", ""),
+  label_size = 12
+)
 ```
 
 ## Trend comparison with data aggregated per cycle {.tabset}
 
 ```{r}
-species_list_cor <- c("Motacilla flava", "Sylvia communis", "Motacilla alba",
-                      "Cyanistes caeruleus", "Passer domesticus",
-                      "Prunella modularis", "Parus montanus", "Chloris chloris",
-                      "Anthus trivialis")
+species_list_cor <- c(
+  "Motacilla flava", "Sylvia communis", "Motacilla alba", "Cyanistes caeruleus",
+  "Passer domesticus", "Prunella modularis", "Parus montanus",
+  "Chloris chloris", "Anthus trivialis"
+)
 ```
 
 We include the trends of nine species:
@@ -528,18 +599,21 @@ We include the trends of nine species:
 
 ### No filter
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_0_cyclus <- tar_read(trend_comp_0, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
 
 p0 <- trend_comp_0_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p0
@@ -553,7 +627,6 @@ shared_filter0_cyclus <- SharedData$new(
     group_by(species, id_dataset, cyclus) |>
     summarise(n = sum(n))
 )
-
 
 bscols(
   widths = c(3, 9),
@@ -570,18 +643,21 @@ bscols(
 
 ### Filter 1
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_1_cyclus <- tar_read(trend_comp_1, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
 
 p1 <- trend_comp_1_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p1
@@ -595,7 +671,6 @@ shared_filter1_cyclus <- SharedData$new(
     group_by(species, id_dataset, cyclus) |>
     summarise(n = sum(n))
 )
-
 
 bscols(
   widths = c(3, 9),
@@ -613,18 +688,21 @@ bscols(
 
 ### Filter 2
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_2_cyclus <- tar_read(trend_comp_2, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus")
 
 p2 <- trend_comp_2_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p2
@@ -639,7 +717,6 @@ shared_filter2_cyclus <- SharedData$new(
     group_by(species, id_dataset, cyclus) |>
     summarise(n = sum(n))
 )
-
 
 bscols(
   widths = c(3, 9),
@@ -656,7 +733,7 @@ bscols(
 
 ### Filter 3
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_3_cyclus <- tar_read(trend_comp_3, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
@@ -664,22 +741,26 @@ trend_comp_3_cyclus <- tar_read(trend_comp_3, store = store) |>
 
 p3 <- trend_comp_3_cyclus |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p3
 ```
 
 ```{r}
-shared_filter3_cyclus <- SharedData$new(tar_read(filter3, store = store) |>
-                                          filter(species %in% species_list_cor,
-                                                 id_spat_res == "1km",
-                                                 id_filter_per == "cyclus"))
-
+shared_filter3_cyclus <- SharedData$new(
+  tar_read(filter3, store = store) |>
+    filter(species %in% species_list_cor,
+           id_spat_res == "1km",
+           id_filter_per == "cyclus")
+)
 
 bscols(
   widths = c(3, 9),
@@ -696,7 +777,7 @@ bscols(
 
 ### Filter 4
 
-```{r}
+```{r, warning=FALSE}
 trend_comp_4_cyclus <- tar_read(trend_comp_4, store = store) |>
   filter(id_spat_res == "1km",
          time_period == "cyclus",
@@ -705,23 +786,27 @@ trend_comp_4_cyclus <- tar_read(trend_comp_4, store = store) |>
 
 p4 <- trend_comp_4_cyclus  |>
   ggplot(aes(x = correlation, fill = category)) +
-  geom_histogram() +
-  xlim(-1, 1) +
+  geom_histogram(show.legend = TRUE, bins = 20) +
+  coord_cartesian(xlim = c(-1, 1)) +
   fill_scale +
   labs(x = "Correlation",
        y = "Number of species") +
+  guides(
+    fill = guide_legend(title = "Rarity")
+  ) +
   theme_bw(base_size = 12)
 
 p4
 ```
 
 ```{r}
-shared_filter4_cyclus <- SharedData$new(tar_read(filter4, store = store) |>
-                                          filter(species %in% species_list_cor,
-                                                 id_spat_res == "1km",
-                                                 id_filter_per == "cyclus",
-                                                 id_filter_per2 == "cyclus"))
-
+shared_filter4_cyclus <- SharedData$new(
+  tar_read(filter4, store = store) |>
+    filter(species %in% species_list_cor,
+           id_spat_res == "1km",
+           id_filter_per == "cyclus",
+           id_filter_per2 == "cyclus")
+)
 
 bscols(
   widths = c(3, 9),
@@ -739,22 +824,87 @@ bscols(
 ##
 
 ```{r, include=FALSE}
-library(cowplot)
+middle_row <- plot_grid(
+  p1 + theme(legend.position = "none"),
+  p2 + theme(legend.position = "none"),
+  labels = c("B", "C"),
+  label_size = 12
+)
 
-middle_row <- plot_grid(p1 + theme(legend.position = "none"),
-                        p2 + theme(legend.position = "none"),
-                        labels = c("B", "C"),
-                        label_size = 12)
+bottom_row <- plot_grid(
+  p3 + theme(legend.position = "none"),
+  p4 + theme(legend.position = "none"),
+  labels = c("D", "E"),
+  label_size = 12
+)
 
-bottom_row <- plot_grid(p3 + theme(legend.position = "none"),
-                        p4 + theme(legend.position = "none"),
-                        labels = c("D", "E"),
-                        label_size = 12)
+plot_grid(
+  p0,
+  middle_row,
+  bottom_row,
+  nrow = 3,
+  labels = c("A", "", ""),
+  label_size = 12
+)
+```
 
-plot_grid(p0,
-          middle_row,
-          bottom_row,
-          nrow = 3,
-          labels = c("A", "", ""),
-          label_size = 12)
+```{r, echo=FALSE}
+# 1. Extract legend (force top layout)
+shared_legend <- get_legend(
+  p0 +
+    theme(legend.position = "top")
+)
+
+# 2. Panels without legends
+p_panels <- plot_grid(
+  p0 +
+    annotate(
+      "text",
+      x = 0,
+      y = Inf,
+      label = paste0(
+        "mean = ",
+        round(mean(trend_comp_0_cyclus$correlation, na.rm = TRUE), 2)
+      ),
+      vjust = 1.5,
+      size = 4
+    ) +
+    coord_cartesian(xlim = c(-1, 1), ylim = c(0, 30)) +
+    theme(legend.position = "none",
+          plot.margin = margin(t = 10, r = 10, b = 10, l = 20)),
+  p2 +
+    annotate(
+      "text",
+      x = 0,
+      y = Inf,
+      label = paste0(
+        "mean = ",
+        round(mean(trend_comp_2_cyclus$correlation, na.rm = TRUE), 2)
+      ),
+      vjust = 1.5,
+      size = 4
+    ) +
+    coord_cartesian(xlim = c(-1, 1), ylim = c(0, 30)) +
+    theme(legend.position = "none",
+          axis.title.y = element_text(colour = alpha("black", 0)),
+          plot.margin = margin(t = 10, r = 10, b = 10, l = 20)),
+  labels = c("A.", "B."),
+  label_size = 20,
+  ncol = 2
+)
+
+# 3. Stack panels + legend vertically
+p_trend_comparison <- plot_grid(
+  shared_legend,
+  p_panels,
+  ncol = 1,
+  rel_heights = c(0.12, 1)
+)
+
+# Save
+ggsave(
+  file.path(out_path, "trend_comparison.png"),
+  p_trend_comparison,
+  width = 10, height = 6, dpi = 300
+)
 ```
