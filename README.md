@@ -1,6 +1,8 @@
 <!-- badges: start -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18782579.svg)](https://doi.org/10.5281/zenodo.18782579)
+[![Release](https://img.shields.io/github/release/b-cubed-eu/comp-unstructured-data.svg)](https://github.com/b-cubed-eu/comp-unstructured-data/releases)
 ![GitHub](https://img.shields.io/github/license/b-cubed-eu/comp-unstructured-data)
-[![repo status](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+[![repo status](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
 ![GitHub repo size](https://img.shields.io/github/repo-size/b-cubed-eu/comp-unstructured-data)
 [![funder](https://badgen.net/static/funder/European%20Union/f2a)](https://doi.org/10.3030/101059592)
 <!-- badges: end -->
