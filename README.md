@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18782579.svg)](https://doi.org/10.5281/zenodo.18782579)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18782578.svg)](https://doi.org/10.5281/zenodo.18782578)
 [![Release](https://img.shields.io/github/release/b-cubed-eu/comp-unstructured-data.svg)](https://github.com/b-cubed-eu/comp-unstructured-data/releases)
 ![GitHub](https://img.shields.io/github/license/b-cubed-eu/comp-unstructured-data)
 [![repo status](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
